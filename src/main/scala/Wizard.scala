@@ -2,7 +2,7 @@ object Wizard {
 
     class Wizard {
 
-    } //hallo :)
+    } // hello there, general kenobi
 
     def main(args: Array[String]): Unit = {
         println("Welcome to Wizard!")
