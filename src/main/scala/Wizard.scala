@@ -1,6 +1,6 @@
 object H {
 
-    class WizardOderSo {
+    class Wizard {
 
     }
 
