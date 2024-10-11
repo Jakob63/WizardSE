@@ -8,26 +8,27 @@ object Wizard {
         println("Welcome to Wizard!")
     }
 
+    val eol = sys.props("line.separator")
     def bar(cellWidth: Int = 4, cellNum: Int = 2) =
-        (("-" * cellWidth) * cellNum) + "-" + "\n"
+        (("-" * cellWidth) * cellNum) + "-" + eol
 
-    def bar2(cellWidth: Int = 14, cellNum: Int = 2) =
-        (("-" * cellWidth) * cellNum) + "-" + "\n"
+    def bar2(cellWidth: Int = 16, cellNum: Int = 2) =
+        (("-" * cellWidth) * cellNum) + "-" + eol
 
     def cells(cellWidth: Int = 7, cellNum: Int = 1) =
-        ("|" + " " * cellWidth) * cellNum + "|" + "\n"
+        ("|" + " " * cellWidth) * cellNum + "|" + eol
 
     def cells2() =
-        "|" + " game  " + "|" + "\n"
+        "|" + " game  " + "|" + eol
 
     def cells3() =
-        "|" + " trump " + "|" + "\n"
+        "|" + " trump " + "|" + eol
 
     def cells4() =
-        ("|" + "Set win" + "|" + " ") * 3 + "\n"
+        ("|" + "Set win" + "|" + "\t") * 3 + eol
 
     def cells5(cellWidth: Int = 7, cellNum: Int = 1) =
-        (("|" + " " * cellWidth) * cellNum + "|" + " ") * 3 + "\n"
+        (("|" + " " * cellWidth) * cellNum + "|" + "\t") * 3 + eol
 
 
     //def mesh =
