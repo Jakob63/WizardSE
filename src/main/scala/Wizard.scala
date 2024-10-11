@@ -17,13 +17,13 @@ object H {
         def cells(cellWidth: Int = 7, cellNum: Int = 1) =
             ("|" + " " * cellWidth) * cellNum + "|" + "\n"
 
-        def cells2(cellWidth: Int = 6, cellNum: Int = 1) =
+        def cells2() =
             "|" + " game  " + "|" + "\n"
 
-        def cells3(cellWidth: Int = 6, cellNum: Int = 1) =
+        def cells3() =
             "|" + " trump " + "|" + "\n"
 
-        def cells4(cellWidth: Int = 6, cellNum: Int = 1) =
+        def cells4() =
             ("|" + "Set win" + "|" + " ")*3 + "\n"
 
         def cells5(cellWidth: Int = 7, cellNum: Int = 1) =
