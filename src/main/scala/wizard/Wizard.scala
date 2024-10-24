@@ -1,3 +1,5 @@
+package wizard
+
 object Wizard {
 
     class Wizard {
