@@ -16,11 +16,11 @@ object Dealer {
     val shuffledCards = shuffleCards(allCards)
 
     // deal cards to players but in each round the number of cards is different and return the rest of the crads
-    def dealCards(players: Int, cards: List[Card]): (List[Card], List[Card]) = {
-        val numCards = cards.length / players
-        val (dealt, rest) = cards.splitAt(numCards * players)
-        (dealt, rest)
-    }
+//    def dealCards(players: Int, cards: List[Card]): (List[Card], List[Card]) = {
+//        val numCards = cards.length / players
+//        val (dealt, rest) = cards.splitAt(numCards * players)
+//        (dealt, rest)
+//    }
 
 
 

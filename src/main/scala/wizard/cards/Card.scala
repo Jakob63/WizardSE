@@ -8,7 +8,7 @@ enum Color:
 end Color
 
 enum Value(enumValue: String):
-    case Chester extends Value("N")
+    case Chester extends Value("Chester")
     case One extends Value("1")
     case Two extends Value("2")
     case Three extends Value("3")
@@ -22,7 +22,7 @@ enum Value(enumValue: String):
     case Eleven extends Value("11")
     case Twelve extends Value("12")
     case Thirteen extends Value("13")
-    case Wizard extends Value("Z")
+    case Wizard extends Value("Wizard")
 end Value
 
 
