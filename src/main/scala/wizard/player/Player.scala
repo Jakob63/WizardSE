@@ -1,18 +1,25 @@
 package wizard.player
 
-import wizard.cards.Card
+import wizard.cards.{Card, Hand}
 
 case class Player(name: String) {
-    // Liste an Karten die der Spieler auf der Hand hat
-    var hand: List[Card] = List()
-    // karte in konsole ausgeben
+    // Hand-Objekt zur Verwaltung der Karten des Spielers
+    var hand: Hand = Hand(List[Card]())
+    // Karte in Konsole ausgeben
     def showHand(): Unit = {
         println(s"$name's hand:")
-        if (hand.isEmpty) {
+        if (hand.cards.isEmpty) {
             println("No cards in hand.")
         } else {
-            hand.foreach(card => println(card.showcard()))
+            val cardLines = hand.cards.map(_.showcard().split("\n"))
+            for (i <- cardLines.head.indices) {
+                println(cardLines.map(_(i)).mkString(" "))
+            }
         }
+    }
+    def addHand(hand: Hand):Unit = {
+        this.hand = hand
+        this.hand
     }
     
 }

@@ -1,13 +1,17 @@
 package wizard.cards
 
 case class Hand(cards: List[Card]) {
+    // Methode zum Hinzufügen von Karten
+    def addCards(newCards: List[Card]): Hand = {
+        Hand(cards ++ newCards)
+    }
     // methode zum removen von Karten
     def removeCard(card: Card): Hand = {
         Hand(cards.filterNot(_ == card))
     }
     // methode zum suit checken
-    def hasColor(suit: Color): Boolean = {
-        cards.exists(_.color == suit)
+    def hasColor(color: Color): Boolean = {
+        cards.exists(_.color == color)
     }
     // methode zum value checken
     def hasValue(value: Value): Boolean = {
@@ -17,5 +21,5 @@ case class Hand(cards: List[Card]) {
     def hasTrumpColor(trump: Color): Boolean = {
         cards.exists(_.color == trump)
     }
-    
+
 }

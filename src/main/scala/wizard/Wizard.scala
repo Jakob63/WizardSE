@@ -1,13 +1,6 @@
 package wizard
 
 import wizard.cards.Dealer
-import wizard.cards.Value.Thirteen
-import wizard.cards.Value.One
-import wizard.cards.Value.WizardKarte
-import wizard.cards.Color.Green
-import wizard.cards.Color.Red
-import wizard.cards.Color.Blue
-import wizard.cards.Card
 import wizard.player.Player
 
 object Wizard {
@@ -18,19 +11,21 @@ object Wizard {
 
     def main(args: Array[String]): Unit = {
         println("Welcome to Wizard!")
-        val card1 = Card(WizardKarte, Green)
-        val card2 = Card(One, Red)
-        val card3 = Card(Thirteen, Blue)
-        println(card1.showcard())
-        println(card2.showcard())
-        println(card3.showcard())
-
-        val players = List(Player("Player1"), Player("Player2"), Player("Player3"))
-        val rest = Dealer.dealCards(3, players)
-        println("fertig ausgeteilt")
-        println("Trumcard:")
-        println(rest.head.showcard())
-        Player("Player1").showHand()
+        Dealer.shuffleCards()
+        println(Dealer.allCards)
+        val player = Player("Player1")
+        val player2 = Player("Player2")
+        val player3 = Player("Player3")
+        val players = List(player, player2, player3)
+        players.foreach { player =>
+            val hand = Dealer.dealCards(3)
+            player.addHand(hand)
+        }
+        println("Cards dealt to all players.")
+        players.foreach(_.showHand())
+        println("Trump card:")
+        // Eigentlich CurrentRound * PlayerCount müssen wir noch machen
+        Dealer.printCardAtIndex(3*3)
     }
 
     val eol = sys.props("line.separator")
