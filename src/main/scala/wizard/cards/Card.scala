@@ -1,14 +1,25 @@
 package wizard.cards
 
-enum Color:
+enum Color():
     case Red
     case Green
     case Blue
     case Yellow
 end Color
 
+def colorToAnsi(color: Color): String = color match {
+    case Color.Red => Console.RED
+    case Color.Green => Console.GREEN
+    case Color.Blue => Console.BLUE
+    case Color.Yellow => Console.YELLOW
+}
+
+
 enum Value(enumValue: String):
-    case Chester extends Value("Chester")
+    
+    def cardType(): String = enumValue
+    
+    case Chester extends Value("C")
     case One extends Value("1")
     case Two extends Value("2")
     case Three extends Value("3")
@@ -22,10 +33,36 @@ enum Value(enumValue: String):
     case Eleven extends Value("11")
     case Twelve extends Value("12")
     case Thirteen extends Value("13")
-    case Wizard extends Value("Wizard")
+    case WizardKarte extends Value("W")
 end Value
 
+def valueToAnsi(value: Value): String = value match {
+    case Value.Chester => Console.RESET
+    case Value.WizardKarte => Console.RESET
+    // dont change the console color for the other values
+    case _ => ""
+    
+}
 
 case class Card(value: Value, color: Color){
+    def showcard(): String = {
+        if(value == Value.Ten || value == Value.Eleven || value == Value.Twelve || value == Value.Thirteen){
+            s"┌─────────┐\n" +
+            s"│ ${colorToAnsi(color)}${valueToAnsi(value)}${value.cardType()}${Console.RESET}      │\n" +
+            s"│         │\n" + 
+            s"│         │\n" +
+            s"│         │\n" +
+            s"│      ${colorToAnsi(color)}${valueToAnsi(value)}${value.cardType()}${Console.RESET} │\n" +
+            s"└─────────┘"
+        } else{
+            s"┌─────────┐\n" +
+            s"│ ${colorToAnsi(color)}${valueToAnsi(value)}${value.cardType()}${Console.RESET}       │\n" +
+            s"│         │\n" + 
+            s"│         │\n" +
+            s"│         │\n" +
+            s"│       ${colorToAnsi(color)}${valueToAnsi(value)}${value.cardType()}${Console.RESET} │\n" +
+            s"└─────────┘"
+        }
+    }
     override def toString: String = s"$value of $color"
 }
