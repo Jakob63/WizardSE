@@ -1,11 +1,31 @@
+package wizard
+
+import wizard.cards.Dealer
+import wizard.player.Player
+
 object Wizard {
 
     class Wizard {
 
-    } //hallo :) Jakob
+    }
 
     def main(args: Array[String]): Unit = {
         println("Welcome to Wizard!")
+        Dealer.shuffleCards()
+        println(Dealer.allCards)
+        val player = Player("Player1")
+        val player2 = Player("Player2")
+        val player3 = Player("Player3")
+        val players = List(player, player2, player3)
+        players.foreach { player =>
+            val hand = Dealer.dealCards(3)
+            player.addHand(hand)
+        }
+        println("Cards dealt to all players.")
+        players.foreach(_.showHand())
+        println("Trump card:")
+        // Eigentlich CurrentRound * PlayerCount müssen wir noch machen
+        Dealer.printCardAtIndex(3*3)
     }
 
     val eol = sys.props("line.separator")
