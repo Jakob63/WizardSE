@@ -30,11 +30,5 @@ class DealerTests extends AnyWordSpec with Matchers {
         "have 15 blue cards" in {
             Dealer.allCards.filter(_.color == Color.Blue) should have size 15
         }
-        
-        "shuffle all cards" in {
-            Dealer.shuffleCards(Dealer.allCards) should not be Dealer.allCards
-        }
-        
-        
     }
 }

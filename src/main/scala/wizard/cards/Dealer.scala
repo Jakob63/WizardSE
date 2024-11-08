@@ -31,7 +31,6 @@ object Dealer {
         // Karten mischen
         if (index + 1 > 59) {
             throw new IndexOutOfBoundsException("No cards left in the deck.")
-
         }
         for (i <- 1 to cards_amount) {
             listbuffer.addOne(allCards(index))
