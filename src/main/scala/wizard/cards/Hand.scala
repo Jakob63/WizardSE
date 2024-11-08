@@ -21,5 +21,13 @@ case class Hand(cards: List[Card]) {
     def hasTrumpColor(trump: Color): Boolean = {
         cards.exists(_.color == trump)
     }
+    // leere hand
+    def isEmpty: Boolean = {
+        cards.isEmpty
+    }
+    // get card by index
+    def getCard(index: Int): Card = {
+        cards(index)
+    }
 
 }
