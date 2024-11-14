@@ -7,23 +7,19 @@ object PlayerLogic {
     // Methode zum Spielen einer Karte
     def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
         println(s"${player.name}, which card do you want to play?")
-        val card = scala.io.StdIn.readInt()
+        val cardIndex = scala.io.StdIn.readInt()
         // card is valid
-        if (card < 1 || card > player.hand.cards.length) {
+        if (cardIndex < 1 || cardIndex > player.hand.cards.length) {
             println("Invalid card. Please try again.")
             return playCard(leadColor, trump, currentPlayerIndex, player)
         }
         //val cardtoplay = card.split(" ")
-        val cardToPlay = player.hand.cards(card - 1)
+        val cardToPlay = player.hand.cards(cardIndex - 1)
         //val cardToPlay = player.hand.cards.find(_.toString.equals(card))
-        if (currentPlayerIndex == 1) {
-            if (cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
-                println(s"You must follow the lead suit $leadColor.")
-                playCard(leadColor, trump, currentPlayerIndex, player)
-            } else {
-                player.hand = player.hand.removeCard(cardToPlay)
-                cardToPlay
-            }
+
+        if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
+            println(s"You must follow the lead suit $leadColor.")
+            return playCard(leadColor, trump, currentPlayerIndex, player)
         } else {
             player.hand = player.hand.removeCard(cardToPlay)
             cardToPlay

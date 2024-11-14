@@ -19,23 +19,44 @@ object RoundLogic {
         }
         println("Cards dealt to all players.")
         players.foreach(showHand)
-        println("Trump card:")
-        val trumpCard = Dealer.allCards(currentround * players.length)
-        round.setTrump(trumpCard.color)
+        val trumpCardIndex = currentround * players.length
+        if (trumpCardIndex < Dealer.allCards.length) {
+            val trumpCard = Dealer.allCards(trumpCardIndex)
+            round.setTrump(trumpCard.color)
+            println(s"Trump card:\n${trumpCard.showcard()}")
+        } else {
+            println("No trump card available.")
+        }
+//        println("Trump card:")
+//        val trumpCard = Dealer.allCards(currentround * players.length)
+//        round.setTrump(trumpCard.color)
         // Eigentlich CurrentRound * PlayerCount müssen wir noch machen
-        Dealer.printCardAtIndex(currentround * players.length)
+//        Dealer.printCardAtIndex(currentround * players.length)
         // Bieten bzw angeben wie viele
-        players.foreach(player => bid(player))
+        players.foreach(PlayerLogic.bid)
         // Karten spielen
         for (i <- 1 to currentround) {
             round.leadColor = None
-            val trick = players.map { player =>
-                val card = playCard(round.leadColor.getOrElse(null), round.trump, round.currentPlayerIndex, player)
-                if (round.leadColor.isEmpty && card.value != Value.WizardKarte && card.value != Value.Chester) {
+            var trick = List[(Player, Card)]()
+            var firstPlayerIndex = 0
+
+            while (round.leadColor.isEmpty && firstPlayerIndex < players.length) {
+                val player = players(firstPlayerIndex)
+                val card = PlayerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+                if (card.value != Value.WizardKarte && card.value != Value.Chester) {
                     round.leadColor = Some(card.color)
                 }
-                (player, card)
+                trick = trick :+ (player, card) //was genaun macht das? 
+                firstPlayerIndex += 1
             }
+
+            // handle rest der spieler
+            for (j <- firstPlayerIndex until players.length) {
+                val player = players(j)
+                val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+                trick = trick :+ (player, card)
+            }
+
             trick.foreach { case (player, _) =>
                 if (!player.hand.isEmpty) {
                     showHand(player)
@@ -44,13 +65,14 @@ object RoundLogic {
             val winner = trickwinner(trick, round)
             println(s"${winner.name} wins the trick.")
             winner.roundTricks += 1
+
         }
 
         players.foreach(player => player.addTricks(player.roundTricks))
-        players.foreach(player => PlayerLogic.addPoints(player))
+        players.foreach(PlayerLogic.addPoints)
         println("Points after this round:")
         players.foreach(player => println(s"${player.name}: ${player.points} points"))
-    
+
     }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
@@ -72,4 +94,5 @@ object RoundLogic {
         // Return the player who played the winning card
         winningCard._1
     }
+    
 }

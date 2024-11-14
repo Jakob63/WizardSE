@@ -27,8 +27,8 @@ object Dealer {
 
     // Methode zum Austeilen der Karten an die Spieler
     def dealCards(cards_amount: Int): Hand = {
+        shuffleCards()
         val listbuffer = ListBuffer[Card]()
-        // Karten mischen
         if (index + 1 > 59) {
             throw new IndexOutOfBoundsException("No cards left in the deck.")
         }
