@@ -1,5 +1,11 @@
 package wizard
 
+import wizard.Controller.control.GameLogic
+import wizard.Model.cards.Dealer
+import wizard.Model.player.Player
+import wizard.Model.rounds.Game
+import wizard.View.textUI.TextUI.{inputPlayers, showHand}
+
 object Wizard {
 
     class Wizard {
@@ -8,6 +14,27 @@ object Wizard {
 
     def main(args: Array[String]): Unit = {
         println("Welcome to Wizard!")
+        Dealer.shuffleCards()
+        println(Dealer.allCards)
+        val players = inputPlayers()
+        val game = new Game(players)
+        println("Game officially started.")
+        GameLogic.playGame(game, players)
+//        val player = Player("Player1")
+//        val player2 = Player("Player2")
+//        val player3 = Player("Player3")
+//        val players = List(player, player2, player3)
+        //val game = Game(players)
+        //game.playGame()
+//        players.foreach { player =>
+//            val hand = Dealer.dealCards(3)
+//            player.addHand(hand)
+//        }
+//        println("Cards dealt to all players.")
+//        players.foreach(showHand) // scala ist toll
+//        println("Trump card:")
+//        // Eigentlich CurrentRound * PlayerCount müssen wir noch machen
+//        Dealer.printCardAtIndex(3*3)
     }
 
     val eol = sys.props("line.separator")

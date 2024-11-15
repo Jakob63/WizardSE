@@ -1,6 +1,6 @@
-package wizard.cards
+package wizard.Model.cards
 
-enum Color:
+enum Color():
     case Red
     case Green
     case Blue
@@ -8,7 +8,10 @@ enum Color:
 end Color
 
 enum Value(enumValue: String):
-    case Chester extends Value("Chester")
+    
+    def cardType(): String = enumValue
+    
+    case Chester extends Value("C")
     case One extends Value("1")
     case Two extends Value("2")
     case Three extends Value("3")
@@ -22,9 +25,16 @@ enum Value(enumValue: String):
     case Eleven extends Value("11")
     case Twelve extends Value("12")
     case Thirteen extends Value("13")
-    case Wizard extends Value("Wizard")
+    case WizardKarte extends Value("W")
 end Value
 
+def valueToAnsi(value: Value): String = value match {
+    case Value.Chester => Console.RESET
+    case Value.WizardKarte => Console.RESET
+    // dont change the console color for the other values
+    case _ => ""
+    
+}
 
 case class Card(value: Value, color: Color){
     override def toString: String = s"$value of $color"
