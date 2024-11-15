@@ -1,9 +1,7 @@
-package wizard.controll
+package wizard.Controller.control
 
-import wizard.player.Player
-import wizard.rounds.Round
-import wizard.rounds.Game
-import wizard.controll.RoundLogic
+import wizard.Model.player.Player
+import wizard.Model.rounds.{Game, Round}
 
 object GameLogic {
     
