@@ -1,10 +1,10 @@
 package wizard
 
-import wizard.cards.Dealer
-import wizard.player.Player
-import wizard.rounds.Game
-import wizard.textUI.TextUI.{inputPlayers, showHand}
-import wizard.controll.GameLogic
+import wizard.Controller.control.GameLogic
+import wizard.Model.cards.Dealer
+import wizard.Model.player.Player
+import wizard.Model.rounds.Game
+import wizard.View.textUI.TextUI.{inputPlayers, showHand}
 
 object Wizard {
 

@@ -1,6 +1,8 @@
-package wizard.cards
+package wizard.Model.cards
 
 import scala.collection.mutable.ListBuffer
+import wizard.View.textUI.TextUI
+
 
 object Dealer {
     //erstelle eine liste mit allen karten eine karte besteht aus einer color und einem value
@@ -26,26 +28,21 @@ object Dealer {
     //val shuffledCards = shuffleCards(allCards)
 
     // Methode zum Austeilen der Karten an die Spieler
-    def dealCards(cards_amount: Int): Hand = {
+    def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {
+        shuffleCards()
         val listbuffer = ListBuffer[Card]()
-        // Karten mischen
         if (index + 1 > 59) {
             throw new IndexOutOfBoundsException("No cards left in the deck.")
         }
         for (i <- 1 to cards_amount) {
-            listbuffer.addOne(allCards(index))
+            var card = allCards(index)
+            while (excludeCard.contains(card)) {
+                index += 1
+                card = allCards(index)
+            }
+            listbuffer.addOne(card)
             index += 1
         }
-        listbuffer.toList
         Hand(listbuffer.toList)
     }
-
-    def printCardAtIndex(index: Int): Unit = {
-        if (index >= 0 && index < allCards.length) {
-            println(allCards(index).showcard())
-        } else {
-            println(s"Index $index is out of bounds.")
-        }
-    }
-
 }

@@ -1,12 +1,12 @@
 // Game.scala
-package wizard.rounds
+package wizard.Model.rounds
 
-import wizard.player.Player
-import wizard.controll.GameLogic
+import wizard.Controller.control.GameLogic
+import wizard.Model.player.Player
 
 case class Game(players: List[Player]) {
-    
-    val rounds = 60 / players.length
+
+    var rounds = 60 / players.length
     var currentround = 0
     
     players.foreach(player => player.points = 0)
