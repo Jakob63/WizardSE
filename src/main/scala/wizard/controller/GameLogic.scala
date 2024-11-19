@@ -1,10 +1,13 @@
-package wizard.Controller.control
+package wizard.controller
 
-import wizard.Model.player.Player
-import wizard.Model.rounds.{Game, Round}
+import wizard.model.player.Player
+import wizard.model.rounds.{Game, Round}
+import wizard.aView.TextUI
 
-object GameLogic {
-    
+import wizard.actionmanagement.{Observable, Observer}
+
+object GameLogic extends Observable {
+    add(TextUI)
     def validGame(number: Int): Boolean = {
         number >= 3 && number <= 6
     }
@@ -13,7 +16,8 @@ object GameLogic {
         for (i <- 1 to game.rounds) { // i = 1, 2, 3, ..., rounds
             game.currentround = i
             val round = new Round(players)
-            RoundLogic.playRound(game.currentround, players: List[Player])
+            RoundLogic.playRound(game.currentround, players)
+            notifyObservers
         }
     }
 

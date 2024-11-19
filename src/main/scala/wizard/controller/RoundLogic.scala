@@ -1,13 +1,15 @@
-package wizard.Controller.control
+package wizard.controller
 
-import wizard.Model.player.Player
-import wizard.Model.rounds.Round
-import wizard.View.textUI.TextUI.showHand
-import PlayerLogic.{playCard, bid}
-import wizard.Model.cards.{Card, Color, Dealer, Value}
-import wizard.View.textUI.TextUI
+import wizard.aView.TextUI
+import wizard.aView.TextUI.showHand
+import wizard.model.cards.{Card, Color, Dealer, Value}
+import wizard.model.player.Player
+import wizard.model.rounds.Round
 
-object RoundLogic {
+import wizard.actionmanagement.{Observable, Observer}
+
+object RoundLogic extends Observable {
+    add(TextUI)
     def playRound(currentround: Int, players: List[Player]): Unit = {
         val round = new Round(players)
         val trumpCardIndex = currentround * players.length
@@ -17,13 +19,13 @@ object RoundLogic {
             throw new IndexOutOfBoundsException("No trump card available.")
         }
         round.setTrump(trumpCard.color)
-        println(s"Trump card:\n${TextUI.showcard(trumpCard)}")
+        notifyObservers("print trump card", trumpCard)
 
         players.foreach { player =>
             val hand = Dealer.dealCards(currentround, Some(trumpCard))
             player.addHand(hand)
         }
-        println("Cards dealt to all players.")
+        notifyObservers("cards dealt")
         players.foreach(showHand)
 
         players.foreach(player => PlayerLogic.bid(player))
@@ -54,14 +56,20 @@ object RoundLogic {
                 }
             }
             val winner = trickwinner(trick, round)
-            println(s"${winner.name} wins the trick.")
+            notifyObservers("trick winner", winner)
             winner.roundTricks += 1
         }
 
-        players.foreach(player => player.addTricks(player.roundTricks))
-        players.foreach(PlayerLogic.addPoints)
-        println("Points after this round:")
-        players.foreach(player => println(s"${player.name}: ${player.points} points"))
+        players.foreach(player => {
+            player.addTricks(player.roundTricks)
+            player.notifyObservers
+        })
+        players.foreach(player => {
+            PlayerLogic.addPoints(player)
+            player.notifyObservers
+        })
+        notifyObservers("points after round")
+        notifyObservers("print points all players", players)
     }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {

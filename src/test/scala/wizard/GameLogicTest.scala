@@ -3,7 +3,7 @@ package wizard
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
-import wizard.Controller.control.GameLogic
+import wizard.controller.GameLogic
 
 class GameLogicTest extends AnyWordSpec with Matchers {
     "GameLogic" should {

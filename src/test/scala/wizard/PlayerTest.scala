@@ -3,8 +3,8 @@ package wizard
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
-import wizard.Model.cards.Hand
-import wizard.Model.player.Player
+import wizard.model.cards.Hand
+import wizard.model.player.Player
 
 class PlayerTest extends AnyWordSpec with Matchers {
     "Player" should {
