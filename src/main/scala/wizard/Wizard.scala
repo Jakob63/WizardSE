@@ -1,10 +1,10 @@
 package wizard
 
-import wizard.Controller.control.GameLogic
-import wizard.Model.cards.Dealer
-import wizard.Model.player.Player
-import wizard.Model.rounds.Game
-import wizard.View.textUI.TextUI.{inputPlayers, showHand}
+
+import wizard.model.cards.Dealer
+import wizard.model.rounds.Game
+import wizard.aView.TextUI
+import wizard.controller.GameLogic
 
 object Wizard {
 
@@ -16,7 +16,7 @@ object Wizard {
         println("Welcome to Wizard!")
         Dealer.shuffleCards()
         println(Dealer.allCards)
-        val players = inputPlayers()
+        val players = TextUI.inputPlayers(GameLogic)
         val game = new Game(players)
         println("Game officially started.")
         GameLogic.playGame(game, players)

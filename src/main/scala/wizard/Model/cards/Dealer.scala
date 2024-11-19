@@ -1,10 +1,9 @@
-package wizard.Model.cards
+package wizard.model.cards
 
 import scala.collection.mutable.ListBuffer
-import wizard.View.textUI.TextUI
+import wizard.actionmanagement.Observable
 
-
-object Dealer {
+object Dealer extends Observable {
     //erstelle eine liste mit allen karten eine karte besteht aus einer color und einem value
     var allCards: List[Card] = {
         val buffer = ListBuffer[Card]()

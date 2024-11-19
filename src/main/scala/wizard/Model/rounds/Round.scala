@@ -1,8 +1,8 @@
 // Round.scala
-package wizard.Model.rounds
+package wizard.model.rounds
 
-import wizard.Model.cards.{Color, Dealer, Value}
-import wizard.Model.player.Player
+import wizard.model.cards.{Color, Dealer, Value}
+import wizard.model.player.Player
 
 class Round(players: List[Player]) {
     // Aktueller Trumpf

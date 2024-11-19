@@ -1,12 +1,12 @@
 package wizard.actionmanagement
 
 trait Observer {
-    def update(string: String): Unit
+    def update(updateMSG: String, obj: Any*): Unit
 }
 
 class Observable {
     var subscribers:Vector[Observer] = Vector()
-    def add(s:Observer) = subscribers=subscribers:+s
-    def remove(s:Observer) = subscribers=subscribers.filterNot(o=>o==s)
-    def notifyObservers = subscribers.foreach(o=>o.update)
+    def add(s:Observer): Unit = subscribers=subscribers:+s
+    def remove(s:Observer): Unit = subscribers=subscribers.filterNot(o=>o==s)
+    def notifyObservers(updateMSG: String, obj: Any*): Unit = subscribers.foreach(o=>o.update)
 }

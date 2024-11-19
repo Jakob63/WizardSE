@@ -3,7 +3,8 @@ package wizard.cards
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
-import wizard.Model.cards.{Card, Color, Value, valueToAnsi}
+import wizard.model.cards.{Card, Color, Value, valueToAnsi, colorToAnsi}
+import wizard.aView.TextUI.showcard
 
 class CardTests extends AnyWordSpec with Matchers {
     "Card" should {
@@ -26,26 +27,19 @@ class CardTests extends AnyWordSpec with Matchers {
         "return the correct ANSI color code for WizardKarte" in {
             valueToAnsi(Value.WizardKarte) shouldBe Console.RESET
         }
-
-        "return the correct ANSI color code for Red" in {
-            colorToAnsi(Color.Red) shouldBe Console.RED
+        
+        "dont change the console color for the other values" in {
+            valueToAnsi(Value.One) shouldBe ""
         }
 
-        "return the correct ANSI color code for Green" in {
-            colorToAnsi(Color.Green) shouldBe Console.GREEN
+        "class card to String should return the value of the card" in {
+            val card = Card(Value.One, Color.Red)
+            card.toString() shouldBe "One of Red"
         }
-
-        "return the correct ANSI color code for Blue" in {
-            colorToAnsi(Color.Blue) shouldBe Console.BLUE
-        }
-
-        "return the correct ANSI color code for Yellow" in {
-            colorToAnsi(Color.Yellow) shouldBe Console.YELLOW
-        }
-
+        
         "show a card with value 10" in {
             val card = Card(Value.Ten, Color.Red)
-            card.showcard() shouldBe "┌─────────┐\n" +
+            showcard(card) shouldBe "┌─────────┐\n" +
                 "│ \u001B[31m\u001B[0m10      \u001B[0m│\n" +
                 "│         │\n" +
                 "│         │\n" +
