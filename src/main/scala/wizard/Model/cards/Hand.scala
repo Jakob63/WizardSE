@@ -1,4 +1,4 @@
-package wizard.Model.cards
+package wizard.model.cards
 
 case class Hand(cards: List[Card]) {
     // Methode zum Hinzufügen von Karten

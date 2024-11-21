@@ -1,8 +1,9 @@
-package wizard.Model.player
+package wizard.model.player
 
-import wizard.Model.cards.{Card, Hand}
+import wizard.model.cards.{Card, Hand}
+import wizard.actionmanagement.{Observable, Observer}
 
-case class Player(name: String) {
+case class Player(name: String) extends Observable {
     // Hand-Objekt zur Verwaltung der Karten des Spielers
     var hand: Hand = Hand(List[Card]())
 

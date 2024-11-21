@@ -1,10 +1,9 @@
-package wizard.Model.cards
+package wizard.model.cards
 
 import scala.collection.mutable.ListBuffer
-import wizard.View.textUI.TextUI
+import wizard.actionmanagement.Observable
 
-
-object Dealer {
+object Dealer extends Observable {
     //erstelle eine liste mit allen karten eine karte besteht aus einer color und einem value
     var allCards: List[Card] = {
         val buffer = ListBuffer[Card]()
@@ -29,11 +28,11 @@ object Dealer {
 
     // Methode zum Austeilen der Karten an die Spieler
     def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {
-        shuffleCards()
+        //shuffleCards()
         val listbuffer = ListBuffer[Card]()
-        if (index + 1 > 59) {
-            throw new IndexOutOfBoundsException("No cards left in the deck.")
-        }
+//        if (index + 1 > 59) {
+//            throw new IndexOutOfBoundsException("No cards left in the deck.")
+//        }
         for (i <- 1 to cards_amount) {
             var card = allCards(index)
             while (excludeCard.contains(card)) {

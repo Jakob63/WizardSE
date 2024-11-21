@@ -1,8 +1,7 @@
 // Game.scala
-package wizard.Model.rounds
+package wizard.model.rounds
 
-import wizard.Controller.control.GameLogic
-import wizard.Model.player.Player
+import wizard.model.player.Player
 
 case class Game(players: List[Player]) {
 

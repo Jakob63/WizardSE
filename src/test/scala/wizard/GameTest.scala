@@ -1,8 +1,8 @@
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
-import wizard.Model.player.Player
-import wizard.Model.rounds.Game
+import wizard.model.player.Player
+import wizard.model.rounds.Game
 
 class GameTest extends AnyWordSpec with Matchers {
     "Game" should {

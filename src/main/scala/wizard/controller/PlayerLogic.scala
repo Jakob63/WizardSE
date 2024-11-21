@@ -1,20 +1,29 @@
-package wizard.Controller.control
+package wizard.controller
 
-import wizard.Model.cards.{Card, Color, Hand, Value}
-import wizard.Model.player.Player
+import wizard.model.cards.{Card, Color, Hand, Value}
+import wizard.model.player.Player
+import wizard.aView.TextUI
 
-object PlayerLogic {
+import wizard.actionmanagement.{Observable, Observer}
+
+object PlayerLogic extends Observable {
+    add(TextUI)
     // Method to play a card
     def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
-        println(s"${player.name}, which card do you want to play?")
-        val cardIndex = scala.io.StdIn.readInt()
+        notifyObservers("which card", player)
+        val input = scala.io.StdIn.readLine()
+        val cardIndex = try {
+            input.toInt
+        } catch {
+            case _: NumberFormatException => -1
+        }
         if (cardIndex < 1 || cardIndex > player.hand.cards.length) {
-            println("Invalid card. Please try again.")
+            notifyObservers("invalid card")
             return playCard(leadColor, trump, currentPlayerIndex, player)
         }
         val cardToPlay = player.hand.cards(cardIndex - 1)
         if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
-            println(s"You must follow the lead suit $leadColor.")
+            notifyObservers("follow lead", leadColor)
             return playCard(leadColor, trump, currentPlayerIndex, player)
         } else {
             player.hand = player.hand.removeCard(cardToPlay)
@@ -24,10 +33,10 @@ object PlayerLogic {
 
     // Method to bid
     def bid(player: Player): Int = {
-        println(s"${player.name}, how many tricks do you bid?")
+        notifyObservers("which bid", player)
         val input = scala.io.StdIn.readLine()
         if (input == null || input.trim.isEmpty || !input.forall(_.isDigit)) {
-            println("Invalid input. Please enter a valid number.")
+            notifyObservers("invalid input,bid again")
             return bid(player)
         }
         val playersbid = input.toInt

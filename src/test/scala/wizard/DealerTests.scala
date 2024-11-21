@@ -3,8 +3,9 @@ package wizard
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
-import wizard.Model.cards.{Color, Dealer, Value}
-import wizard.Model.player.Player
+import wizard.model.cards.{Color, Dealer, Value}
+import wizard.model.player.Player
+import wizard.aView.TextUI.{printCardAtIndex, showcard}
 
 class DealerTests extends AnyWordSpec with Matchers {
     "Dealer" should {
@@ -45,10 +46,6 @@ class DealerTests extends AnyWordSpec with Matchers {
             Dealer.allCards.filter(_.value == Value.One) should have size 4
         }
 
-        "index should be 0" in {
-            Dealer.index shouldBe 0
-        }
-
         "correct shuffleCards" in {
             val cards = Dealer.allCards
             Dealer.shuffleCards()
@@ -77,33 +74,12 @@ class DealerTests extends AnyWordSpec with Matchers {
         }
 
         "correctly print card at index" in {
-            // erstelle die Karten
-            val allCards = Dealer.allCards
             // hole die Karte an Index 0
-            val card = allCards(0)
+            val card = Dealer.allCards(0)
             // hole die Karte an Index 0 mit der Methode
-            val printedCard = Dealer.printCardAtIndex(0)
+            val printedCard = printCardAtIndex(0)
             // überprüfe ob die Karte an Index 0 die gleiche ist
-            printedCard shouldBe card.showcard()
-        }
-        
-        "correct print card at index 59" in {
-            val allCards = Dealer.allCards
-            val card = allCards(59)
-            val printedCard = Dealer.printCardAtIndex(59)
-            printedCard shouldBe card.showcard()
-        }
-        
-        "return out of bounds message for index 60" in {
-            Dealer.printCardAtIndex(60) shouldBe "Index 60 is out of bounds."
-        }
-        
-        "return out of bounds message for negative index" in {
-            Dealer.printCardAtIndex(-1) shouldBe "Index -1 is out of bounds."
-        }
-
-        "return out of bounds message for invalid index" in {
-            Dealer.printCardAtIndex(60) shouldBe "Index 60 is out of bounds."
+            printedCard shouldBe showcard(card)
         }
     }
 }

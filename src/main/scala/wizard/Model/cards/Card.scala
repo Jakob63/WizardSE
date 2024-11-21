@@ -1,4 +1,4 @@
-package wizard.Model.cards
+package wizard.model.cards
 
 enum Color():
     case Red
@@ -6,6 +6,13 @@ enum Color():
     case Blue
     case Yellow
 end Color
+
+def colorToAnsi(color: Color): String = color match {
+    case Color.Red => Console.RED
+    case Color.Green => Console.GREEN
+    case Color.Blue => Console.BLUE
+    case Color.Yellow => Console.YELLOW
+}
 
 enum Value(enumValue: String):
     
@@ -35,7 +42,6 @@ def valueToAnsi(value: Value): String = value match {
     case _ => ""
     
 }
-
 case class Card(value: Value, color: Color){
     override def toString: String = s"$value of $color"
 }
