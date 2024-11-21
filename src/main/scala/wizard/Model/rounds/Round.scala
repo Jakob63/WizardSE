@@ -3,10 +3,11 @@ package wizard.model.rounds
 
 import wizard.model.cards.{Color, Dealer, Value}
 import wizard.model.player.Player
+import scala.compiletime.uninitialized
 
 class Round(players: List[Player]) {
     // Aktueller Trumpf
-    var trump: Color = _
+    var trump: Color = uninitialized
     var leadColor: Option[Color] = None
     var currentPlayerIndex = 0
     
