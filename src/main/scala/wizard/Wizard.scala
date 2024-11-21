@@ -14,9 +14,9 @@ object Wizard {
 
     def main(args: Array[String]): Unit = {
         println("Welcome to Wizard!")
-        Dealer.shuffleCards()
-        println(Dealer.allCards)
-        val players = TextUI.inputPlayers(GameLogic)
+//        Dealer.shuffleCards()
+//        println(Dealer.allCards)
+        val players = TextUI.inputPlayers()
         val game = new Game(players)
         println("Game officially started.")
         GameLogic.playGame(game, players)

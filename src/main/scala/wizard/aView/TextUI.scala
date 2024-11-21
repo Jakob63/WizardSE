@@ -13,7 +13,7 @@ object TextUI extends Observer {
             case "follow lead" => println(s"You must follow the lead suit ${obj.head.asInstanceOf[Color].toString}.")
             case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
-            case "print trump card" => println(s"Trump card: ${showcard(obj.head.asInstanceOf[Card])}")
+            case "print trump card" => println(s"Trump card: \n ${showcard(obj.head.asInstanceOf[Card])}")
             case "cards dealt" => println("Cards have been dealt to all players.")
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
             case "points after round" => println("Points after this round:")
@@ -22,14 +22,14 @@ object TextUI extends Observer {
         // Fetch new data von Controller und update die View
     }
 
-    def inputPlayers(gameLogic: wizard.controller.GameLogic.type): List[Player] = {
+    def inputPlayers(): List[Player] = {
         var numPlayers = -1
         while (numPlayers < 3 || numPlayers > 6) {
             print("Enter the number of players (3-6): ")
             try {
                 val input = scala.io.StdIn.readLine()
                 numPlayers = input.toInt
-                if (!gameLogic.validGame(numPlayers)) {
+                if (numPlayers < 3 || numPlayers > 6) {
                     println("Invalid number of players. Please enter a number between 3 and 6.")
                     numPlayers = -1
                 }
