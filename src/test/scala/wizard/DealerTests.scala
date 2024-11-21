@@ -45,7 +45,6 @@ class DealerTests extends AnyWordSpec with Matchers {
         "have 4 one cards" in {
             Dealer.allCards.filter(_.value == Value.One) should have size 4
         }
-
         "correct shuffleCards" in {
             val cards = Dealer.allCards
             Dealer.shuffleCards()
@@ -67,7 +66,6 @@ class DealerTests extends AnyWordSpec with Matchers {
                 hand.cards should not contain trumpCard
             }
         }
-""
         "correct dealCards" in {
             val hand = Dealer.dealCards(10)
             hand.cards should have size 10
@@ -80,6 +78,17 @@ class DealerTests extends AnyWordSpec with Matchers {
             val printedCard = printCardAtIndex(0)
             // überprüfe ob die Karte an Index 0 die gleiche ist
             printedCard shouldBe showcard(card)
+        }
+
+        "assign the correct card at the given index" in {
+            // Initialize the dealer and shuffle the cards
+            Dealer.shuffleCards()
+            // Get the card at the current index
+            val expectedCard = Dealer.allCards(Dealer.index)
+            // Deal one card
+            val hand = Dealer.dealCards(1)
+            // The dealt card should be the same as the card at the current index
+            hand.cards.head shouldBe expectedCard
         }
     }
 }

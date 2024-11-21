@@ -17,7 +17,6 @@ object GameLogic extends Observable {
             game.currentround = i
             val round = new Round(players)
             RoundLogic.playRound(game.currentround, players)
-            notifyObservers
         }
     }
 

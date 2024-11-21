@@ -35,8 +35,8 @@ object PlayerLogic extends Observable {
     def bid(player: Player): Int = {
         notifyObservers("which bid", player)
         val input = scala.io.StdIn.readLine()
-        if (input == null || input.trim.isEmpty || !input.forall(_.isDigit)) {
-            notifyObservers("invalid input,bid again")
+        if (input == "" || input.trim.isEmpty || !input.forall(_.isDigit)) {
+            notifyObservers("invalid input, bid again")
             return bid(player)
         }
         val playersbid = input.toInt
