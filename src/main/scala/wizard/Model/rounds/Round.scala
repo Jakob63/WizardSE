@@ -37,5 +37,8 @@ class Round(players: List[Player]) {
         players.foreach(player => player.roundBids = 0)
     }
 
+    override def toString: String = {
+        s"Trump: $trump, LeadColor: $leadColor, CurrentPlayerIndex: $currentPlayerIndex, Players: $players"
+    }
     
 }

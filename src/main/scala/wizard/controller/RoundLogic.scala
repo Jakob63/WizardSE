@@ -20,7 +20,8 @@ object RoundLogic extends Observable {
         }
         round.setTrump(trumpCard.color)
         notifyObservers("print trump card", trumpCard)
-
+        
+        Dealer.shuffleCards()
         players.foreach { player =>
             val hand = Dealer.dealCards(currentround, Some(trumpCard))
             player.addHand(hand)

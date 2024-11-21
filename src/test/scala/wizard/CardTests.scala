@@ -40,12 +40,27 @@ class CardTests extends AnyWordSpec with Matchers {
         "show a card with value 10" in {
             val card = Card(Value.Ten, Color.Red)
             showcard(card) shouldBe "┌─────────┐\n" +
-                "│ \u001B[31m\u001B[0m10      \u001B[0m│\n" +
+                s"│ ${Console.RED}10${Console.RESET}      │\n" +
                 "│         │\n" +
                 "│         │\n" +
                 "│         │\n" +
-                "│      \u001B[31m\u001B[0m10\u001B[0m │\n" +
+                s"│      ${Console.RED}10${Console.RESET} │\n" +
                 "└─────────┘"
+        }
+        // green card should be console green
+        "return the correct ANSI color code for Green" in {
+            colorToAnsi(Color.Green) shouldBe Console.GREEN
+        }
+        // blue card should be console blue
+        "return the correct ANSI color code for Blue" in {
+            colorToAnsi(Color.Blue) shouldBe Console.BLUE
+        }
+        // yellow card should be console yellow
+        "return the correct ANSI color code for Yellow" in {
+            colorToAnsi(Color.Yellow) shouldBe Console.YELLOW
+        }
+        "return the correct ANSI color code for Red" in {
+            colorToAnsi(Color.Red) shouldBe Console.RED
         }
 
 

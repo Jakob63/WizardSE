@@ -74,10 +74,8 @@ class DealerTests extends AnyWordSpec with Matchers {
         }
 
         "correctly print card at index" in {
-            // erstelle die Karten
-            val allCards = Dealer.allCards
             // hole die Karte an Index 0
-            val card = allCards(0)
+            val card = Dealer.allCards(0)
             // hole die Karte an Index 0 mit der Methode
             val printedCard = printCardAtIndex(0)
             // überprüfe ob die Karte an Index 0 die gleiche ist
