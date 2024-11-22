@@ -1,14 +1,13 @@
-package wizard
+package wizard.aView
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.aView.TextUI
-import wizard.model.cards.{Card, Color, Hand, Value}
+import wizard.model.cards.*
 import wizard.model.player.Player
-import wizard.testUtils.TestUtil
 import wizard.model.rounds.Round
-import wizard.model.cards.Dealer
+import wizard.testUtils.TestUtil
 
 class TextUITest extends AnyWordSpec with Matchers {
 

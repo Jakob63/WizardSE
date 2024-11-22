@@ -1,11 +1,11 @@
-package wizard
+package wizard.model
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
+import wizard.aView.TextUI.{printCardAtIndex, showcard}
 import wizard.model.cards.{Color, Dealer, Value}
 import wizard.model.player.Player
-import wizard.aView.TextUI.{printCardAtIndex, showcard}
 
 class DealerTests extends AnyWordSpec with Matchers {
     "Dealer" should {
