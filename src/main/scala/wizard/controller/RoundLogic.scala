@@ -63,11 +63,9 @@ object RoundLogic extends Observable {
 
         players.foreach(player => {
             player.addTricks(player.roundTricks)
-            player.notifyObservers
         })
         players.foreach(player => {
             PlayerLogic.addPoints(player)
-            player.notifyObservers
         })
         notifyObservers("points after round")
         notifyObservers("print points all players", players)
