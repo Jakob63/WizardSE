@@ -59,6 +59,14 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
             val winner = RoundLogic.trickwinner(trick, round)
             winner shouldBe players(2) // Adjust the expected winner based on the cards
         }
-
+        "no cards left on Deck should throw exception" in {
+            assertThrows[IndexOutOfBoundsException] {
+                RoundLogic.playRound(19, List(Player("Player 1"), Player("Player 2"), Player("Player 3"), Player("Player 4")))
+            }
+        }
+//        "playRound should work correctly" in {
+//            TestUtil.simulateInput("
+//            RoundLogic.playRound(2, List(Player("Player 1"), Player("Player 2"), Player("Player 3")))
+//        }
     }
 }
