@@ -1,12 +1,13 @@
 package wizard.aView
 
 import wizard.actionmanagement.Observer
-import wizard.model.cards._
-import wizard.model.player.Player
+import wizard.model.cards.*
+import wizard.model.player.PlayerType.Human
+import wizard.model.player.{Player, PlayerFactory}
 
 object TextUI extends Observer {
     
-    override def update(updateMSG: String, obj: Any*): Unit = {
+    override def update(updateMSG: String, obj: Any*): Any = {
         updateMSG match {
             case "which card" => println(s"${obj.head.asInstanceOf[Player].name}, which card do you want to play?")
             case "invalid card" => println("Invalid card. Please enter a valid index.")
@@ -18,6 +19,8 @@ object TextUI extends Observer {
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
             case "points after round" => println("Points after this round:")
             case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
+            case "bid einlesen" => scala.io.StdIn.readLine()
+            case "card einlesen" => scala.io.StdIn.readLine()
         }
         // Fetch new data von Controller und update die View
     }
@@ -49,7 +52,7 @@ object TextUI extends Observer {
                     println("Invalid name. Please enter a name containing only letters and numbers.")
                 }
             }
-            Player(name)
+            PlayerFactory.createPlayer(name, Human)
         }
         players.toList
     }

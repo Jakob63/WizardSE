@@ -5,11 +5,11 @@ import wizard.aView.TextUI.showHand
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round
-
 import wizard.actionmanagement.{Observable, Observer}
 
 object RoundLogic extends Observable {
     add(TextUI)
+
     def playRound(currentround: Int, players: List[Player]): Unit = {
         val round = new Round(players)
         val trumpCardIndex = currentround * players.length
@@ -18,9 +18,15 @@ object RoundLogic extends Observable {
         } else {
             throw new IndexOutOfBoundsException("No trump card available.")
         }
-        round.setTrump(trumpCard.color)
-        notifyObservers("print trump card", trumpCard)
-        
+
+        trumpCard.value match {
+            case Value.Chester => round.setState(new ChesterCardState)
+            case Value.WizardKarte => round.setState(new WizardCardState)
+            case _ => round.setState(new NormalCardState)
+        }
+
+        round.handleTrump(trumpCard, players)
+
         Dealer.shuffleCards()
         players.foreach { player =>
             val hand = Dealer.dealCards(currentround, Some(trumpCard))
@@ -69,6 +75,17 @@ object RoundLogic extends Observable {
         })
         notifyObservers("points after round")
         notifyObservers("print points all players", players)
+    }
+
+    def determineTrump(players: List[Player]): Color = {
+        for (player <- players) {
+            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
+            if (trumpCard.isEmpty) {
+                val input = TextUI.update("which trump", player).asInstanceOf[String]
+                return Color.valueOf(input)
+            }
+        }
+        null
     }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {

@@ -1,19 +1,46 @@
-// Round.scala
 package wizard.model.rounds
 
-import wizard.model.cards.{Color, Dealer, Value}
+import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import scala.compiletime.uninitialized
+import wizard.controller.RoundState
+import wizard.aView.TextUI
+import wizard.actionmanagement.{Observable, Observer}
 
-class Round(players: List[Player]) {
+class Round(players: List[Player]) extends Observable {
     // Aktueller Trumpf
     var trump: Color = uninitialized
     var leadColor: Option[Color] = None
     var currentPlayerIndex = 0
-    
+    private var state: RoundState = _
+
+    add(TextUI) // Added den Observer
+
     // Methode zum Setzen des Trumpfs
     def setTrump(trump: Color): Unit = {
         this.trump = trump
+    }
+
+
+    def setState(state: RoundState): Unit = {
+        this.state = state
+    }
+
+    def handleTrump(trumpCard: Card, players: List[Player]): Unit = {
+        state.handleTrump(this, trumpCard, players)
+    }
+
+    def determineTrump(players: List[Player]): Unit = {
+        for (player <- players) {
+            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
+            if (trumpCard.isEmpty) {
+                val input = TextUI.update("which trump", player).asInstanceOf[String]
+                setTrump(Color.valueOf(input))
+                notifyObservers("print trump card", Card(Value.valueOf(input), Color.valueOf(input)))
+                return
+            }
+        }
+        setTrump(null)
     }
 
     def nextPlayer(): Player = {
