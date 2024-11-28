@@ -4,9 +4,9 @@ import wizard.model.cards.{Card, Color, Hand}
 import wizard.actionmanagement.{Observable, Observer}
 import wizard.aView.TextUI
 
-abstract case class Player(var name: String) extends Observable {
+abstract case class Player(name: String) extends Observable {
     
-    //add(TextUI)
+    add(TextUI)
     
     // Hand-Objekt zur Verwaltung der Karten des Spielers
     var hand: Hand = Hand(List[Card]())
@@ -20,14 +20,14 @@ abstract case class Player(var name: String) extends Observable {
     // Anzahl der angesagten tricks des Spielers
     var bids: Int = 0
 
-    // Punkte des Spielers in der aktuellen Runde
-    var roundPoints: Int = 0
-
     // Anzahl der angesagten tricks des Spielers in der Runde
     var roundBids: Int = 0
 
     // gemachte tricks des Spielers in der Runde
     var roundTricks: Int = 0
+
+    // Punkte des Spielers in der Runde
+    var roundPoints: Int = 0
 
     // Methode zum Hinzufügen einer Hand
     def addHand(hand: Hand): Unit = {
@@ -38,6 +38,6 @@ abstract case class Player(var name: String) extends Observable {
     def addTricks(tricks: Int): Unit = {
         this.tricks += tricks
     }
-    def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card
+    def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int): Card
     def bid(): Int
 }

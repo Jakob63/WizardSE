@@ -4,46 +4,30 @@ import wizard.model.cards.{Card, Color, Value}
 import wizard.model.player.Player
 import wizard.aView.TextUI
 import wizard.actionmanagement.{Observable, Observer}
-import wizard.undo.{BidCommand, PlayCardCommand, UndoService}
 
-class PlayerLogic extends Observable {
-    //add(TextUI)
+object PlayerLogic extends Observable {
+    add(TextUI)
 
-    def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card = {
+    def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
         notifyObservers("which card", player)
-        try {
-            val cardToPlay = player.playCard(leadColor, trump, currentPlayerIndex)
-            leadColor match {
-                case Some(lc) if cardToPlay.color != lc && player.hand.hasColor(lc) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester =>
-                    notifyObservers("follow lead", lc)
-                    playCard(leadColor, trump, currentPlayerIndex, player)
-                case _ =>
-                    val after = player.hand.removeCard(cardToPlay)
-                    UndoService.manager.doStep(new PlayCardCommand(player, after))
-                    notifyObservers("card played", cardToPlay)
-                    cardToPlay
-            }
-        } catch {
-            case e: wizard.actionmanagement.InputRouter.UndoException =>
-                // Re-throw to be handled in the round loop which knows about player turns
-                throw e
-            case e: wizard.actionmanagement.InputRouter.RedoException =>
-                throw e
+        val cardToPlay = player.playCard(leadColor, trump, currentPlayerIndex)
+        if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
+            notifyObservers("follow lead", leadColor)
+            return playCard(leadColor, trump, currentPlayerIndex, player)
+        } else if (leadColor != null && cardToPlay.color != leadColor && !player.hand.hasColor(leadColor) && cardToPlay.color != trump && player.hand.hasColor(trump) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
+            notifyObservers("follow trump", trump)
+            return playCard(leadColor, trump, currentPlayerIndex, player)
+        } else {
+            player.hand = player.hand.removeCard(cardToPlay)
+            cardToPlay
         }
     }
 
     def bid(player: Player): Int = {
         notifyObservers("which bid", player)
-        try {
-            val playersbid = player.bid()
-            UndoService.manager.doStep(new BidCommand(player, playersbid))
-            playersbid
-        } catch {
-            case e: wizard.actionmanagement.InputRouter.UndoException =>
-                throw e
-            case e: wizard.actionmanagement.InputRouter.RedoException =>
-                throw e
-        }
+        val playersbid = player.bid()
+        player.roundBids = playersbid
+        playersbid
     }
 
     def addPoints(player: Player): Unit = {
@@ -55,7 +39,7 @@ class PlayerLogic extends Observable {
     }
 
     def calculatePoints(player: Player): Int = {
-        val points = player.points
+        val points = player.roundPoints
         val bids = player.roundBids
         val tricks = player.roundTricks
         if (bids == tricks) {
@@ -64,17 +48,4 @@ class PlayerLogic extends Observable {
             points - Math.abs(bids - tricks) * 10
         }
     }
-}
-
-object PlayerLogic {
-  private val instance = new PlayerLogic
-  
-  def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card =
-    instance.playCard(leadColor, trump, currentPlayerIndex, player)
-
-  def bid(player: Player): Int = instance.bid(player)
-
-  def addPoints(player: Player): Unit = instance.addPoints(player)
-
-  def calculatePoints(player: Player): Int = instance.calculatePoints(player)
 }
