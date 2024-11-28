@@ -30,12 +30,19 @@ class Round(players: List[Player]) {
 
     // finalize round
     def finalizeRound(): Unit = {
-        players.foreach(player => player.points += player.roundPoints)
-        players.foreach(player => player.tricks += player.roundTricks)
-        players.foreach(player => player.bids += player.roundBids)
-        players.foreach(player => player.roundPoints = 0)
-        players.foreach(player => player.roundTricks = 0)
-        players.foreach(player => player.roundBids = 0)
+        players.foreach { player =>
+            player.points += player.roundPoints
+            player.tricks += player.roundTricks
+            player.bids += player.roundBids
+            resetPlayerRoundAttributes(player)
+        }
+    }
+    
+    // reset player round attributes
+    private def resetPlayerRoundAttributes(player: Player): Unit = {
+        player.roundPoints = 0
+        player.roundTricks = 0
+        player.roundBids = 0
     }
 
     override def toString: String = {

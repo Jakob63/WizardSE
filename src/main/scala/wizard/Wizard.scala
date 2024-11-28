@@ -6,6 +6,7 @@ import wizard.model.rounds.Game
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
 
+
 object Wizard {
 
     class Wizard {

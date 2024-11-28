@@ -14,6 +14,8 @@ object TextUI extends Observer {
             case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
             case "print trump card" => println(s"Trump card: \n${showcard(obj.head.asInstanceOf[Card])}")
+            case "no trump card" => println("No trump card available for this round.")
+            case "new trump card" => println(s"New trump card set: ${obj.head.asInstanceOf[Color]}")
             case "cards dealt" => println("Cards have been dealt to all players.")
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
             case "points after round" => println("Points after this round:")

@@ -9,6 +9,7 @@ import wizard.model.cards.*
 import wizard.model.player.Player
 import wizard.model.rounds.Round
 import wizard.testUtils.TestUtil
+import wizard.model.cards.Dealer
 
 class RoundLogicTest extends AnyWordSpec with Matchers {
     "RoundLogic" should {

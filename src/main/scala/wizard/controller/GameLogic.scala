@@ -7,17 +7,23 @@ import wizard.aView.TextUI
 import wizard.actionmanagement.{Observable, Observer}
 
 object GameLogic extends Observable {
+    
     add(TextUI)
+    
     def validGame(number: Int): Boolean = {
         number >= 3 && number <= 6
     }
 
     def playGame(game: Game, players: List[Player]): Unit = {
-        for (i <- 1 to game.rounds) { // i = 1, 2, 3, ..., rounds
-            game.currentround = i
-            val round = new Round(players)
-            RoundLogic.playRound(game.currentround, players)
-        }
+//        for (i <- 1 to game.rounds) { // i = 1, 2, 3, ..., rounds
+//            game.currentround = i
+//            val round = new Round(players)
+//            RoundLogic.playRound(game.currentround, players)
+//        }
+
+        // Skip zur last round - testen
+        game.currentround = game.rounds - 1
+        game.playRound()
     }
 
     // game is over if all rounds are played
