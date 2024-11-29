@@ -6,6 +6,7 @@ import wizard.aView.TextUITest
 import wizard.actionmanagement.ObserverTests
 import wizard.controller.{GameLogicTest, PlayerLogicTest, PlayerLogicTests, RoundLogicTest}
 import wizard.model.*
+import wizard.model.dealer.DealerTests
 import wizard.model.player.PlayerTest
 import wizard.model.rounds.RoundTest
 

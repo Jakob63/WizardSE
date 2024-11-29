@@ -4,7 +4,7 @@ import wizard.model.cards.{Card, Color, Hand}
 import wizard.actionmanagement.{Observable, Observer}
 import wizard.aView.TextUI
 
-abstract case class Player(name: String) extends Observable {
+abstract case class Player(var name: String) extends Observable {
     
     add(TextUI)
     

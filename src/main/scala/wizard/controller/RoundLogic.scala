@@ -25,8 +25,6 @@ object RoundLogic extends Observable {
             case _ => round.setState(new NormalCardState)
         }
 
-        round.handleTrump(trumpCard, players)
-
         Dealer.shuffleCards()
         players.foreach { player =>
             val hand = Dealer.dealCards(currentround, Some(trumpCard))
@@ -35,6 +33,8 @@ object RoundLogic extends Observable {
         notifyObservers("cards dealt")
         players.foreach(showHand)
 
+        round.handleTrump(trumpCard, players)
+        
         players.foreach(player => PlayerLogic.bid(player))
         for (i <- 1 to currentround) {
             round.leadColor = None
@@ -77,16 +77,16 @@ object RoundLogic extends Observable {
         notifyObservers("print points all players", players)
     }
 
-    def determineTrump(players: List[Player]): Color = {
-        for (player <- players) {
-            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
-            if (trumpCard.isEmpty) {
-                val input = TextUI.update("which trump", player).asInstanceOf[String]
-                return Color.valueOf(input)
-            }
-        }
-        null
-    }
+//    def determineTrump(players: List[Player]): Color = {
+//        for (player <- players) {
+//            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
+//            if (trumpCard.isEmpty) {
+//                val input = TextUI.update("which trump", player).asInstanceOf[String]
+//                return Color.valueOf(input)
+//            }
+//        }
+//        null
+//    }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
         val leadColor = trick.head._2.color

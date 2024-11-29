@@ -5,15 +5,16 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.controller.PlayerLogic
 import wizard.model.cards.{Card, Color, Hand, Value}
-import wizard.model.player.Player
 import wizard.testUtils.TestUtil
+import wizard.model.player.PlayerFactory
+import wizard.model.player.PlayerType.Human
 
 class PlayerLogicTests extends AnyWordSpec with Matchers {
 
     "PlayerLogic" should {
 
         "play a valid card" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val hand = Hand(List(Card(Value.Chester, Color.Red), Card(Value.Two, Color.Blue)))
             player.addHand(hand)
             var card: Card = null
@@ -51,7 +52,7 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
 //        }
 
         "bid correctly" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val out = new java.io.ByteArrayOutputStream()
             Console.withOut(out) {
                 TestUtil.simulateInput("3\n") {
@@ -74,7 +75,7 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
 //        }
 //
         "add points correctly when bids match tricks" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             player.roundBids = 2
             player.roundTricks = 2
             PlayerLogic.addPoints(player)
@@ -82,7 +83,7 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
         }
 
         "subtract points correctly when bids do not match tricks" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             player.roundBids = 2
             player.roundTricks = 1
             PlayerLogic.addPoints(player)
@@ -90,7 +91,7 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
         }
 
         "calculate points correctly when bids match tricks" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             player.roundBids = 2
             player.roundTricks = 2
             val points = PlayerLogic.calculatePoints(player)
@@ -98,7 +99,7 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
         }
 
         "calculate points correctly when bids do not match tricks" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             player.roundBids = 2
             player.roundTricks = 1
             val points = PlayerLogic.calculatePoints(player)

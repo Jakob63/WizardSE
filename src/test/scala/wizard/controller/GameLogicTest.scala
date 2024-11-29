@@ -4,7 +4,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.controller.GameLogic
-import wizard.model.player.Player
+import wizard.model.player.PlayerType.Human
+import wizard.model.player.{Player, PlayerFactory}
 import wizard.model.rounds.Game
 import wizard.testUtils.TestUtil
 
@@ -28,7 +29,7 @@ class GameLogicTest extends AnyWordSpec with Matchers {
         }
 
         "play a game correctly" in {
-            val players = List(Player("Player1"), Player("Player2"), Player("Player3"), Player("Player4"), Player("Player5"), Player("Player6"), Player("Player7"), Player("Player8"), Player("Player9"), Player("Player10"), Player("Player11"), Player("Player12"), Player("Player13"), Player("Player14"), Player("Player15"), Player("Player16"), Player("Player17"), Player("Player18"), Player("Player19"), Player("Player20"), Player("Player21"), Player("Player22"), Player("Player23"), Player("Player24"), Player("Player25"), Player("Player26"), Player("Player27"), Player("Player28"), Player("Player29"), Player("Player30"), Player("Player31"), Player("Player32"), Player("Player33"), Player("Player34"), Player("Player35"), Player("Player36"), Player("Player37"), Player("Player38"), Player("Player39"), Player("Player40"), Player("Player41"), Player("Player42"), Player("Player43"), Player("Player44"), Player("Player45"), Player("Player46"), Player("Player47"), Player("Player48"), Player("Player49"), Player("Player50"), Player("Player51"), Player("Player52"), Player("Player53"), Player("Player54"), Player("Player55"), Player("Player56"), Player("Player57"), Player("Player58"), Player("Player59"))
+            val players = List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human), PlayerFactory.createPlayer("Player4", Human), PlayerFactory.createPlayer("Player5", Human), PlayerFactory.createPlayer("Player6", Human), PlayerFactory.createPlayer("Player7", Human), PlayerFactory.createPlayer("Player8", Human), PlayerFactory.createPlayer("Player9", Human), PlayerFactory.createPlayer("Player10", Human), PlayerFactory.createPlayer("Player11", Human), PlayerFactory.createPlayer("Player12", Human), PlayerFactory.createPlayer("Player13", Human), PlayerFactory.createPlayer("Player14", Human), PlayerFactory.createPlayer("Player15", Human), PlayerFactory.createPlayer("Player16", Human), PlayerFactory.createPlayer("Player17", Human), PlayerFactory.createPlayer("Player18", Human), PlayerFactory.createPlayer("Player19", Human), PlayerFactory.createPlayer("Player20", Human), PlayerFactory.createPlayer("Player21", Human), PlayerFactory.createPlayer("Player22", Human), PlayerFactory.createPlayer("Player23", Human), PlayerFactory.createPlayer("Player24", Human), PlayerFactory.createPlayer("Player25", Human), PlayerFactory.createPlayer("Player26", Human), PlayerFactory.createPlayer("Player27", Human), PlayerFactory.createPlayer("Player28", Human), PlayerFactory.createPlayer("Player29", Human), PlayerFactory.createPlayer("Player30", Human), PlayerFactory.createPlayer("Player31", Human), PlayerFactory.createPlayer("Player32", Human), PlayerFactory.createPlayer("Player33", Human), PlayerFactory.createPlayer("Player34", Human), PlayerFactory.createPlayer("Player35", Human), PlayerFactory.createPlayer("Player36", Human), PlayerFactory.createPlayer("Player37", Human), PlayerFactory.createPlayer("Player38", Human), PlayerFactory.createPlayer("Player39", Human), PlayerFactory.createPlayer("Player40", Human), PlayerFactory.createPlayer("Player41", Human), PlayerFactory.createPlayer("Player42", Human), PlayerFactory.createPlayer("Player43", Human), PlayerFactory.createPlayer("Player44", Human), PlayerFactory.createPlayer("Player45", Human), PlayerFactory.createPlayer("Player46", Human), PlayerFactory.createPlayer("Player47", Human), PlayerFactory.createPlayer("Player48", Human), PlayerFactory.createPlayer("Player49", Human), PlayerFactory.createPlayer("Player50", Human), PlayerFactory.createPlayer("Player51", Human), PlayerFactory.createPlayer("Player52", Human), PlayerFactory.createPlayer("Player53", Human), PlayerFactory.createPlayer("Player54", Human), PlayerFactory.createPlayer("Player55", Human), PlayerFactory.createPlayer("Player56", Human), PlayerFactory.createPlayer("Player57", Human), PlayerFactory.createPlayer("Player58", Human), PlayerFactory.createPlayer("Player59", Human))
             val game = Game(players)
 
             TestUtil.simulateInput("1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n") {
@@ -37,7 +38,7 @@ class GameLogicTest extends AnyWordSpec with Matchers {
         }
 
         "check if the game is over" in {
-            val players = List(Player("Player1"), Player("Player2"), Player("Player3"))
+            val players = List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human))
             val game = Game(players)
             game.rounds = 0
             GameLogic.isOver(game) shouldBe true

@@ -1,7 +1,6 @@
 package wizard.model.player
 
-import wizard.model.cards.{Card, Color, Hand, Value}
-import wizard.model.player.Player
+import wizard.model.cards.{Card, Color}
 
 class Human private[player](name: String) extends Player(name) {
 

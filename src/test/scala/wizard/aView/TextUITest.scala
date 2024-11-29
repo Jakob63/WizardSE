@@ -5,7 +5,8 @@ import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.aView.TextUI
 import wizard.model.cards.*
-import wizard.model.player.Player
+import wizard.model.player.PlayerType.Human
+import wizard.model.player.{Player, PlayerFactory}
 import wizard.model.rounds.Round
 import wizard.testUtils.TestUtil
 
@@ -14,7 +15,7 @@ class TextUITest extends AnyWordSpec with Matchers {
     "TextUI" should {
 
         "showHand should display the player's hand" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val hand = Hand(List(Card(Value.Seven, Color.Red), Card(Value.Eight, Color.Blue)))
             player.addHand(hand)
             val out = new java.io.ByteArrayOutputStream()
@@ -28,7 +29,7 @@ class TextUITest extends AnyWordSpec with Matchers {
             output should include ("8 of Blue")
         }
         "showHand should display an exception message if the player's hand is empty" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val out = new java.io.ByteArrayOutputStream()
             Console.withOut(out) {
                 TextUI.showHand(player)
@@ -44,7 +45,7 @@ class TextUITest extends AnyWordSpec with Matchers {
                 players = TextUI.inputPlayers()
             }
             val round = new Round(players)
-            val expected_round = new Round(List(Player("Player1"), Player("Player2"), Player("Player3")))
+            val expected_round = new Round(List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human)))
             round.toString shouldBe expected_round.toString
         }
         "inputPlayers should wait for another input if the number of players is not between 3 and 6" in {
@@ -53,7 +54,7 @@ class TextUITest extends AnyWordSpec with Matchers {
                 players = TextUI.inputPlayers()
             }
             val round = new Round(players)
-            val expected_round = new Round(List(Player("Player1"), Player("Player2"), Player("Player3")))
+            val expected_round = new Round(List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human)))
             round.toString shouldBe expected_round.toString
         }
         "inputPlayers should wait for another input if no number is given" in {
@@ -62,7 +63,7 @@ class TextUITest extends AnyWordSpec with Matchers {
                 players = TextUI.inputPlayers()
             }
             val round = new Round(players)
-            val expected_round = new Round(List(Player("Player1"), Player("Player2"), Player("Player3")))
+            val expected_round = new Round(List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human)))
             round.toString shouldBe expected_round.toString
         }
         "inputPlayers should wait for another input if player name is empty" in {
@@ -71,7 +72,7 @@ class TextUITest extends AnyWordSpec with Matchers {
                 players = TextUI.inputPlayers()
             }
             val round = new Round(players)
-            val expected_round = new Round(List(Player("Player1"), Player("Player2"), Player("Player3")))
+            val expected_round = new Round(List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human)))
             round.toString shouldBe expected_round.toString
         }
         "print the correct card at a valid index" in {
@@ -92,7 +93,7 @@ class TextUITest extends AnyWordSpec with Matchers {
 
         // Update tests
         "print the correct message for 'which card'" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val out = new java.io.ByteArrayOutputStream()
             Console.withOut(out) {
                 TextUI.update("which card", player)
@@ -121,7 +122,7 @@ class TextUITest extends AnyWordSpec with Matchers {
         }
 
         "print the correct message for 'which bid'" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val out = new java.io.ByteArrayOutputStream()
             Console.withOut(out) {
                 TextUI.update("which bid", player)
@@ -160,7 +161,7 @@ class TextUITest extends AnyWordSpec with Matchers {
         }
 
         "print the correct message for 'trick winner'" in {
-            val player = Player("TestPlayer")
+            val player = PlayerFactory.createPlayer("TestPlayer", Human)
             val out = new java.io.ByteArrayOutputStream()
             Console.withOut(out) {
                 TextUI.update("trick winner", player)

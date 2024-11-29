@@ -2,10 +2,11 @@ package wizard.model.rounds
 
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
+
 import scala.compiletime.uninitialized
 import wizard.controller.RoundState
 import wizard.aView.TextUI
-import wizard.actionmanagement.{Observable, Observer}
+import wizard.actionmanagement.Observable
 
 class Round(players: List[Player]) extends Observable {
     // Aktueller Trumpf
@@ -16,11 +17,9 @@ class Round(players: List[Player]) extends Observable {
 
     add(TextUI) // Added den Observer
 
-    // Methode zum Setzen des Trumpfs
     def setTrump(trump: Color): Unit = {
         this.trump = trump
     }
-
 
     def setState(state: RoundState): Unit = {
         this.state = state
@@ -46,7 +45,6 @@ class Round(players: List[Player]) extends Observable {
     def nextPlayer(): Player = {
         val player = players(currentPlayerIndex)
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length
-        // next player
         player
     }
 
@@ -68,5 +66,5 @@ class Round(players: List[Player]) extends Observable {
     override def toString: String = {
         s"Trump: $trump, LeadColor: $leadColor, CurrentPlayerIndex: $currentPlayerIndex, Players: $players"
     }
-    
+
 }

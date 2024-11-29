@@ -6,9 +6,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import wizard.aView.TextUI
 import wizard.controller.{GameLogic, RoundLogic}
 import wizard.model.cards.*
-import wizard.model.player.Player
+import wizard.model.player.{Player, PlayerFactory}
 import wizard.model.rounds.Round
 import wizard.testUtils.TestUtil
+import wizard.model.player.PlayerType.Human
 
 class RoundLogicTest extends AnyWordSpec with Matchers {
     "RoundLogic" should {
@@ -39,11 +40,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
 //        }
 
         "correct trickwinner" in {
-            val players = List(
-                Player("Player 1"),
-                Player("Player 2"),
-                Player("Player 3")
-            )
+            val players = List(PlayerFactory.createPlayer("Player 1", Human), PlayerFactory.createPlayer("Player 2", Human), PlayerFactory.createPlayer("Player 3", Human))
 
             // Initialize hands with cards
             players(0).hand = Hand(List(Card(Value.Two, Color.Red)))
@@ -61,7 +58,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
         }
         "no cards left on Deck should throw exception" in {
             assertThrows[IndexOutOfBoundsException] {
-                RoundLogic.playRound(19, List(Player("Player 1"), Player("Player 2"), Player("Player 3"), Player("Player 4")))
+                RoundLogic.playRound(19, List(PlayerFactory.createPlayer("Player 1", Human), PlayerFactory.createPlayer("Player 2", Human), PlayerFactory.createPlayer("Player 3", Human), PlayerFactory.createPlayer("Player 4", Human)))
             }
         }
 //        "playRound should work correctly" in {
