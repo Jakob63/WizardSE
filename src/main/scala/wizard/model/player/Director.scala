@@ -5,7 +5,7 @@ import scala.util.Random
 object Director {
     private var builder: PlayerBuilder = _
 
-    var names = List("Jakob", "Elena", "Janis", "Leon")
+    var names = List("Manfred", "Olaf", "Siegfried", "Irmie", "Adam", "Eva", "Gustav", "Hans", "Gisela", "Gudrun", "Hildegard", "Inge", "Karl", "Ludwig")
     
     def makeRandomNames(playerbuilder: PlayerBuilder): Player = {
         playerbuilder.reset()

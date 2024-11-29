@@ -21,10 +21,24 @@ object TextUI extends Observer {
             case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
             case "bid einlesen" => scala.io.StdIn.readLine()
             case "card einlesen" => scala.io.StdIn.readLine()
+            case "which trump" => {
+                println(s"${obj.head.asInstanceOf[Player].name}, which color do you want to choose as trump?")
+                scala.io.StdIn.readLine()
+            }
         }
-        // Fetch new data von Controller und update die View
     }
-
+    
+    def printColorOptions(cards: List[Card]): Unit = {
+        val cardLines = cards.map(showcard(_).split("\n"))
+        for (i <- cardLines.head.indices) {
+            println(cardLines.map(_(i)).mkString(" "))
+        }
+        val handString = cards.map(card => s"${card.value.cardType()} of ${card.color}").mkString(", ")
+        println(s"($handString)")
+        val indices = cards.zipWithIndex.map { case (card, index) => s"${index + 1}: ${card.value.cardType()} of ${card.color}" }
+        println(s"Indices: ${indices.mkString(", ")}")
+    }
+    
     def inputPlayers(): List[Player] = {
         var numPlayers = -1
         while (numPlayers < 3 || numPlayers > 6) {
@@ -62,7 +76,7 @@ object TextUI extends Observer {
         if (player.hand.cards.isEmpty) {
             println("No cards in hand.")
         } else {
-            val cardLines = player.hand.cards.map(card => TextUI.showcard(card).split("\n"))
+            val cardLines = player.hand.cards.map(card => showcard(card).split("\n"))
             for (i <- cardLines.head.indices) {
                 println(cardLines.map(_(i)).mkString(" "))
             }

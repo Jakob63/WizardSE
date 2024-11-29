@@ -14,10 +14,7 @@ object PlayerLogic extends Observable {
         if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
             notifyObservers("follow lead", leadColor)
             return playCard(leadColor, trump, currentPlayerIndex, player)
-        } else if (leadColor != null && cardToPlay.color != leadColor && !player.hand.hasColor(leadColor) && cardToPlay.color != trump && player.hand.hasColor(trump) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
-            notifyObservers("follow trump", trump)
-            return playCard(leadColor, trump, currentPlayerIndex, player)
-        } else {
+        }  else {
             player.hand = player.hand.removeCard(cardToPlay)
             cardToPlay
         }
