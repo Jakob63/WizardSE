@@ -4,9 +4,11 @@ import wizard.actionmanagement.Observer
 import wizard.model.cards.*
 import wizard.model.player.PlayerType.Human
 import wizard.model.player.{Player, PlayerFactory}
+import wizard.undo.{UndoManager, SetPlayerNameCommand}
 
 object TextUI extends Observer {
-    
+    private val undoManager = new UndoManager
+
     override def update(updateMSG: String, obj: Any*): Any = {
         updateMSG match {
             case "which card" => println(s"${obj.head.asInstanceOf[Player].name}, which card do you want to play?")
@@ -27,7 +29,7 @@ object TextUI extends Observer {
             }
         }
     }
-    
+
     def printColorOptions(cards: List[Card]): Unit = {
         val cardLines = cards.map(showcard(_).split("\n"))
         for (i <- cardLines.head.indices) {
@@ -38,7 +40,7 @@ object TextUI extends Observer {
         val indices = cards.zipWithIndex.map { case (card, index) => s"${index + 1}: ${card.value.cardType()} of ${card.color}" }
         println(s"Indices: ${indices.mkString(", ")}")
     }
-    
+
     def inputPlayers(): List[Player] = {
         var numPlayers = -1
         while (numPlayers < 3 || numPlayers > 6) {
@@ -66,9 +68,19 @@ object TextUI extends Observer {
                     println("Invalid name. Please enter a name containing only letters and numbers.")
                 }
             }
-            PlayerFactory.createPlayer(name, Human)
+            val player = PlayerFactory.createPlayer(name, Human)
+            undoManager.doStep(new SetPlayerNameCommand(player, name))
+            player
         }
         players.toList
+    }
+
+    def undo(): Unit = {
+        undoManager.undoStep()
+    }
+
+    def redo(): Unit = {
+        undoManager.redoStep()
     }
 
     def showHand(player: Player): Unit = {
@@ -96,7 +108,7 @@ object TextUI extends Observer {
                 s"│         │\n" +
                 s"│      ${colorToAnsi(card.color)}${valueToAnsi(card.value)}${card.value.cardType()}${Console.RESET} │\n" +
                 s"└─────────┘"
-                
+
         } else {
             s"┌─────────┐\n" +
                 s"│ ${colorToAnsi(card.color)}${valueToAnsi(card.value)}${card.value.cardType()}${Console.RESET}       │\n" +
@@ -113,6 +125,6 @@ object TextUI extends Observer {
             showcard(Dealer.allCards(index))
         } else {
             s"Index $index is out of bounds."
-        } 
+        }
     }
 }
