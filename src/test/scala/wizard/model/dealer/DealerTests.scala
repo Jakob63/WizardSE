@@ -58,7 +58,7 @@ class DealerTests extends AnyWordSpec with Matchers {
         }
 
         "ensure trump card is not in any player's hand" in {
-            val players = List(PlayerFactory.createPlayer("Player 1", Human), PlayerFactory.createPlayer("Player 2", Human), PlayerFactory.createPlayer("Player 3", Human))
+            val players = List(PlayerFactory.createPlayer(Some("Player1"), Human), PlayerFactory.createPlayer(Some("Player2"), Human), PlayerFactory.createPlayer(Some("Player3"), Human))
             val trumpCard = Dealer.allCards.head // Beispiel-Trumpfkarte
             Dealer.shuffleCards()
             players.foreach { player =>

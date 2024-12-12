@@ -12,21 +12,21 @@ trait RoundState extends Observable {
 
 class NormalCardState extends RoundState {
     override def handleTrump(round: Round, trumpCard: Card, players: List[Player]): Unit = {
-        round.setTrump(trumpCard.color)
+        round.setTrump(Some(trumpCard.color))
         round.notifyObservers("print trump card", trumpCard)
     }
 }
 
 class ChesterCardState extends RoundState {
     override def handleTrump(round: Round, trumpCard: Card, players: List[Player]): Unit = {
-        round.setTrump(null)
+        round.setTrump(None)
         round.notifyObservers("print trump card", trumpCard)
     }
 }
 
 class WizardCardState extends RoundState {
     override def handleTrump(round: Round, trumpCard: Card, players: List[Player]): Unit = {
-        round.setTrump(null)
+        round.setTrump(None)
         round.notifyObservers("print trump card", trumpCard)
         determineTrump(round, players)
     }
@@ -41,9 +41,9 @@ class WizardCardState extends RoundState {
 
         val input = TextUI.update("which trump", nextPlayer).asInstanceOf[String]
         val chosenColorIndex = input.toInt - 1
-        val chosenColor = colorOptions(chosenColorIndex)
+        val chosenColor = colorOptions.lift(chosenColorIndex)
 
         round.setTrump(chosenColor)
-        round.notifyObservers("print trump card", Card(Value.One, chosenColor))
+        round.notifyObservers("print trump card", Card(Value.One, chosenColor.getOrElse(Color.Red)))
     }
 }

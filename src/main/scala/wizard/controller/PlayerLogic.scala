@@ -8,13 +8,13 @@ import wizard.actionmanagement.{Observable, Observer}
 object PlayerLogic extends Observable {
     add(TextUI)
 
-    def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
+    def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card = {
         notifyObservers("which card", player)
-        val cardToPlay = player.playCard(leadColor, trump, currentPlayerIndex)
-        if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
-            notifyObservers("follow lead", leadColor)
+        val cardToPlay = player.playCard(leadColor.orNull, trump.get, currentPlayerIndex)
+        if (leadColor.isDefined && cardToPlay.color != leadColor.get && player.hand.hasColor(leadColor.get) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
+            notifyObservers("follow lead", leadColor.get)
             return playCard(leadColor, trump, currentPlayerIndex, player)
-        }  else {
+        } else {
             player.hand = player.hand.removeCard(cardToPlay)
             cardToPlay
         }

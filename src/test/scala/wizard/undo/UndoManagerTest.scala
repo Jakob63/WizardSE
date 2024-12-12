@@ -9,7 +9,7 @@ class UndoManagerTest extends AnyFunSuite {
         val undoManager = new UndoManager
 
         // Create player
-        val player1 = PlayerFactory.createPlayer("sp1", PlayerType.Human)
+        val player1 = PlayerFactory.createPlayer(Some("sp1"), PlayerType.Human)
 
         // Set player1 name to Fred
         val setNameCommand = new SetPlayerNameCommand(player1, "Fred")
@@ -21,7 +21,7 @@ class UndoManagerTest extends AnyFunSuite {
         val undoManager = new UndoManager
 
         // Create player
-        val player1 = PlayerFactory.createPlayer("sp1", PlayerType.Human)
+        val player1 = PlayerFactory.createPlayer(Some("sp1"), PlayerType.Human)
 
         // Set player1 name to Fred
         val setNameCommand = new SetPlayerNameCommand(player1, "Fred")
@@ -35,7 +35,7 @@ class UndoManagerTest extends AnyFunSuite {
         val undoManager = new UndoManager
 
         // Create player
-        val player1 = PlayerFactory.createPlayer("sp1", PlayerType.Human)
+        val player1 = PlayerFactory.createPlayer(Some("sp1"), PlayerType.Human)
 
         // Set player1 name to Fred
         val setNameCommand = new SetPlayerNameCommand(player1, "Fred")
@@ -71,7 +71,7 @@ class UndoManagerTest extends AnyFunSuite {
 
     test("redoStep in SetPlayerNameCommand") {
         // Create player
-        val player1 = PlayerFactory.createPlayer("sp1", PlayerType.Human)
+        val player1 = PlayerFactory.createPlayer(Some("sp1"), PlayerType.Human)
 
         // Set player1 name to Fred
         val setNameCommand = new SetPlayerNameCommand(player1, "Fred")

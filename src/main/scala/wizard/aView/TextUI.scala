@@ -4,7 +4,9 @@ import wizard.actionmanagement.Observer
 import wizard.model.cards.*
 import wizard.model.player.PlayerType.Human
 import wizard.model.player.{Player, PlayerFactory}
-import wizard.undo.{UndoManager, SetPlayerNameCommand}
+import wizard.undo.{SetPlayerNameCommand, UndoManager}
+
+import scala.util.{Success, Try}
 
 object TextUI extends Observer {
     private val undoManager = new UndoManager
@@ -45,34 +47,52 @@ object TextUI extends Observer {
         var numPlayers = -1
         while (numPlayers < 3 || numPlayers > 6) {
             print("Enter the number of players (3-6): ")
-            try {
-                val input = scala.io.StdIn.readLine()
-                numPlayers = input.toInt
-                if (numPlayers < 3 || numPlayers > 6) {
+            val input = scala.io.StdIn.readLine()
+            numPlayers = Try(input.toInt) match {
+                case Success(number) if number >= 3 && number <= 6 => number
+                case _ =>
                     println("Invalid number of players. Please enter a number between 3 and 6.")
-                    numPlayers = -1
-                }
-            } catch {
-                case _: NumberFormatException =>
-                    println("Invalid input. Please enter a valid number.")
+                    -1
             }
         }
 
-        val players = for (i <- 1 to numPlayers) yield {
-            var name = ""
+        var players = List[Player]()
+        var i = 1
+        while (i <= numPlayers) {
+            var name: Option[String] = None
             val pattern = "^[a-zA-Z0-9]+$".r
-            while (name == "" || !pattern.pattern.matcher(name).matches()) {
-                print(s"Enter the name of player $i: ")
-                name = scala.io.StdIn.readLine()
-                if (name == "" || !pattern.pattern.matcher(name).matches()) {
-                    println("Invalid name. Please enter a name containing only letters and numbers.")
+            while (name.isEmpty || !pattern.pattern.matcher(name.getOrElse("")).matches()) {
+                print(s"Enter the name of player $i (or type 'undo'/'redo'): ")
+                val input = scala.io.StdIn.readLine()
+                input match {
+                    case "undo" =>
+                        if (i > 1) {
+                            undoManager.undoStep()
+                            i -= 1
+                            players = players.dropRight(1)
+                        }
+                    case "redo" =>
+                        undoManager.redoStep()
+                        if (i <= players.length) {
+                            players = players :+ players(i - 1)
+                        }
+                        if (i < numPlayers) {
+                            i += 1
+                        }
+                    case _ =>
+                        if (input == "" || !pattern.pattern.matcher(input).matches()) {
+                            println("Invalid name. Please enter a name containing only letters and numbers.")
+                        } else {
+                            name = Some(input)
+                            val player = PlayerFactory.createPlayer(name, Human)
+                            undoManager.doStep(new SetPlayerNameCommand(player, input))
+                            players = players :+ player
+                            i += 1
+                        }
                 }
             }
-            val player = PlayerFactory.createPlayer(name, Human)
-            undoManager.doStep(new SetPlayerNameCommand(player, name))
-            player
         }
-        players.toList
+        players
     }
 
     def undo(): Unit = {

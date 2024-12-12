@@ -10,14 +10,14 @@ import wizard.actionmanagement.Observable
 
 class Round(players: List[Player]) extends Observable {
     // Aktueller Trumpf
-    var trump: Color = uninitialized
+    var trump: Option[Color] = None
     var leadColor: Option[Color] = None
     var currentPlayerIndex = 0
     private var state: RoundState = _
 
     add(TextUI) // Added den Observer
 
-    def setTrump(trump: Color): Unit = {
+    def setTrump(trump: Option[Color]): Unit = {
         this.trump = trump
     }
 
@@ -29,18 +29,18 @@ class Round(players: List[Player]) extends Observable {
         state.handleTrump(this, trumpCard, players)
     }
 
-    def determineTrump(players: List[Player]): Unit = {
-        for (player <- players) {
-            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
-            if (trumpCard.isEmpty) {
-                val input = TextUI.update("which trump", player).asInstanceOf[String]
-                setTrump(Color.valueOf(input))
-                notifyObservers("print trump card", Card(Value.valueOf(input), Color.valueOf(input)))
-                return
-            }
-        }
-        setTrump(null)
-    }
+//    def determineTrump(players: List[Player]): Unit = {
+//        for (player <- players) {
+//            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
+//            if (trumpCard.isEmpty) {
+//                val input = TextUI.update("which trump", player).asInstanceOf[String]
+//                setTrump(Some(Color.valueOf(input)))
+//                notifyObservers("print trump card", Card(Value.valueOf(input), Color.valueOf(input)))
+//                return
+//            }
+//        }
+//        setTrump(None)
+//    }
 
     def nextPlayer(): Player = {
         val player = players(currentPlayerIndex)
