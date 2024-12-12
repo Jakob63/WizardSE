@@ -9,6 +9,7 @@ import wizard.model.player.PlayerType.Human
 import wizard.model.player.{Player, PlayerFactory}
 import wizard.model.rounds.Round
 import wizard.testUtils.TestUtil
+import wizard.undo.UndoManager
 
 class TextUITest extends AnyWordSpec with Matchers {
 
@@ -178,5 +179,26 @@ class TextUITest extends AnyWordSpec with Matchers {
             val output = out.toString.trim
             output shouldBe "Points after this round:"
         }
+        "inputPlayers should work with undo manager" in {
+            var players: List[Player] = List()
+            TestUtil.simulateInput("3\nPlayer1\nundo\nJakob\nPlayer2\nPlayer3") {
+                players = TextUI.inputPlayers()
+            }
+            players(0).name shouldBe "Jakob"
+        }
+        "inputPlayers should work with redo" in {
+            var players: List[Player] = List()
+            TestUtil.simulateInput("3\nPlayer1\nundo\nredo\nJakob\nPlayer2\n") {
+                players = TextUI.inputPlayers()
+            }
+            players(0).name shouldBe "Jakob"
+        }
+//        "inputPlayers should work with redo" in {
+//            var players: List[Player] = List()
+//            TestUtil.simulateInput("3\nPlayer1\nundo\nredo\nJakob\nPlayer2\n") {
+//                players = TextUI.inputPlayers()
+//            }
+//            players(0).name shouldBe "Player1"
+//        }
     }
 }
