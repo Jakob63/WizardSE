@@ -44,5 +44,12 @@ class BuildHumanTest extends AnyWordSpec with Matchers {
             val human = builder.build().asInstanceOf[Human]
             human.name shouldBe "UpdatedName"
         }
+        "update the name if unfinished AI is already set" in {
+            val builder = new BuildAI()
+            builder.setName("InitialName")
+            builder.setName("UpdatedName")
+            val AI = builder.build().asInstanceOf[AI]
+            AI.name shouldBe "UpdatedName"
+        }
     }
 }

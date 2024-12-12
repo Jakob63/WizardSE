@@ -61,9 +61,36 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
                 RoundLogic.playRound(19, List(PlayerFactory.createPlayer(Some("Player 1"), Human), PlayerFactory.createPlayer(Some("Player 2"), Human), PlayerFactory.createPlayer(Some("Player 3"), Human), PlayerFactory.createPlayer(Some("Player 4"), Human)))
             }
         }
-//        "playRound should work correctly" in {
-//            TestUtil.simulateInput("
-//            RoundLogic.playRound(2, List(Player("Player 1"), Player("Player 2"), Player("Player 3")))
-//        }
+        "set ChesterCardState when trump card is Chester" in {
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human))
+            val round = new Round(players)
+            val chesterCard = Card(Value.Chester, Color.Red)
+
+            round.setState(new ChesterCardState)
+            round.handleTrump(chesterCard, players)
+
+            val stateField = round.getClass.getDeclaredField("state")
+            stateField.setAccessible(true)
+            val state = stateField.get(round)
+
+            state shouldBe a[ChesterCardState]
+        }
+
+        "set WizardCardState when trump card is WizardKarte" in {
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human))
+            val round = new Round(players)
+            val wizardCard = Card(Value.WizardKarte, Color.Red)
+
+            round.setState(new WizardCardState)
+            TestUtil.simulateInput("1\n") {
+                round.handleTrump(wizardCard, players)
+            }
+            val stateField = round.getClass.getDeclaredField("state")
+            stateField.setAccessible(true)
+            val state = stateField.get(round)
+
+            state shouldBe a[WizardCardState]
+        }
+
     }
 }

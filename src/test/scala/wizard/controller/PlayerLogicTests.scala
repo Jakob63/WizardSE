@@ -13,15 +13,15 @@ class PlayerLogicTests extends AnyWordSpec with Matchers {
 
     "PlayerLogic" should {
 
-        "play a valid card" in {
+        "play a valid card when an invalid card is attempted first" in {
             val player = PlayerFactory.createPlayer(Some("TestPlayer"), Human)
-            val hand = Hand(List(Card(Value.Chester, Color.Red), Card(Value.Two, Color.Blue)))
+            val hand = Hand(List(Card(Value.One, Color.Red), Card(Value.One, Color.Blue)))
             player.addHand(hand)
             var card: Option[Card] = None
-            TestUtil.simulateInput("1\n") {
+            TestUtil.simulateInput("2\n1\n") {
                 card = Some(PlayerLogic.playCard(Some(Color.Red), Some(Color.Blue), 0, player))
             }
-            card shouldBe Some(Card(Value.Chester, Color.Red))
+            card shouldBe Some(Card(Value.One, Color.Red))
         }
         "bid correctly" in { // wrong bid and right bid
             val player = PlayerFactory.createPlayer(Some("TestPlayer"), Human)
