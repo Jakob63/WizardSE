@@ -1,12 +1,17 @@
 package wizard.aView
 
 import wizard.actionmanagement.Observer
-import wizard.model.cards._
-import wizard.model.player.Player
+import wizard.model.cards.*
+import wizard.model.player.PlayerType.Human
+import wizard.model.player.{Player, PlayerFactory}
+import wizard.undo.{SetPlayerNameCommand, UndoManager}
+
+import scala.util.{Success, Try}
 
 object TextUI extends Observer {
-    
-    override def update(updateMSG: String, obj: Any*): Unit = {
+    private val undoManager = new UndoManager
+
+    override def update(updateMSG: String, obj: Any*): Any = {
         updateMSG match {
             case "which card" => println(s"${obj.head.asInstanceOf[Player].name}, which card do you want to play?")
             case "invalid card" => println("Invalid card. Please enter a valid index.")
@@ -18,40 +23,84 @@ object TextUI extends Observer {
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
             case "points after round" => println("Points after this round:")
             case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
+            case "bid einlesen" => scala.io.StdIn.readLine()
+            case "card einlesen" => scala.io.StdIn.readLine()
+            case "which trump" => {
+                println(s"${obj.head.asInstanceOf[Player].name}, which color do you want to choose as trump?")
+                scala.io.StdIn.readLine()
+            }
         }
-        // Fetch new data von Controller und update die View
+    }
+
+    def printColorOptions(cards: List[Card]): Unit = {
+        val cardLines = cards.map(showcard(_).split("\n"))
+        for (i <- cardLines.head.indices) {
+            println(cardLines.map(_(i)).mkString(" "))
+        }
+        val handString = cards.map(card => s"${card.value.cardType()} of ${card.color}").mkString(", ")
+        println(s"($handString)")
+        val indices = cards.zipWithIndex.map { case (card, index) => s"${index + 1}: ${card.value.cardType()} of ${card.color}" }
+        println(s"Indices: ${indices.mkString(", ")}")
     }
 
     def inputPlayers(): List[Player] = {
         var numPlayers = -1
         while (numPlayers < 3 || numPlayers > 6) {
             print("Enter the number of players (3-6): ")
-            try {
-                val input = scala.io.StdIn.readLine()
-                numPlayers = input.toInt
-                if (numPlayers < 3 || numPlayers > 6) {
+            val input = scala.io.StdIn.readLine()
+            numPlayers = Try(input.toInt) match {
+                case Success(number) if number >= 3 && number <= 6 => number
+                case _ =>
                     println("Invalid number of players. Please enter a number between 3 and 6.")
-                    numPlayers = -1
-                }
-            } catch {
-                case _: NumberFormatException =>
-                    println("Invalid input. Please enter a valid number.")
+                    -1
             }
         }
 
-        val players = for (i <- 1 to numPlayers) yield {
-            var name = ""
+        var players = List[Player]()
+        var i = 1
+        while (i <= numPlayers) {
+            var name: Option[String] = None
             val pattern = "^[a-zA-Z0-9]+$".r
-            while (name == "" || !pattern.pattern.matcher(name).matches()) {
-                print(s"Enter the name of player $i: ")
-                name = scala.io.StdIn.readLine()
-                if (name == "" || !pattern.pattern.matcher(name).matches()) {
-                    println("Invalid name. Please enter a name containing only letters and numbers.")
+            while (name.isEmpty || !pattern.pattern.matcher(name.getOrElse("")).matches()) {
+                print(s"Enter the name of player $i (or type 'undo'/'redo'): ")
+                val input = scala.io.StdIn.readLine()
+                input match {
+                    case "undo" =>
+                        if (i > 1) {
+                            undoManager.undoStep()
+                            i -= 1
+                            players = players.dropRight(1)
+                        }
+                    case "redo" =>
+                        undoManager.redoStep()
+                        if (i <= players.length) {
+                            players = players :+ players(i - 1)
+                        }
+                        if (i < numPlayers) {
+                            i += 1
+                        }
+                    case _ =>
+                        if (input == "" || !pattern.pattern.matcher(input).matches()) {
+                            println("Invalid name. Please enter a name containing only letters and numbers.")
+                        } else {
+                            name = Some(input)
+                            val player = PlayerFactory.createPlayer(name, Human)
+                            undoManager.doStep(new SetPlayerNameCommand(player, input))
+                            players = players :+ player
+                            i += 1
+                        }
                 }
             }
-            Player(name)
         }
-        players.toList
+        players
+    }
+
+    def undo(): Unit = {
+        undoManager.undoStep()
+    }
+
+    def redo(): Unit = {
+        undoManager.redoStep()
     }
 
     def showHand(player: Player): Unit = {
@@ -59,7 +108,7 @@ object TextUI extends Observer {
         if (player.hand.cards.isEmpty) {
             println("No cards in hand.")
         } else {
-            val cardLines = player.hand.cards.map(card => TextUI.showcard(card).split("\n"))
+            val cardLines = player.hand.cards.map(card => showcard(card).split("\n"))
             for (i <- cardLines.head.indices) {
                 println(cardLines.map(_(i)).mkString(" "))
             }
@@ -79,7 +128,7 @@ object TextUI extends Observer {
                 s"│         │\n" +
                 s"│      ${colorToAnsi(card.color)}${valueToAnsi(card.value)}${card.value.cardType()}${Console.RESET} │\n" +
                 s"└─────────┘"
-                
+
         } else {
             s"┌─────────┐\n" +
                 s"│ ${colorToAnsi(card.color)}${valueToAnsi(card.value)}${card.value.cardType()}${Console.RESET}       │\n" +
@@ -96,6 +145,6 @@ object TextUI extends Observer {
             showcard(Dealer.allCards(index))
         } else {
             s"Index $index is out of bounds."
-        } 
+        }
     }
 }

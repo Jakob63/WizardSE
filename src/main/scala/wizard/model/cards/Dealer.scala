@@ -4,6 +4,7 @@ import scala.collection.mutable.ListBuffer
 import wizard.actionmanagement.Observable
 
 object Dealer extends Observable {
+
     //erstelle eine liste mit allen karten eine karte besteht aus einer color und einem value
     var allCards: List[Card] = {
         val buffer = ListBuffer[Card]()

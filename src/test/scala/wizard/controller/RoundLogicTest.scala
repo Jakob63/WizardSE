@@ -6,9 +6,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import wizard.aView.TextUI
 import wizard.controller.{GameLogic, RoundLogic}
 import wizard.model.cards.*
-import wizard.model.player.Player
+import wizard.model.player.{Player, PlayerFactory}
 import wizard.model.rounds.Round
 import wizard.testUtils.TestUtil
+import wizard.model.player.PlayerType.Human
 
 class RoundLogicTest extends AnyWordSpec with Matchers {
     "RoundLogic" should {
@@ -39,11 +40,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
 //        }
 
         "correct trickwinner" in {
-            val players = List(
-                Player("Player 1"),
-                Player("Player 2"),
-                Player("Player 3")
-            )
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human), PlayerFactory.createPlayer(Some("Player 2"), Human), PlayerFactory.createPlayer(Some("Player 3"), Human))
 
             // Initialize hands with cards
             players(0).hand = Hand(List(Card(Value.Two, Color.Red)))
@@ -61,12 +58,39 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
         }
         "no cards left on Deck should throw exception" in {
             assertThrows[IndexOutOfBoundsException] {
-                RoundLogic.playRound(19, List(Player("Player 1"), Player("Player 2"), Player("Player 3"), Player("Player 4")))
+                RoundLogic.playRound(19, List(PlayerFactory.createPlayer(Some("Player 1"), Human), PlayerFactory.createPlayer(Some("Player 2"), Human), PlayerFactory.createPlayer(Some("Player 3"), Human), PlayerFactory.createPlayer(Some("Player 4"), Human)))
             }
         }
-//        "playRound should work correctly" in {
-//            TestUtil.simulateInput("
-//            RoundLogic.playRound(2, List(Player("Player 1"), Player("Player 2"), Player("Player 3")))
-//        }
+        "set ChesterCardState when trump card is Chester" in {
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human))
+            val round = new Round(players)
+            val chesterCard = Card(Value.Chester, Color.Red)
+
+            round.setState(new ChesterCardState)
+            round.handleTrump(chesterCard, players)
+
+            val stateField = round.getClass.getDeclaredField("state")
+            stateField.setAccessible(true)
+            val state = stateField.get(round)
+
+            state shouldBe a[ChesterCardState]
+        }
+
+        "set WizardCardState when trump card is WizardKarte" in {
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human))
+            val round = new Round(players)
+            val wizardCard = Card(Value.WizardKarte, Color.Red)
+
+            round.setState(new WizardCardState)
+            TestUtil.simulateInput("1\n") {
+                round.handleTrump(wizardCard, players)
+            }
+            val stateField = round.getClass.getDeclaredField("state")
+            stateField.setAccessible(true)
+            val state = stateField.get(round)
+
+            state shouldBe a[WizardCardState]
+        }
+
     }
 }

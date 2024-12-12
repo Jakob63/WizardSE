@@ -5,11 +5,11 @@ import wizard.aView.TextUI.showHand
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round
-
 import wizard.actionmanagement.{Observable, Observer}
 
 object RoundLogic extends Observable {
     add(TextUI)
+
     def playRound(currentround: Int, players: List[Player]): Unit = {
         val round = new Round(players)
         val trumpCardIndex = currentround * players.length
@@ -18,9 +18,13 @@ object RoundLogic extends Observable {
         } else {
             throw new IndexOutOfBoundsException("No trump card available.")
         }
-        round.setTrump(trumpCard.color)
-        notifyObservers("print trump card", trumpCard)
-        
+
+        trumpCard.value match {
+            case Value.Chester => round.setState(new ChesterCardState)
+            case Value.WizardKarte => round.setState(new WizardCardState)
+            case _ => round.setState(new NormalCardState)
+        }
+
         Dealer.shuffleCards()
         players.foreach { player =>
             val hand = Dealer.dealCards(currentround, Some(trumpCard))
@@ -28,6 +32,8 @@ object RoundLogic extends Observable {
         }
         notifyObservers("cards dealt")
         players.foreach(showHand)
+
+        round.handleTrump(trumpCard, players)
 
         players.foreach(player => PlayerLogic.bid(player))
         for (i <- 1 to currentround) {
@@ -37,7 +43,7 @@ object RoundLogic extends Observable {
 
             while (round.leadColor.isEmpty && firstPlayerIndex < players.length) {
                 val player = players(firstPlayerIndex)
-                val card = PlayerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+                val card = PlayerLogic.playCard(None, round.trump, firstPlayerIndex, player)
                 if (card.value != Value.WizardKarte && card.value != Value.Chester) {
                     round.leadColor = Some(card.color)
                 }
@@ -47,7 +53,7 @@ object RoundLogic extends Observable {
 
             for (j <- firstPlayerIndex until players.length) {
                 val player = players(j)
-                val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+                val card = PlayerLogic.playCard(round.leadColor, round.trump, j, player)
                 trick = trick :+ (player, card)
             }
 

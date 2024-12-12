@@ -1,11 +1,12 @@
-package wizard.model
+package wizard.model.dealer
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.aView.TextUI.{printCardAtIndex, showcard}
 import wizard.model.cards.{Color, Dealer, Value}
-import wizard.model.player.Player
+import wizard.model.player.{Player, PlayerFactory}
+import wizard.model.player.PlayerType.Human
 
 class DealerTests extends AnyWordSpec with Matchers {
     "Dealer" should {
@@ -57,7 +58,7 @@ class DealerTests extends AnyWordSpec with Matchers {
         }
 
         "ensure trump card is not in any player's hand" in {
-            val players = List(Player("Player1"), Player("Player2"), Player("Player3"))
+            val players = List(PlayerFactory.createPlayer(Some("Player1"), Human), PlayerFactory.createPlayer(Some("Player2"), Human), PlayerFactory.createPlayer(Some("Player3"), Human))
             val trumpCard = Dealer.allCards.head // Beispiel-Trumpfkarte
             Dealer.shuffleCards()
             players.foreach { player =>
