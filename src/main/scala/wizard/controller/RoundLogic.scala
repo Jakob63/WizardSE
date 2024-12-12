@@ -34,7 +34,7 @@ object RoundLogic extends Observable {
         players.foreach(showHand)
 
         round.handleTrump(trumpCard, players)
-        
+
         players.foreach(player => PlayerLogic.bid(player))
         for (i <- 1 to currentround) {
             round.leadColor = None
@@ -43,7 +43,7 @@ object RoundLogic extends Observable {
 
             while (round.leadColor.isEmpty && firstPlayerIndex < players.length) {
                 val player = players(firstPlayerIndex)
-                val card = PlayerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+                val card = PlayerLogic.playCard(None, round.trump, firstPlayerIndex, player)
                 if (card.value != Value.WizardKarte && card.value != Value.Chester) {
                     round.leadColor = Some(card.color)
                 }
@@ -53,7 +53,7 @@ object RoundLogic extends Observable {
 
             for (j <- firstPlayerIndex until players.length) {
                 val player = players(j)
-                val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+                val card = PlayerLogic.playCard(round.leadColor, round.trump, j, player)
                 trick = trick :+ (player, card)
             }
 
@@ -76,17 +76,6 @@ object RoundLogic extends Observable {
         notifyObservers("points after round")
         notifyObservers("print points all players", players)
     }
-
-//    def determineTrump(players: List[Player]): Color = {
-//        for (player <- players) {
-//            val trumpCard = player.hand.cards.find(_.value == Value.WizardKarte)
-//            if (trumpCard.isEmpty) {
-//                val input = TextUI.update("which trump", player).asInstanceOf[String]
-//                return Color.valueOf(input)
-//            }
-//        }
-//        null
-//    }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
         val leadColor = trick.head._2.color

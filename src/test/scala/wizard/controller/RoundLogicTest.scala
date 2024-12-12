@@ -40,7 +40,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
 //        }
 
         "correct trickwinner" in {
-            val players = List(PlayerFactory.createPlayer("Player 1", Human), PlayerFactory.createPlayer("Player 2", Human), PlayerFactory.createPlayer("Player 3", Human))
+            val players = List(PlayerFactory.createPlayer(Some("Player 1"), Human), PlayerFactory.createPlayer(Some("Player 2"), Human), PlayerFactory.createPlayer(Some("Player 3"), Human))
 
             // Initialize hands with cards
             players(0).hand = Hand(List(Card(Value.Two, Color.Red)))
@@ -58,7 +58,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers {
         }
         "no cards left on Deck should throw exception" in {
             assertThrows[IndexOutOfBoundsException] {
-                RoundLogic.playRound(19, List(PlayerFactory.createPlayer("Player 1", Human), PlayerFactory.createPlayer("Player 2", Human), PlayerFactory.createPlayer("Player 3", Human), PlayerFactory.createPlayer("Player 4", Human)))
+                RoundLogic.playRound(19, List(PlayerFactory.createPlayer(Some("Player 1"), Human), PlayerFactory.createPlayer(Some("Player 2"), Human), PlayerFactory.createPlayer(Some("Player 3"), Human), PlayerFactory.createPlayer(Some("Player 4"), Human)))
             }
         }
 //        "playRound should work correctly" in {

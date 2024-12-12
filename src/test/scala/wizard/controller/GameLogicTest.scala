@@ -29,16 +29,74 @@ class GameLogicTest extends AnyWordSpec with Matchers {
         }
 
         "play a game correctly" in {
-            val players = List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human), PlayerFactory.createPlayer("Player4", Human), PlayerFactory.createPlayer("Player5", Human), PlayerFactory.createPlayer("Player6", Human), PlayerFactory.createPlayer("Player7", Human), PlayerFactory.createPlayer("Player8", Human), PlayerFactory.createPlayer("Player9", Human), PlayerFactory.createPlayer("Player10", Human), PlayerFactory.createPlayer("Player11", Human), PlayerFactory.createPlayer("Player12", Human), PlayerFactory.createPlayer("Player13", Human), PlayerFactory.createPlayer("Player14", Human), PlayerFactory.createPlayer("Player15", Human), PlayerFactory.createPlayer("Player16", Human), PlayerFactory.createPlayer("Player17", Human), PlayerFactory.createPlayer("Player18", Human), PlayerFactory.createPlayer("Player19", Human), PlayerFactory.createPlayer("Player20", Human), PlayerFactory.createPlayer("Player21", Human), PlayerFactory.createPlayer("Player22", Human), PlayerFactory.createPlayer("Player23", Human), PlayerFactory.createPlayer("Player24", Human), PlayerFactory.createPlayer("Player25", Human), PlayerFactory.createPlayer("Player26", Human), PlayerFactory.createPlayer("Player27", Human), PlayerFactory.createPlayer("Player28", Human), PlayerFactory.createPlayer("Player29", Human), PlayerFactory.createPlayer("Player30", Human), PlayerFactory.createPlayer("Player31", Human), PlayerFactory.createPlayer("Player32", Human), PlayerFactory.createPlayer("Player33", Human), PlayerFactory.createPlayer("Player34", Human), PlayerFactory.createPlayer("Player35", Human), PlayerFactory.createPlayer("Player36", Human), PlayerFactory.createPlayer("Player37", Human), PlayerFactory.createPlayer("Player38", Human), PlayerFactory.createPlayer("Player39", Human), PlayerFactory.createPlayer("Player40", Human), PlayerFactory.createPlayer("Player41", Human), PlayerFactory.createPlayer("Player42", Human), PlayerFactory.createPlayer("Player43", Human), PlayerFactory.createPlayer("Player44", Human), PlayerFactory.createPlayer("Player45", Human), PlayerFactory.createPlayer("Player46", Human), PlayerFactory.createPlayer("Player47", Human), PlayerFactory.createPlayer("Player48", Human), PlayerFactory.createPlayer("Player49", Human), PlayerFactory.createPlayer("Player50", Human), PlayerFactory.createPlayer("Player51", Human), PlayerFactory.createPlayer("Player52", Human), PlayerFactory.createPlayer("Player53", Human), PlayerFactory.createPlayer("Player54", Human), PlayerFactory.createPlayer("Player55", Human), PlayerFactory.createPlayer("Player56", Human), PlayerFactory.createPlayer("Player57", Human), PlayerFactory.createPlayer("Player58", Human), PlayerFactory.createPlayer("Player59", Human))
+            val players = List(PlayerFactory.createPlayer(Some("Player1"), Human),
+                PlayerFactory.createPlayer(Some("Player2"), Human),
+                PlayerFactory.createPlayer(Some("Player3"), Human),
+                PlayerFactory.createPlayer(Some("Player4"), Human),
+                PlayerFactory.createPlayer(Some("Player5"), Human),
+                PlayerFactory.createPlayer(Some("Player6"), Human),
+                PlayerFactory.createPlayer(Some("Player7"), Human),
+                PlayerFactory.createPlayer(Some("Player8"), Human),
+                PlayerFactory.createPlayer(Some("Player9"), Human),
+                PlayerFactory.createPlayer(Some("Player10"), Human),
+                PlayerFactory.createPlayer(Some("Player11"), Human),
+                PlayerFactory.createPlayer(Some("Player12"), Human),
+                PlayerFactory.createPlayer(Some("Player13"), Human),
+                PlayerFactory.createPlayer(Some("Player14"), Human),
+                PlayerFactory.createPlayer(Some("Player15"), Human),
+                PlayerFactory.createPlayer(Some("Player16"), Human),
+                PlayerFactory.createPlayer(Some("Player17"), Human),
+                PlayerFactory.createPlayer(Some("Player18"), Human),
+                PlayerFactory.createPlayer(Some("Player19"), Human),
+                PlayerFactory.createPlayer(Some("Player20"), Human),
+                PlayerFactory.createPlayer(Some("Player21"), Human),
+                PlayerFactory.createPlayer(Some("Player22"), Human),
+                PlayerFactory.createPlayer(Some("Player23"), Human),
+                PlayerFactory.createPlayer(Some("Player24"), Human),
+                PlayerFactory.createPlayer(Some("Player25"), Human),
+                PlayerFactory.createPlayer(Some("Player26"), Human),
+                PlayerFactory.createPlayer(Some("Player27"), Human),
+                PlayerFactory.createPlayer(Some("Player28"), Human),
+                PlayerFactory.createPlayer(Some("Player29"), Human),
+                PlayerFactory.createPlayer(Some("Player30"), Human),
+                PlayerFactory.createPlayer(Some("Player31"), Human),
+                PlayerFactory.createPlayer(Some("Player32"), Human),
+                PlayerFactory.createPlayer(Some("Player33"), Human),
+                PlayerFactory.createPlayer(Some("Player34"), Human),
+                PlayerFactory.createPlayer(Some("Player35"), Human),
+                PlayerFactory.createPlayer(Some("Player36"), Human),
+                PlayerFactory.createPlayer(Some("Player37"), Human),
+                PlayerFactory.createPlayer(Some("Player38"), Human),
+                PlayerFactory.createPlayer(Some("Player39"), Human),
+                PlayerFactory.createPlayer(Some("Player40"), Human),
+                PlayerFactory.createPlayer(Some("Player41"), Human),
+                PlayerFactory.createPlayer(Some("Player42"), Human),
+                PlayerFactory.createPlayer(Some("Player43"), Human),
+                PlayerFactory.createPlayer(Some("Player44"), Human),
+                PlayerFactory.createPlayer(Some("Player45"), Human),
+                PlayerFactory.createPlayer(Some("Player46"), Human),
+                PlayerFactory.createPlayer(Some("Player47"), Human),
+                PlayerFactory.createPlayer(Some("Player48"), Human),
+                PlayerFactory.createPlayer(Some("Player49"), Human),
+                PlayerFactory.createPlayer(Some("Player50"), Human),
+                PlayerFactory.createPlayer(Some("Player51"), Human),
+                PlayerFactory.createPlayer(Some("Player52"), Human),
+                PlayerFactory.createPlayer(Some("Player53"), Human),
+                PlayerFactory.createPlayer(Some("Player54"), Human),
+                PlayerFactory.createPlayer(Some("Player55"), Human),
+                PlayerFactory.createPlayer(Some("Player56"), Human),
+                PlayerFactory.createPlayer(Some("Player57"), Human),
+                PlayerFactory.createPlayer(Some("Player58"), Human),
+                PlayerFactory.createPlayer(Some("Player59"), Human))
             val game = Game(players)
 
-            TestUtil.simulateInput("1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n") {
+            TestUtil.simulateInput("1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n") {
                 GameLogic.playGame(game, players)
             }
         }
 
         "check if the game is over" in {
-            val players = List(PlayerFactory.createPlayer("Player1", Human), PlayerFactory.createPlayer("Player2", Human), PlayerFactory.createPlayer("Player3", Human))
+            val players = List(PlayerFactory.createPlayer(Some("Player1"), Human), PlayerFactory.createPlayer(Some("Player2"), Human), PlayerFactory.createPlayer(Some("Player3"), Human))
             val game = Game(players)
             game.rounds = 0
             GameLogic.isOver(game) shouldBe true
