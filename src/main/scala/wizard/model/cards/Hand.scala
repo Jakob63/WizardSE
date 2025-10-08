@@ -9,17 +9,17 @@ case class Hand(cards: List[Card]) {
     def removeCard(card: Card): Hand = {
         Hand(cards.filterNot(_ == card))
     }
-    // methode zum suit checken
+    // methode zum suit checken — Wizards/Chester haben keine Farbe im Sinne der Regeln
     def hasColor(color: Color): Boolean = {
-        cards.exists(_.color == color)
+        cards.exists(c => c.color == color && c.value != Value.WizardKarte && c.value != Value.Chester)
     }
     // methode zum value checken
     def hasValue(value: Value): Boolean = {
         cards.exists(_.value == value)
     }
-    // methode zum checken ob trumpcard
+    // methode zum checken ob trumpcard — Wizards/Chester zählen nicht als Trumpf-Farbe
     def hasTrumpColor(trump: Color): Boolean = {
-        cards.exists(_.color == trump)
+        cards.exists(c => c.color == trump && c.value != Value.WizardKarte && c.value != Value.Chester)
     }
     // leere hand
     def isEmpty: Boolean = {
