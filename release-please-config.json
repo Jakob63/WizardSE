@@ -8,7 +8,7 @@
       "bump-minor-pre-major": true,
       "extra-files": [
         {
-          "type": "plain-text",
+          "type": "regex",
           "path": "`build.sbt",
           "search": "ThisBuild / version := \"[\\d\\.]+\"",
           "replace": "ThisBuild / version := \"${version}\""
