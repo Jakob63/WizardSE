@@ -18,5 +18,4 @@ jobs:
         with:
           path: .
           config-file: release-please-config.json
-          package-name: wizard
           
