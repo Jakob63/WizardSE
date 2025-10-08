@@ -5,15 +5,7 @@
   "packages": {
     ".": {
       "package-name": "wizard",
-      "bump-minor-pre-major": true,
-      "extra-files": [
-        {
-          "type": "regex",
-          "path": "`build.sbt",
-          "search": "ThisBuild / version := \"[\\d\\.]+\"",
-          "replace": "ThisBuild / version := \"${version}\""
-        }
-      ]
+      "bump-minor-pre-major": true
     }
   }
 }
