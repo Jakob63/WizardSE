@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ProjektSE.iml" filepath="$PROJECT_DIR$/.idea/modules/ProjektSE.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ProjektSE.ProjektSE-build.iml" filepath="$PROJECT_DIR$/.idea/modules/ProjektSE.ProjektSE-build.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.ProjektSE-build~1.iml" filepath="$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.ProjektSE-build~1.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.main.iml" filepath="$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.test.iml" filepath="$PROJECT_DIR$/.idea/modules/WizardSE/ProjektSE.test.iml" />
     </modules>

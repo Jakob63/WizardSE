@@ -15,7 +15,7 @@ class Round(players: List[Player]) extends Observable {
     var currentPlayerIndex = 0
     private var state: RoundState = _
 
-    add(TextUI) // Added den Observer
+    // add(TextUI)  Added den Observer
 
     def setTrump(trump: Option[Color]): Unit = {
         this.trump = trump
@@ -55,10 +55,8 @@ class Round(players: List[Player]) extends Observable {
 
     // finalize round
     def finalizeRound(): Unit = {
-        players.foreach(player => player.points += player.roundPoints)
         players.foreach(player => player.tricks += player.roundTricks)
         players.foreach(player => player.bids += player.roundBids)
-        players.foreach(player => player.roundPoints = 0)
         players.foreach(player => player.roundTricks = 0)
         players.foreach(player => player.roundBids = 0)
     }

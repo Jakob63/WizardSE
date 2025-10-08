@@ -43,5 +43,12 @@ def valueToAnsi(value: Value): String = value match {
     
 }
 case class Card(value: Value, color: Color){
-    override def toString: String = s"${value.toString} of $color"
+    private def displayValue(v: Value): String = v match {
+        case Value.WizardKarte => "Wizard"
+        case other => other.toString
+    }
+    override def toString: String = value match {
+        case Value.Chester | Value.WizardKarte => displayValue(value)
+        case _ => s"${displayValue(value)} of $color"
+    }
 }
