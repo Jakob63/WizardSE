@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.3...wizard-v1.1.4) (2025-10-09)
+
+
+### Bug Fixes
+
+* Fix testOptions for TestSequence in build.sbt ([#46](https://github.com/Jakob63/WizardSE/issues/46)) ([cb7df0a](https://github.com/Jakob63/WizardSE/commit/cb7df0a89e4635fccf77753c0782ddbb8d6fd15a))
+
 ## [1.1.3](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.2...wizard-v1.1.3) (2025-10-09)
 
 
