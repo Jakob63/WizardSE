@@ -1,23 +1,13 @@
 package wizard
 
-
-import wizard.model.cards.Dealer
-import wizard.model.rounds.Game
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
+import wizard.aView.aView_GUI.WizardGUI
+import java.util.logging.{Level, Logger}
 
 object Wizard {
-
     class Wizard {
 
-    }
-
-    def main(args: Array[String]): Unit = {
-        println("Welcome to Wizard!")
-        val players = TextUI.inputPlayers()
-        val game = new Game(players)
-        println("Game officially started.")
-        GameLogic.playGame(game, players)
     }
 
     val eol = sys.props("line.separator")
@@ -42,10 +32,6 @@ object Wizard {
     def cells5(cellWidth: Int = 7, cellNum: Int = 1) =
         (("|" + " " * cellWidth) * cellNum + "|" + "\t") * 3 + eol
 
-
-    //def mesh =
-    //    (bar() + cells() * 3) + bar()
-
     def mesh2: String =
         bar() + cells() + cells2() + cells() + bar()
 
@@ -55,9 +41,33 @@ object Wizard {
     def mesh4: String =
         bar2() + cells5() + cells4() + cells5() + bar2()
 
-    println(mesh2)
-    println(mesh3)
-    println(mesh4)
+    def main(args: Array[String]): Unit = {
+        // Suppress JavaFX startup warning by configuring logging before any JavaFX class loads
+        try {
+            System.setProperty("javafx.logging.level", "OFF")
+        } catch {
+            case _: Throwable => ()
+        }
+        try {
+            val loggers = List(
+                "javafx",
+                "com.sun.javafx",
+                "com.sun.javafx.application"
+            )
+            loggers.foreach { name =>
+                val l = Logger.getLogger(name)
+                l.setUseParentHandlers(false)
+                l.setLevel(Level.OFF)
+            }
+        } catch {
+            case _: Throwable => ()
+        }
+        val controlG = new GameLogic
+        val tui = new TextUI(controlG)
+        val gui = new WizardGUI(controlG) // GUI registers as observer in its constructor
 
-
+        // Controller will be started from WizardGUI.start after the stage is ready
+        // Launch the ScalaFX application so the GUI window appears
+        gui.main(args)
+    }
 }

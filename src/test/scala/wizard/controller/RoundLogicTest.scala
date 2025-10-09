@@ -12,6 +12,58 @@ import wizard.testUtils.TestUtil
 import wizard.model.player.PlayerType.Human
 
 class RoundLogicTest extends AnyWordSpec with Matchers {
+    "Chester/Jester edge cases" should {
+        "first Chester wins if all players play Chester" in {
+            val players = List(
+                PlayerFactory.createPlayer(Some("P1"), Human),
+                PlayerFactory.createPlayer(Some("P2"), Human),
+                PlayerFactory.createPlayer(Some("P3"), Human)
+            )
+            val round = new Round(players)
+            // All play Chester
+            val trick = List(
+                (players(0), Card(Value.Chester, Color.Red)),
+                (players(1), Card(Value.Chester, Color.Blue)),
+                (players(2), Card(Value.Chester, Color.Green))
+            )
+            val winner = RoundLogic.trickwinner(trick, round)
+            winner shouldBe players.head
+        }
+
+        "Chester does not beat a valid lead-color card" in {
+            val players = List(
+                PlayerFactory.createPlayer(Some("P1"), Human),
+                PlayerFactory.createPlayer(Some("P2"), Human),
+                PlayerFactory.createPlayer(Some("P3"), Human)
+            )
+            val round = new Round(players)
+            // First card defines lead color (Red). Chester should not win.
+            val trick = List(
+                (players(0), Card(Value.Five, Color.Red)),
+                (players(1), Card(Value.Chester, Color.Blue)),
+                (players(2), Card(Value.Six, Color.Red))
+            )
+            val winner = RoundLogic.trickwinner(trick, round)
+            winner shouldBe players(2)
+        }
+
+        "Trump beats lead and Chesters when present" in {
+            val players = List(
+                PlayerFactory.createPlayer(Some("P1"), Human),
+                PlayerFactory.createPlayer(Some("P2"), Human),
+                PlayerFactory.createPlayer(Some("P3"), Human)
+            )
+            val round = new Round(players)
+            round.setTrump(Some(Color.Green))
+            val trick = List(
+                (players(0), Card(Value.Five, Color.Red)), // lead
+                (players(1), Card(Value.Chester, Color.Blue)), // jester
+                (players(2), Card(Value.Two, Color.Green)) // trump low
+            )
+            val winner = RoundLogic.trickwinner(trick, round)
+            winner shouldBe players(2)
+        }
+    }
     "RoundLogic" should {
 
         "should be valid with 3 to 6 players" in {
