@@ -157,9 +157,22 @@ class TextUI(GameController: GameLogic) extends Observer {
     override def update(updateMSG: String, obj: Any*): Any = this.synchronized {
         updateMSG match {
             case "StartGame" | "AskForPlayerCount" => {
-                // Avoid starting a blocking prompt that can race with the GUI. Just set phase and wait.
+                // Prompt in TUI for number of players (3-6). This restores TUI behavior and also informs GUI via controller event.
                 if (phase == "Idle" || phase == "AwaitPlayerCount") {
                     phase = "AwaitPlayerCount"
+                    var count = -1
+                    while (count < 3 || count > 6) {
+                        print("Enter the number of players (3-6): ")
+                        val input = scala.io.StdIn.readLine()
+                        count = scala.util.Try(input.toInt) match {
+                            case scala.util.Success(n) if n >= 3 && n <= 6 => n
+                            case _ =>
+                                println("Invalid number of players. Please enter a number between 3 and 6.")
+                                -1
+                        }
+                    }
+                    // Notify controller so other views (e.g., GUI) can sync
+                    GameController.playerCountSelected(count)
                 } else {
                     ()
                 }
