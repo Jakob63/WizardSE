@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.4...wizard-v1.1.5) (2025-10-09)
+
+
+### Bug Fixes
+
+* Add artifact assembly step to workflow ([#48](https://github.com/Jakob63/WizardSE/issues/48)) ([9e9c426](https://github.com/Jakob63/WizardSE/commit/9e9c426eff5c69753e1b7459f87877b325fd7d54))
+
 ## [1.1.4](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.3...wizard-v1.1.4) (2025-10-09)
 
 
