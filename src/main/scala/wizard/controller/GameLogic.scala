@@ -75,14 +75,13 @@ class GameLogic extends Observable {
 }
 
 object GameLogic {
-  import wizard.model.Game
   import wizard.model.player.Player
 
   def validGame(number: Int): Boolean = number >= 3 && number <= 6
 
-  def isOver(game: Game): Boolean = game.rounds <= 0
+  def isOver(game: wizard.model.Game): Boolean = game.rounds <= 0
 
-  def playGame(game: Game, players: List[Player]): Unit = {
+  def playGame(game: wizard.model.Game, players: List[Player]): Unit = {
     // Minimal stub to satisfy tests; actual game loop handled elsewhere
     // Could decrement rounds to simulate progress
     game.rounds = game.rounds
