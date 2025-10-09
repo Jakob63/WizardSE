@@ -40,10 +40,13 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
+      - name: Assemble artifact
+        run: sbt clean assembly
+
       - name: Find built JAR file
         id: find_jar
         run: |
-          JAR_PATH=$(find target -type f -name 'ProjektSE-assembly-*.jar' | head -n 1)
+          JAR_PATH=$(find target -type f -name 'ProjektSE-assembly-0.1.0-SNAPSHOT.jar' | head -n 1)
           echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
 
       - name: Rename JAR with release version
