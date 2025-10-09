@@ -3,4 +3,5 @@
 ## Rules
  - Jeder muss ansagen wie viele Stiche er machen wird
  - Wenn man richtig liegt bekommt man 20 Punkte + 10 Punkte pro Stich
+ - Wenn man falsch liegt bekommt man -10 für jeden Stich abweichend von der vorhergesagten Anzahl
 ## Game
