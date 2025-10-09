@@ -40,6 +40,9 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
+      - name: Assemble artifact
+        run: sbt clean assembly
+
       - name: Find built JAR file
         id: find_jar
         run: |
