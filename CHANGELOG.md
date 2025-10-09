@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.5...wizard-v1.1.6) (2025-10-09)
+
+
+### Bug Fixes
+
+* formatting in release-please.yml ([#50](https://github.com/Jakob63/WizardSE/issues/50)) ([d3f7c25](https://github.com/Jakob63/WizardSE/commit/d3f7c25e1086a2eee89f0b77a53c90f127714cbc))
+
 ## [1.1.5](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.4...wizard-v1.1.5) (2025-10-09)
 
 
