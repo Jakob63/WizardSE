@@ -55,10 +55,16 @@ class Round(players: List[Player]) extends Observable {
 
     // finalize round
     def finalizeRound(): Unit = {
-        players.foreach(player => player.tricks += player.roundTricks)
-        players.foreach(player => player.bids += player.roundBids)
-        players.foreach(player => player.roundTricks = 0)
-        players.foreach(player => player.roundBids = 0)
+        // Accumulate round stats into total stats
+        players.foreach { player =>
+            player.tricks += player.roundTricks
+            player.bids += player.roundBids
+            player.points += player.roundPoints
+            // Reset round-specific stats
+            player.roundTricks = 0
+            player.roundBids = 0
+            player.roundPoints = 0
+        }
     }
 
     override def toString: String = {
