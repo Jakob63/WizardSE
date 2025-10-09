@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.2...wizard-v1.1.3) (2025-10-09)
+
+
+### Bug Fixes
+
+* Fix file upload step in release workflow ([#44](https://github.com/Jakob63/WizardSE/issues/44)) ([4ca3fda](https://github.com/Jakob63/WizardSE/commit/4ca3fda900d6ef5ecf9810de8f9d533645d89f18))
+
 ## [1.1.2](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.1...wizard-v1.1.2) (2025-10-09)
 
 
