@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.6...wizard-v1.1.7) (2025-10-09)
+
+
+### Bug Fixes
+
+* Remove .idea/ from .gitignore ([#53](https://github.com/Jakob63/WizardSE/issues/53)) ([545d022](https://github.com/Jakob63/WizardSE/commit/545d02255f87e9c5d056ba19dbedbe97076767b8))
+
 ## [1.1.6](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.5...wizard-v1.1.6) (2025-10-09)
 
 
