@@ -49,7 +49,12 @@ class GameLogic extends Observable {
             p.roundTricks = 0
             p.roundPoints = 0
         }
-        playGame(players, rounds, currentround)
+        // Run the game loop asynchronously to avoid blocking UI threads (e.g., JavaFX Application Thread)
+        val t = new Thread(new Runnable {
+            override def run(): Unit = playGame(players, rounds, currentround)
+        })
+        t.setDaemon(true)
+        t.start()
     }
 
     // Kept for backward compatibility but no longer creates placeholder players
