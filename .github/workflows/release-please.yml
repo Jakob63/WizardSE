@@ -45,7 +45,7 @@ jobs:
 
       - name: Rename JAR with release version
         run: |
-          mv target/scala-*/ProjektSE-assembly-*.jar target/scala-*/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar
+          mv "$(ls -t target/scala-*/ProjektSE-assembly-*.jar | head -n 1)" target/scala-*/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar
 
       - name: Upload JAR to GitHub Release
         uses: softprops/action-gh-release@v2
