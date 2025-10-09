@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.0...wizard-v1.1.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* test build ([#39](https://github.com/Jakob63/WizardSE/issues/39)) ([c21dd7a](https://github.com/Jakob63/WizardSE/commit/c21dd7a2ca5c4d0acc7cf1fbaa080691550e3fce))
+
 ## [1.1.0](https://github.com/Jakob63/WizardSE/compare/wizard-v1.0.0...wizard-v1.1.0) (2025-10-09)
 
 
