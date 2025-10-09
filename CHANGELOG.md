@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Jakob63/WizardSE/compare/wizard-v1.0.0...wizard-v1.1.0) (2025-10-09)
+
+
+### Features
+
+* build jar in release please workflow and upload it ([#35](https://github.com/Jakob63/WizardSE/issues/35)) ([e48191e](https://github.com/Jakob63/WizardSE/commit/e48191e845d6a255cdf5a4ffbb303aeb786e80f2))
+
 ## 1.0.0 (2025-10-08)
 
 
