@@ -40,16 +40,16 @@ class WizardCardState extends RoundState {
         val colorOptions = List(Color.Red, Color.Yellow, Color.Green, Color.Blue)
         val colorCards = colorOptions.map(color => Card(Value.One, color))
 
-        // Print color options
-        val gameLogic = new GameLogic
-        gameLogic.CardAuswahl()
+        // Show color options to the user (through any observing views)
+        // Optionally notify views to display selection UI; but also support TUI input for tests
         //TextUI.printColorOptions(colorCards)
 
-//        val input = TextUI.update("which trump", nextPlayer).asInstanceOf[String]
-//        val chosenColorIndex = input.toInt - 1
-//        val chosenColor = colorOptions.lift(chosenColorIndex)
-//
-//        round.setTrump(chosenColor)
-//        round.notifyObservers("print trump card", Card(Value.One, chosenColor.getOrElse(Color.Red)))
+        val inputRaw = TextUI.update("which trump", nextPlayer)
+        val inputStr = Option(inputRaw).map(_.toString.trim).getOrElse("")
+        val chosenIdx = scala.util.Try(inputStr.toInt).toOption.getOrElse(1) - 1
+        val chosenColor = colorOptions.lift(chosenIdx).getOrElse(Color.Red)
+
+        round.setTrump(Some(chosenColor))
+        round.notifyObservers("print trump card", Card(Value.One, chosenColor))
     }
 }

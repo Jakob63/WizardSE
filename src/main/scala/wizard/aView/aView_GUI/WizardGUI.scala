@@ -25,10 +25,8 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   private val buttonStyle: String = "-fx-background-color: #2B2B2B; -fx-text-fill: white;"
   // self-register as observer
   gameController.add(this)
-  println("[DEBUG_LOG] WizardGUI constructed and registered as observer")
 
   override def start(): Unit = {
-    println("[DEBUG_LOG] WizardGUI.start initializing stage")
     stage = new JFXApp3.PrimaryStage {
       title = "Wizard Card Game"
       width = 600
@@ -39,25 +37,19 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     }
     // Ensure we are definitely registered (in case the instance was created before add or re-created by JavaFX)
     gameController.add(this)
-    val subsNow = try gameController.subscribers.map(_.getClass.getName).mkString("[", ", ", "]") catch { case _: Throwable => "[]" }
-    println(s"[DEBUG_LOG] WizardGUI.start stage ready=${stage != null}, scene ready=${stage != null && stage.scene() != null}, contentBoxDefined=${contentBox.isDefined}, controllerSubscribers=$subsNow")
     // Start the controller now that the GUI is ready (on a background daemon thread)
     val controllerThread = new Thread(new Runnable { override def run(): Unit = gameController.start() })
     controllerThread.setDaemon(true)
     controllerThread.start()
     // If an early PlayerCountSelected arrived before the stage was ready, apply it now
     pendingPlayerCount.foreach { cnt =>
-      println(s"[DEBUG_LOG] WizardGUI.start applying buffered PlayerCountSelected($cnt)")
       Platform.runLater {
         val stageReady = stage != null && stage.scene() != null
-        println(s"[DEBUG_LOG] WizardGUI.start.runLater stageReady=$stageReady, contentBoxDefined=${contentBox.isDefined}")
         if (stageReady) {
           contentBox match {
             case Some(box) =>
-              println("[DEBUG_LOG] WizardGUI.start swapping VBox children to name-entry screen")
               box.children = createPlayerNameScreen(cnt)
             case None =>
-              println("[DEBUG_LOG] WizardGUI.start replacing root with name-entry root")
               stage.scene().root = createPlayerNameRoot(cnt)
           }
           pendingPlayerCount = None
@@ -230,29 +222,23 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
           case i: Int => i
           case _ => 0
         }
-        println("[DEBUG_LOG] GUI received PlayerCountSelected(" + count + ")")
         if (count >= 3 && count <= 6) {
           // If stage/scene not ready yet, buffer the desired state change
           if (stage == null || stage.scene() == null) {
-            println("[DEBUG_LOG] GUI buffering PlayerCountSelected because stage/scene not ready")
             pendingPlayerCount = Some(count)
           } else {
-            println(s"[DEBUG_LOG] GUI applying PlayerCountSelected immediately, contentBoxDefined=${contentBox.isDefined}")
             Platform.runLater {
               contentBox match {
                 case Some(box) =>
-                  println("[DEBUG_LOG] GUI swapping VBox children to name-entry screen")
                   box.children = createPlayerNameScreen(count)
                 case None =>
                   if (stage != null && stage.scene() != null) {
-                    println("[DEBUG_LOG] GUI replacing root with name-entry root")
                     stage.scene().root = createPlayerNameRoot(count)
                   }
               }
             }
           }
         } else {
-          println(s"[DEBUG_LOG] GUI ignored PlayerCountSelected($count) because count out of range")
         }
         ()
       case "StartGame" => () // could switch scene to input players

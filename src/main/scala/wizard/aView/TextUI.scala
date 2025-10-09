@@ -100,7 +100,9 @@ object TextUI {
     }
 
     def showHand(player: Player): Unit = {
-        println(s"${player.name}'s hand: ${player.hand.cards.mkString(", ")}")
+        // Show numeric representation like "7 of Red" as required by tests
+        val numericHand = player.hand.cards.map(c => s"${c.value.cardType()} of ${c.color}")
+        println(s"${player.name}'s hand: ${numericHand.mkString(", ")}")
         if (player.hand.cards.isEmpty) {
             println("No cards in hand.")
         } else {
@@ -158,9 +160,8 @@ class TextUI(GameController: GameLogic) extends Observer {
                 // Avoid starting a blocking prompt that can race with the GUI. Just set phase and wait.
                 if (phase == "Idle" || phase == "AwaitPlayerCount") {
                     phase = "AwaitPlayerCount"
-                    println("[DEBUG_LOG] TUI waiting for PlayerCountSelected from a view (GUI/TUI)")
                 } else {
-                    println(s"[DEBUG_LOG] TUI ignoring $updateMSG in phase=$phase")
+                    ()
                 }
                 ()
             }

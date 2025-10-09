@@ -24,9 +24,8 @@ class GameLogic extends Observable {
     }
 
     def start(): Unit = {
-        if (started) { println("[DEBUG_LOG] GameLogic.start called but already started; ignoring") ; return }
+        if (started) { return }
         started = true
-        println("[DEBUG_LOG] GameLogic.start -> broadcasting StartGame & AskForPlayerCount")
         notifyObservers("StartGame", StartGame)
         // Prompt views to ask for player count so both TUI and GUI can sync
         notifyObservers("AskForPlayerCount", wizard.actionmanagement.AskForPlayerCount)
@@ -34,7 +33,6 @@ class GameLogic extends Observable {
 
     // Views notify selected player count so other views can sync UI
     def playerCountSelected(count: Int): Unit = {
-        println(s"[DEBUG_LOG] GameLogic.playerCountSelected($count) -> broadcasting PlayerCountSelected")
         notifyObservers("PlayerCountSelected", wizard.actionmanagement.PlayerCountSelected(count))
     }
 
