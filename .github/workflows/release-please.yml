@@ -40,15 +40,19 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      - name: Build fat JAR
-        run: sbt assembly
+      - name: Find built JAR file
+        id: find_jar
+        run: |
+          JAR_PATH=$(find target -type f -name 'ProjektSE-assembly-*.jar' | head -n 1)
+          echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
 
       - name: Rename JAR with release version
         run: |
-          mv "$(ls -t target/scala-*/ProjektSE-assembly-*.jar | head -n 1)" target/scala-*/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar
+          mv "$JAR_PATH" "target/scala-$(echo $JAR_PATH | grep -oP 'scala-\K[0-9\.]+')/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar"
+          echo "RENAMED_JAR=target/scala-$(echo $JAR_PATH | grep -oP 'scala-\K[0-9\.]+')/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar" >> $GITHUB_ENV
 
       - name: Upload JAR to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.release-please.outputs.tag_name }}
-          files: target/scala-*/ProjektSE-${{ needs.release-please.outputs.tag_name }}.jar
+          files: ${{ env.RENAMED_JAR }}
