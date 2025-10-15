@@ -4,7 +4,8 @@ ThisBuild / scalaVersion := "3.5.1"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "ProjektSE"
+    name := "ProjektSE",
+    Compile / run / mainClass := Some("wizard.Wizard")
   )
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % "test"

@@ -1,7 +1,7 @@
 package wizard.controller
 
 import wizard.aView.TextUI
-import wizard.actionmanagement.{AskForPlayerNames, CardAuswahl as CardAuswahlEvent, GameEvent, Observable, Observer, StartGame}
+import wizard.actionmanagement.{AskForPlayerNames, CardAuswahl as CardAuswahlEvent, GameEvent, Observable, Observer, StartGame, Debug}
 import wizard.model.player.{AI, Human, Player}
 import wizard.model.rounds.Round
 import wizard.controller.RoundLogic
@@ -12,6 +12,7 @@ class GameLogic extends Observable {
 
     private val roundLogic = new RoundLogic
     @volatile private var started: Boolean = false
+    @volatile private var selectedPlayerCount: Option[Int] = None
 
     // Ensure any observer of the controller also observes RoundLogic (and thus PlayerLogic via RoundLogic)
     override def add(s: Observer): Unit = {
@@ -24,8 +25,10 @@ class GameLogic extends Observable {
     }
 
     def start(): Unit = {
-        if (started) { return }
+        if (started) { Debug.log("GameLogic.start called but already started; returning"); return }
         started = true
+        selectedPlayerCount = None // reset for a fresh session
+        Debug.log("GameLogic.start -> notifying StartGame and AskForPlayerCount")
         notifyObservers("StartGame", StartGame)
         // Prompt views to ask for player count so both TUI and GUI can sync
         notifyObservers("AskForPlayerCount", wizard.actionmanagement.AskForPlayerCount)
@@ -33,11 +36,40 @@ class GameLogic extends Observable {
 
     // Views notify selected player count so other views can sync UI
     def playerCountSelected(count: Int): Unit = {
-        notifyObservers("PlayerCountSelected", wizard.actionmanagement.PlayerCountSelected(count))
+        Debug.log(s"GameLogic.playerCountSelected($count) called; current selected = ${selectedPlayerCount}")
+        if (!validGame(count)) {
+            Debug.log("GameLogic.playerCountSelected ignored (invalid count)")
+            return
+        }
+        // Make selection idempotent: accept same count again to rebroadcast required events (fixes GUI->TUI race after local back)
+        if (selectedPlayerCount.isEmpty) {
+            selectedPlayerCount = Some(count)
+        }
+        if (selectedPlayerCount.contains(count)) {
+            Debug.log(s"GameLogic.playerCountSelected -> broadcasting PlayerCountSelected($count) and AskForPlayerNames")
+            notifyObservers("PlayerCountSelected", wizard.actionmanagement.PlayerCountSelected(count))
+            notifyObservers("AskForPlayerNames", wizard.actionmanagement.AskForPlayerNames)
+        } else {
+            Debug.log("GameLogic.playerCountSelected ignored (different count already selected)")
+        }
+    }
+
+    // Allow views to request changing the player count (e.g., user pressed 'undo' at first name)
+    def resetPlayerCountSelection(): Unit = {
+        // Only act if a player count was previously selected; this prevents spamming repeated notifications
+        if (selectedPlayerCount.isDefined) {
+            Debug.log("GameLogic.resetPlayerCountSelection -> clearing previously selected player count")
+            selectedPlayerCount = None
+            // Notify views that we are back at player count selection so they can sync UI
+            notifyObservers("AskForPlayerCount", wizard.actionmanagement.AskForPlayerCount)
+        } else {
+            Debug.log("GameLogic.resetPlayerCountSelection ignored (no player count selected)")
+        }
     }
 
     // New: set players provided by a view (TUI/GUI)
     def setPlayers(players: List[Player]): Unit = {
+        Debug.log(s"GameLogic.setPlayers(${players.map(_.name).mkString(",")}); computing rounds and starting game thread")
         val rounds = if (players.nonEmpty) 60 / players.length else 0
         val currentround = 0
         // reset stats for a fresh game
@@ -59,21 +91,26 @@ class GameLogic extends Observable {
 
     // Kept for backward compatibility but no longer creates placeholder players
     def setPlayer(numPlayers: Int): Unit = { // to be removed later; views should call setPlayers
+        Debug.log(s"GameLogic.setPlayer(legacy) called with $numPlayers -> emitting AskForPlayerNames")
         notifyObservers("AskForPlayerNames", AskForPlayerNames)
     }
     
     def CardAuswahl(): Unit = {
         // Notify observers that card selection is requested; pass the event case object, not a recursive method call.
+        Debug.log("GameLogic.CardAuswahl -> notifying 'CardAuswahl'")
         notifyObservers("CardAuswahl", CardAuswahlEvent)
     }
     
     def playGame(players: List[Player], rounds: Int, initialRound: Int): Unit = {
+        Debug.log(s"GameLogic.playGame starting with rounds=$rounds from=$initialRound for players=${players.map(_.name).mkString(",")}")
         var currentround = initialRound
         for (i <- 1 to rounds) { // i = 1, 2, 3, ..., rounds
             currentround = i
             val round = new Round(players)
+            Debug.log(s"GameLogic.playGame -> Round $currentround starting")
             roundLogic.playRound(currentround, players)
         }
+        Debug.log("GameLogic.playGame completed")
     }
 }
 

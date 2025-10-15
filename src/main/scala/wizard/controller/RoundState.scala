@@ -44,6 +44,9 @@ class WizardCardState extends RoundState {
         // Optionally notify views to display selection UI; but also support TUI input for tests
         //TextUI.printColorOptions(colorCards)
 
+        // Notify observers (both TUI and GUI) to display trump selection prompt
+        round.notifyObservers("which trump", nextPlayer)
+        // For backward compatibility and tests, still read from TUI if present
         val inputRaw = TextUI.update("which trump", nextPlayer)
         val inputStr = Option(inputRaw).map(_.toString.trim).getOrElse("")
         val chosenIdx = scala.util.Try(inputStr.toInt).toOption.getOrElse(1) - 1
