@@ -117,3 +117,6 @@ hs_err_pid*
 /target/
 /.bsp/
 /.idea/
+
+modules.xml
+ProjektSE.iml
