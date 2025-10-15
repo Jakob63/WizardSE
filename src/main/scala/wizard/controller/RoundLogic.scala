@@ -9,7 +9,7 @@ import wizard.model.rounds.Round
 import wizard.actionmanagement.{Observable, Observer}
 
 object RoundLogic extends Observable {
-    add(TextUI)
+    
     def playRound(currentround: Int, players: List[Player]): Unit = {
         val round = new Round(players)
         val trumpCardIndex = currentround * players.length

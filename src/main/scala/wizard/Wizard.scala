@@ -4,22 +4,34 @@ package wizard
 import wizard.model.cards.Dealer
 import wizard.model.rounds.Game
 import wizard.aView.TextUI
-import wizard.controller.GameLogic
+import wizard.components.{Configuration, DefaultConfiguration}
+import wizard.controller.{GameLogic, PlayerLogic, RoundLogic}
 
 object Wizard {
 
     class Wizard {
 
     }
+    
+    def entry(config: Configuration) = {
+      for (observer <- config.observables) {
+        GameLogic.add(observer)
+        PlayerLogic.add(observer)
+        RoundLogic.add(observer)
+      }
+      GameLogic.startGame()
+    }
 
     def main(args: Array[String]): Unit = {
-        println("Welcome to Wizard!")
+      val config = DefaultConfiguration()
+      entry(config)
+//  2      println("Welcome to Wizard!")
 //        Dealer.shuffleCards()
 //        println(Dealer.allCards)
-        val players = TextUI.inputPlayers()
-        val game = new Game(players)
-        println("Game officially started.")
-        GameLogic.playGame(game, players)
+// 2       val players = TextUI.inputPlayers()
+//  2      val game = new Game(players)
+//    2    println("Game officially started.")
+//    2    GameLogic.playGame(game, players)
 //        val player = Player("Player1")
 //        val player2 = Player("Player2")
 //        val player3 = Player("Player3")

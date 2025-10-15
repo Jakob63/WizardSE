@@ -7,7 +7,7 @@ import wizard.aView.TextUI
 import wizard.actionmanagement.{Observable, Observer}
 
 object PlayerLogic extends Observable {
-    add(TextUI)
+    
     // Method to play a card
     def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
         notifyObservers("which card", player)
