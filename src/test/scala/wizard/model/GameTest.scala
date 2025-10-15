@@ -4,7 +4,6 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.{should, shouldBe}
 import org.scalatest.wordspec.AnyWordSpec
 import wizard.model.player.Player
-import wizard.model.rounds.Game
 import wizard.model.player.PlayerType.Human
 import wizard.model.player.PlayerFactory
 

@@ -86,4 +86,22 @@ class UndoManagerTest extends AnyFunSuite {
         setNameCommand.redoStep()
         assert(player1.name == "Fred")
     }
+
+    test("undo twice reverts from player2 to player1 original names") {
+        val undoManager = new UndoManager
+        val p1 = PlayerFactory.createPlayer(Some("Alice"), PlayerType.Human)
+        val p2 = PlayerFactory.createPlayer(Some("Bob"), PlayerType.Human)
+        val c1 = new SetPlayerNameCommand(p1, "AliceNew")
+        val c2 = new SetPlayerNameCommand(p2, "BobNew")
+        undoManager.doStep(c1)
+        undoManager.doStep(c2)
+        assert(p1.name == "AliceNew")
+        assert(p2.name == "BobNew")
+        // undo last (player2)
+        undoManager.undoStep()
+        assert(p2.name == "Bob")
+        // undo again (player1)
+        undoManager.undoStep()
+        assert(p1.name == "Alice")
+    }
 }
