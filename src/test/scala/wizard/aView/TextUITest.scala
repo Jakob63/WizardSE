@@ -200,5 +200,31 @@ class TextUITest extends AnyWordSpec with Matchers {
 //            }
 //            players(0).name shouldBe "Player1"
 //        }
+
+        "inputPlayers should not print invalid number message when 'undo' entered at count prompt" in {
+          var players: List[Player] = List()
+          val out = new java.io.ByteArrayOutputStream()
+          Console.withOut(out) {
+            TestUtil.simulateInput("undo\n3\nPlayer1\nPlayer2\nPlayer3") {
+              players = TextUI.inputPlayers()
+            }
+          }
+          val output = out.toString
+          output should not include ("Invalid number of players")
+          players.length shouldBe 3
+        }
+
+        "inputPlayers should not print invalid number message after undoing from first name back to count and then entering names" in {
+          var players: List[Player] = List()
+          val out = new java.io.ByteArrayOutputStream()
+          Console.withOut(out) {
+            TestUtil.simulateInput("3\nundo\n3\nElena\nP2\nP3") {
+              players = TextUI.inputPlayers()
+            }
+          }
+          val output = out.toString
+          output should not include ("Invalid number of players")
+          players.map(_.name) shouldBe List("Elena", "P2", "P3")
+        }
     }
 }

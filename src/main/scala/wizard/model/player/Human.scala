@@ -2,12 +2,13 @@ package wizard.model.player
 
 import wizard.model.cards.{Card, Color}
 import scala.util.{Failure, Success, Try}
+import wizard.actionmanagement.InputRouter
 
 class Human private[player](name: String) extends Player(name) {
     
     def bid(): Int = {
         def loop(): Int = {
-            val line = scala.io.StdIn.readLine()
+            val line = InputRouter.readLine()
             line.toIntOption match {
                 case Some(n) => n
                 case None => loop()
@@ -18,7 +19,7 @@ class Human private[player](name: String) extends Player(name) {
     
     def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card = {
         def loop(): Card = {
-            val line = scala.io.StdIn.readLine()
+            val line = InputRouter.readLine()
             val idx = line.toIntOption.getOrElse(0) - 1
             val cards = hand.cards
             if (idx >= 0 && idx < cards.length) cards(idx) else loop()

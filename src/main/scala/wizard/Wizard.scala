@@ -4,12 +4,9 @@ import wizard.aView.TextUI
 import wizard.controller.GameLogic
 import wizard.aView.aView_GUI.WizardGUI
 import java.util.logging.{Level, Logger}
+import wizard.actionmanagement.Debug
 
 object Wizard {
-    class Wizard {
-
-    }
-
     val eol = sys.props("line.separator")
     def bar(cellWidth: Int = 4, cellNum: Int = 2) =
         (("-" * cellWidth) * cellNum) + "-" + eol
@@ -62,12 +59,17 @@ object Wizard {
         } catch {
             case _: Throwable => ()
         }
+        // Enable interactive TUI prompts even if System.console() is null (e.g., in IDEs)
+        try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
+        Debug.log("Wizard.main -> created GameLogic controller")
         val tui = new TextUI(controlG)
+        Debug.log("Wizard.main -> created TextUI and registered as observer")
         val gui = new WizardGUI(controlG) // GUI registers as observer in its constructor
+        Debug.log("Wizard.main -> created WizardGUI")
 
         // Controller will be started from WizardGUI.start after the stage is ready
         // Launch the ScalaFX application so the GUI window appears
         gui.main(args)
     }
-}
+} // on click bild
