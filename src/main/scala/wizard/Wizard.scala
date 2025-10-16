@@ -3,6 +3,9 @@ package wizard
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
 import wizard.aView.aView_GUI.WizardGUI
+import wizard.actionmanagement.Observer
+import wizard.components.{Configuration, DefaultConfiguration}
+
 import java.util.logging.{Level, Logger}
 
 object Wizard {
@@ -41,33 +44,49 @@ object Wizard {
     def mesh4: String =
         bar2() + cells5() + cells4() + cells5() + bar2()
 
-    def main(args: Array[String]): Unit = {
-        // Suppress JavaFX startup warning by configuring logging before any JavaFX class loads
-        try {
-            System.setProperty("javafx.logging.level", "OFF")
-        } catch {
-            case _: Throwable => ()
+    def entry(config: Configuration): Unit = {
+//      try {
+//        System.setProperty("javafx.logging.level", "OFF")
+//      } catch {
+//        case _: Throwable => ()
+//      }
+//      try {
+//        val loggers = List(
+//          "javafx",
+//          "com.sun.javafx",
+//          "com.sun.javafx.application"
+//        )
+//        loggers.foreach { name =>
+//          val l = Logger.getLogger(name)
+//          l.setUseParentHandlers(false)
+//          l.setLevel(Level.OFF)
+//        }
+//      } catch {
+//        case _: Throwable => ()
+//      }
+      val controlG = new GameLogic
+//2      val tui = new TextUI()
+//2      val gui = new WizardGUI()
+//2      tui.initialize(controlG)
+//2      gui.initialize(controlG)
+//2      controlG.add(tui)
+//2      controlG.add(gui)
+      for (ui <- config.uis) {
+        ui.initialize(controlG)
+        ui match {
+          case observer: Observer =>
+            controlG.add(observer)
+          case _ =>
         }
-        try {
-            val loggers = List(
-                "javafx",
-                "com.sun.javafx",
-                "com.sun.javafx.application"
-            )
-            loggers.foreach { name =>
-                val l = Logger.getLogger(name)
-                l.setUseParentHandlers(false)
-                l.setLevel(Level.OFF)
-            }
-        } catch {
-            case _: Throwable => ()
-        }
-        val controlG = new GameLogic
-        val tui = new TextUI(controlG)
-        val gui = new WizardGUI(controlG) // GUI registers as observer in its constructor
+      }
+      for (observer <- config.observables) {
+        controlG.add(observer)
+      }
 
-        // Controller will be started from WizardGUI.start after the stage is ready
-        // Launch the ScalaFX application so the GUI window appears
-        gui.main(args)
+    }
+
+    def main(args: Array[String]): Unit = {
+        val config = DefaultConfiguration()
+        entry(config)
     }
 }

@@ -7,6 +7,7 @@ import wizard.model.player.{Player, PlayerFactory}
 import wizard.undo.{SetPlayerNameCommand, UndoManager}
 import wizard.controller.GameLogic
 
+import scala.compiletime.uninitialized
 import scala.util.{Success, Try}
 
 object TextUI {
@@ -148,9 +149,12 @@ object TextUI {
 }
 
 // object zu class geändert
-class TextUI(GameController: GameLogic) extends Observer {
-
-    GameController.add(this)
+class TextUI() extends Observer with UI {
+  
+    private var GameController: GameLogic = uninitialized
+    override def initialize(gameLogic: GameLogic): Unit = {
+      GameController = gameLogic
+    }
     private val undoManager = new UndoManager
     @volatile private var phase: String = "Idle" // Idle, AwaitPlayerCount, AwaitPlayerNames, InGame
 

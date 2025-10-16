@@ -5,16 +5,28 @@ import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, Label, TextField}
 import scalafx.scene.image.{Image, ImageView}
-import scalafx.scene.layout.{VBox, StackPane}
+import scalafx.scene.layout.{StackPane, VBox}
 import scalafx.scene.text.{Font, FontWeight}
-import scalafx.Includes._
+import scalafx.Includes.*
 import scalafx.application.Platform
 import javafx.beans.binding.Bindings
+import wizard.aView.UI
 import wizard.controller.GameLogic
 import wizard.actionmanagement.Observer
 import wizard.model.player.{PlayerFactory, PlayerType}
 
-class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
+import scala.compiletime.uninitialized
+
+class WizardGUI() extends JFXApp3 with Observer with UI {
+
+  private var gameController: GameLogic = uninitialized
+
+  override def initialize(gameLogic: GameLogic): Unit = {
+    gameController = gameLogic
+    val thread = new Thread{main(new Array[String](_length = 0))}
+    thread.start()
+  }
+
   // Buffer to handle events arriving before the JavaFX Stage is ready
   private var pendingPlayerCount: Option[Int] = None
   // Reference to the current content container so we can swap screens without replacing the root
@@ -24,7 +36,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   // Unified style for primary buttons in the UI (dark gray background like inputs)
   private val buttonStyle: String = "-fx-background-color: #2B2B2B; -fx-text-fill: white;"
   // self-register as observer
-  gameController.add(this)
 
   override def start(): Unit = {
     stage = new JFXApp3.PrimaryStage {
@@ -253,7 +264,7 @@ object WizardGUI {
   // Fallback launcher creating its own controller if started standalone
   def main(args: Array[String]): Unit = {
     val controller = new GameLogic
-    val app = new WizardGUI(controller)
-    app.main(args)
+    val app = new WizardGUI()
+    app.initialize(controller)
   }
 }
