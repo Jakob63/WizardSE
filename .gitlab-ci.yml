@@ -20,7 +20,7 @@ variables:
 
 # Standard-Umgebung für alle Jobs
 default:
-  image: sbtscala/scala-sbt:latest  # enthält JDK + sbt
+  image: sbtscala/scala-sbt:eclipse-temurin-17.0.11_9_1.9.9_3.3.3  # enthält JDK + sbt (gepinnt, 'latest' existiert nicht)
   cache:
     key: "sbt-cache"
     paths:
