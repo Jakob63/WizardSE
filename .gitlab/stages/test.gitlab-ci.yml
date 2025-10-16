@@ -19,8 +19,8 @@ run-tests:
       - target/scala-*/test-reports
       - target/test-reports
       - target/**/scoverage-report
-  reports:
-    # Falls ihr JUnit-XML erzeugt (z. B. via sbt-junit-Interface), könnt ihr das hier reporten
-    junit:
-      - target/test-reports/*.xml
-      - target/scala-*/test-reports/*.xml
+    reports:
+      # Falls ihr JUnit-XML erzeugt (z. B. via sbt-junit-Interface), könnt ihr das hier reporten
+      junit:
+        - target/test-reports/*.xml
+        - target/scala-*/test-reports/*.xml

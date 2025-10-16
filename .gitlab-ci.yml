@@ -10,15 +10,17 @@ stages:
   - package
   - release
 
+# Globale Variablen für alle Jobs
+variables:
+  # Stabilere Builds und Headless-Einstellung (falls GUI/JavaFX über Tests berührt wird)
+  CI: "true"
+  JAVA_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC -Djava.awt.headless=true"
+  SBT_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC"
+  COURSIER_CACHE: "/root/.cache/coursier"
+
 # Standard-Umgebung für alle Jobs
 default:
   image: sbtscala/scala-sbt:latest  # enthält JDK + sbt
-  variables:
-    # Stabilere Builds und Headless-Einstellung (falls GUI/JavaFX über Tests berührt wird)
-    CI: "true"
-    JAVA_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC -Djava.awt.headless=true"
-    SBT_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC"
-    COURSIER_CACHE: "/root/.cache/coursier"
   cache:
     key: "sbt-cache"
     paths:
