@@ -23,7 +23,14 @@ class WizardGUI() extends JFXApp3 with Observer with UI {
 
   override def initialize(gameLogic: GameLogic): Unit = {
     gameController = gameLogic
-    val thread = new Thread{main(new Array[String](_length = 0))}
+    val thread = new Thread(new Runnable {
+      override def run(): Unit = {
+        // Launch the ScalaFX/JavaFX application for this instance on a background thread
+        WizardGUI.this.main(Array.empty[String])
+      }
+    })
+    // Nicht als Demon Thread markieren, sonst beendet sich die JVM isntant
+    // thread.setDaemon(true)
     thread.start()
   }
 
@@ -139,9 +146,15 @@ class WizardGUI() extends JFXApp3 with Observer with UI {
     nextButton.onAction = _ => {
       val playerCount = playerCountField.text.value
       if (playerCount.matches("[3-6]")) {
+        val cnt = playerCount.toInt
+        // Controller-Event auf Hintergrund-Thread verlagern, damit TUI mit readLine nicht FX-Thread blockiert
+        new Thread(() => gameController.playerCountSelected(cnt)).start()
+        // Lokalen UI-Wechsel direkt (weiterhin auf dem FX-Thread) durchführen
         // Notify controller so other views (e.g., TUI) can sync
-        gameController.playerCountSelected(playerCount.toInt)
-        ui.children = createPlayerNameScreen(playerCount.toInt)
+
+        // gameController.playerCountSelected(playerCount.toInt)
+        // ui.children = createPlayerNameScreen(playerCount.toInt)
+        // dopplung weil eigentlich über Observer Pattern läuft: ui.children = createPlayerNameScreen(cnt)
       }
     }
 
@@ -217,7 +230,13 @@ class WizardGUI() extends JFXApp3 with Observer with UI {
       val playerNames = playerFields.map(_.text.value.trim).filter(_.nonEmpty)
       if (playerNames.length == playerCount) {
         val players = playerNames.map(name => PlayerFactory.createPlayer(Some(name), PlayerType.Human))
-        gameController.setPlayers(players)
+        // auskommentiert, damit Controller Aktionen nicht auf dem FX-Thread ausgeführt werden
+        // gameController.setPlayers(players)
+        new Thread(() => gameController.setPlayers(players)).start()
+        // Optional für sofotiges Feedback auf der GUI (debugging)
+        // startButton.disable = true
+        // oder Status-Label-Meldung setzen
+        // Aber das ist nur Good to know wissen, falls man was debuggen möchte
       }
     }
 
@@ -252,9 +271,139 @@ class WizardGUI() extends JFXApp3 with Observer with UI {
         } else {
         }
         ()
+
+      case "PlayersSet" =>
+        Platform.runLater {
+          contentBox.foreach { box =>
+            box.children = List(new Label("Spiel startet... Karten werden ausgeteilt") {
+              style = "-fx-text-fill: white; -fx-font-size: 18px;"
+            })
+          }
+        }
+        ()
+
+      case "CardsDealt" =>
+        Platform.runLater {
+          // Erwartetes Payload: wizard.actionmanagement.CardsDealt(players: List[Player])
+          val playersOpt: Option[List[wizard.model.player.Player]] = obj.headOption.flatMap {
+            case cd: wizard.actionmanagement.CardsDealt => Some(cd.players)
+            case ps: List[?] =>
+              // Falls irgendwo eine Liste direkt geschickt wird (Fallback)
+              ps.asInstanceOf[List[Any]] match {
+                case list if list.forall(_.isInstanceOf[wizard.model.player.Player]) =>
+                  Some(list.asInstanceOf[List[wizard.model.player.Player]])
+                case _ => None
+              }
+            case _ => None
+          }
+
+          playersOpt.foreach { players =>
+            // Root der Spielansicht: Titel + Karten je Spieler
+            val title = new Label("Karten wurden ausgeteilt") {
+              style = "-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"
+            }
+
+            // Eine Zeile pro Spieler: Name + Handkarten
+            val playerRows: List[scalafx.scene.Node] = players.map { p =>
+              val nameLbl = new Label(s"${p.name}") {
+                style = "-fx-text-fill: #39FF14; -fx-font-size: 16px; -fx-font-weight: bold;"
+              }
+
+              // Karten als Textlabels (einfach): p.hand/toString je Karte
+              val cardLabels: Seq[Label] = {
+                val cards: List[Any] = try {
+                  // Versuch, eine Handliste zu ermitteln. Passe diesen Zugriff ggf. an deine Player-API an.
+                  // Häufig heißt es z. B. p.cards oder p.hand; hier defensiv via Reflection/Pattern.
+                  val maybeCards =
+                    try p.getClass.getMethod("cards").invoke(p)
+                    catch { case _: Throwable => try p.getClass.getMethod("hand").invoke(p) catch { case _: Throwable => null } }
+                  maybeCards match {
+                    case xs: scala.collection.Iterable[?] => xs.toList.asInstanceOf[List[Any]]
+                    case _ => Nil
+                  }
+                } catch { case _: Throwable => Nil }
+
+                cards.zipWithIndex.map { case (c, idx) =>
+                  new Label(c.toString) { // für ersten Wurf genügt toString
+                    style = "-fx-background-color: #2B2B2B; -fx-text-fill: white; -fx-padding: 6 8; -fx-background-radius: 6;"
+                  }
+                }
+              }
+
+              val cardsRow = new scalafx.scene.layout.HBox(8) {
+                alignment = Pos.CenterLeft
+                children = cardLabels
+              }
+
+              new scalafx.scene.layout.VBox(6) {
+                children = List(nameLbl, cardsRow)
+              }
+            }
+
+            val gameView = new scalafx.scene.layout.VBox(16) {
+              alignment = Pos.TopCenter
+              padding = Insets(20)
+              children = title :: playerRows
+            }
+
+            contentBox match {
+              case Some(box) => box.children = List(gameView)
+              case None => stage.scene().root = new StackPane { children = Seq(gameView) }
+            }
+          }
+        }
+        ()
+
+      case "ShowHand" =>
+        Platform.runLater {
+          val playerOpt: Option[wizard.model.player.Player] = obj.headOption.flatMap {
+            case sh: wizard.actionmanagement.ShowHand => Some(sh.player)
+            case p: wizard.model.player.Player => Some(p)
+            case _ => None
+          }
+
+          playerOpt.foreach { p =>
+            val title = new Label(s"Hand von ${p.name}") {
+              style = "-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"
+            }
+
+            val cardLabels: Seq[Label] = {
+              val cards: List[Any] = try {
+                val maybeCards =
+                  try p.getClass.getMethod("cards").invoke(p)
+                  catch { case _: Throwable => try p.getClass.getMethod("hand").invoke(p) catch { case _: Throwable => null } }
+                maybeCards match {
+                  case xs: scala.collection.Iterable[?] => xs.toList.asInstanceOf[List[Any]]
+                  case _ => Nil
+                }
+              } catch { case _: Throwable => Nil }
+
+              cards.map { c =>
+                new Label(c.toString) {
+                  style = "-fx-background-color: #2B2B2B; -fx-text-fill: white; -fx-padding: 6 8; -fx-background-radius: 6;"
+                }
+              }
+            }
+
+            val cardsRow = new scalafx.scene.layout.HBox(8) {
+              alignment = Pos.Center
+              children = cardLabels
+            }
+
+            val view = new scalafx.scene.layout.VBox(16) {
+              alignment = Pos.TopCenter
+              padding = Insets(20)
+              children = List(title, cardsRow)
+            }
+
+            contentBox match {
+              case Some(box) => box.children = List(view)
+              case None => stage.scene().root = new StackPane { children = Seq(view) }
+            }
+          }
+        }
+        ()
       case "StartGame" => () // could switch scene to input players
-      case "CardsDealt" => () // update GUI hand display
-      case "ShowHand" => () // render specific player's hand
       case _ => ()
     }
   }
@@ -262,7 +411,7 @@ class WizardGUI() extends JFXApp3 with Observer with UI {
 
 object WizardGUI {
   // Fallback launcher creating its own controller if started standalone
-  def main(args: Array[String]): Unit = {
+  def standalone(args: Array[String]): Unit = {
     val controller = new GameLogic
     val app = new WizardGUI()
     app.initialize(controller)

@@ -55,6 +55,7 @@ class GameLogic extends Observable {
         })
         t.setDaemon(true)
         t.start()
+        notifyObservers("PlayersSet", players)
     }
 
     // Kept for backward compatibility but no longer creates placeholder players
