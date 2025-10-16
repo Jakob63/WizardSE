@@ -23,6 +23,7 @@ object TextUI extends Observer {
             case "input players" => inputPlayers()
             case "game started" => println("Game officially started.")
             case "player names" => playerNames(obj.head.asInstanceOf[Int], obj(1).asInstanceOf[Int], obj(2).asInstanceOf[List[Player]])
+            case "handle choice" => handleChoice(obj.head.asInstanceOf[Int])
         }
         // Fetch new data von Controller und update die View
     }
@@ -33,6 +34,24 @@ object TextUI extends Observer {
       println()
       println("2. Exit")
       println("Please enter your choice (1 or 2): ")
+      var choice = 0
+      val input = scala.io.StdIn.readLine()
+      choice = input.toInt
+      if (choice.isInstanceOf[Int]) {
+        handleChoice(choice)
+      }
+    }
+    def handleChoice(choice: Int): Unit = {
+      if (choice == 2) {
+        println("Exiting the game. Goodbye!")
+        System.exit(0)
+      } else if (choice != 1) {
+        println("Invalid choice. Please enter 1 or 2.")
+        gameMenuTUI()
+      } else {
+        println("Starting the game...")
+        GameLogic.askPlayerNumber()
+      }
     }
 
     def inputPlayers():Unit = {

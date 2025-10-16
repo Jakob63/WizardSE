@@ -10,6 +10,10 @@ object GameLogic extends Observable {
     
     def startGame() = {
       notifyObservers("main menu")
+      //notifyObservers("input players")
+    }
+    
+    def askPlayerNumber(): Unit = {
       notifyObservers("input players")
     }
     
