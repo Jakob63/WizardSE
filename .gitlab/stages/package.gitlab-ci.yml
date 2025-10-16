@@ -1,0 +1,29 @@
+# Package stage jobs (optional bundles)
+
+package-assembly:
+  stage: package
+  needs: ["build-game"]
+  rules:
+    - if: "$CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+  allow_failure: true
+  script:
+    - sbt -v assembly
+  artifacts:
+    when: on_success
+    expire_in: 2 weeks
+    paths:
+      - target/scala-*/**/*-assembly*.jar
+
+package-dist:
+  stage: package
+  needs: ["build-game"]
+  rules:
+    - if: "$CI_COMMIT_TAG"
+  allow_failure: true
+  script:
+    - sbt -v dist
+  artifacts:
+    when: on_success
+    expire_in: 2 weeks
+    paths:
+      - target/universal/*.zip

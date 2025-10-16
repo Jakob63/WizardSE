@@ -1,0 +1,8 @@
+# Lint stage jobs
+
+scalafmt-check:
+  stage: lint
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'merge_request_event'"
+  script:
+    - sbt -v scalafmtCheckAll

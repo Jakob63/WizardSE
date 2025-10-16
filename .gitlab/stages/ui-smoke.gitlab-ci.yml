@@ -1,0 +1,11 @@
+# UI smoke stage jobs
+
+ui-smoke:
+  stage: ui-smoke
+  needs: ["build-game"]
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+  variables:
+    JAVA_OPTS: "-Djava.awt.headless=true -Dtestfx.headless=true -Dprism.order=sw -Dglass.platform=Monocle -Dmonocle.platform=Headless"
+  script:
+    - sbt -v "testOnly -- -n UISmoke"

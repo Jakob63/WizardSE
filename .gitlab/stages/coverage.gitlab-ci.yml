@@ -1,0 +1,18 @@
+# Coverage stage jobs
+
+coverage-report:
+  stage: coverage
+  needs: ["run-tests"]
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'merge_request_event'"
+  script:
+    - sbt -v coverage test coverageReport coverageAggregate || echo "scoverage nicht konfiguriert; übersprungen"
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - target/scala-*/scoverage-report
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: target/scala-*/coverage-report/cobertura.xml

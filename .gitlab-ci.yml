@@ -1,0 +1,43 @@
+stages:
+  - lint
+  - build
+  - test
+  - integration
+  - coverage
+  - ui-smoke
+  - docs
+  - security
+  - package
+  - release
+
+# Standard-Umgebung für alle Jobs
+default:
+  image: sbtscala/scala-sbt:latest  # enthält JDK + sbt
+  variables:
+    # Stabilere Builds und Headless-Einstellung (falls GUI/JavaFX über Tests berührt wird)
+    CI: "true"
+    JAVA_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC -Djava.awt.headless=true"
+    SBT_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC"
+    COURSIER_CACHE: "/root/.cache/coursier"
+  cache:
+    key: "sbt-cache"
+    paths:
+      - .ivy2/cache
+      - .sbt
+      - .cache/coursier
+      - target
+  before_script:
+    - java -version
+    - sbt -v sbtVersion
+
+include:
+  - local: ".gitlab/stages/lint.gitlab-ci.yml"
+  - local: ".gitlab/stages/build.gitlab-ci.yml"
+  - local: ".gitlab/stages/test.gitlab-ci.yml"
+  - local: ".gitlab/stages/integration.gitlab-ci.yml"
+  - local: ".gitlab/stages/coverage.gitlab-ci.yml"
+  - local: ".gitlab/stages/ui-smoke.gitlab-ci.yml"
+  - local: ".gitlab/stages/docs.gitlab-ci.yml"
+  - local: ".gitlab/stages/security.gitlab-ci.yml"
+  - local: ".gitlab/stages/package.gitlab-ci.yml"
+  - local: ".gitlab/stages/release.gitlab-ci.yml"

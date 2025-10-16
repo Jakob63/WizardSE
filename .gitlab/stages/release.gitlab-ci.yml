@@ -1,0 +1,15 @@
+# Release stage jobs
+
+release:
+  stage: release
+  needs: ["package-assembly"]
+  rules:
+    - if: "$CI_COMMIT_TAG"
+  script:
+    - echo "Releasing $CI_COMMIT_TAG"
+    # Hier könnten Uploads zu GitLab Releases/Registry folgen
+  artifacts:
+    when: on_success
+    expire_in: 2 weeks
+    paths:
+      - target/scala-*/**/*-assembly*.jar

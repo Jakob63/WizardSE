@@ -1,0 +1,13 @@
+# Docs stage jobs
+
+scaladoc:
+  stage: docs
+  rules:
+    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+  script:
+    - sbt -v doc
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - target/scala-*/api

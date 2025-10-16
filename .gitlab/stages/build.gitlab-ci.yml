@@ -1,0 +1,46 @@
+# Build stage jobs
+
+# Optionaler Job: Dependency-Warmup (beschleunigt danach Build/Test)
+warmup-deps:
+  stage: build
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'merge_request_event'"
+  script:
+    - sbt -v update
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - .ivy2/cache
+      - .sbt
+      - .cache/coursier
+
+# Build-Job: compiled das Projekt
+build-game:
+  stage: build
+  needs: ["warmup-deps"]
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'push' || $CI_PIPELINE_SOURCE == 'merge_request_event'"
+  script:
+    - sbt -v clean compile
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - target/**/classes
+      - target/scala-*/resolution-cache
+
+# Optionales Packaging (nur falls ihr ein Jar veröffentlichen wollt)
+# Aktivieren, wenn das Projekt ohne Zusatzplugins ein lauffähiges Jar erzeugt.
+package-jar:
+  stage: build
+  needs: ["build-game"]
+  rules:
+    - if: "$CI_COMMIT_TAG"  # nur bei Tags packen (Release)
+  script:
+    - sbt -v package
+  artifacts:
+    when: on_success
+    expire_in: 2 weeks
+    paths:
+      - target/scala-*/**/*.jar
