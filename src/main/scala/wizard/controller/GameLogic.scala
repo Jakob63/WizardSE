@@ -8,7 +8,7 @@ import wizard.actionmanagement.{Observable, Observer}
 
 object GameLogic extends Observable {
 
-    def startGame() = {
+    def startGame(): Unit = {
       notifyObservers("main menu")
     }
   
@@ -16,13 +16,13 @@ object GameLogic extends Observable {
       notifyObservers("input players")
     }
   
-    def createGame(players: List[Player]) = {
+    def createGame(players: List[Player]): Unit = {
       val game = Game(players)
       notifyObservers("game started")
       playGame(game, players)
     }
   
-    def createPlayers(numPlayers: Int, current: Int = 0, players: List[Player] = List()) = {
+    def createPlayers(numPlayers: Int, current: Int = 0, players: List[Player] = List()): Unit = {
       if (current < numPlayers) {
         notifyObservers("player names", numPlayers, current, players)
       } else {
