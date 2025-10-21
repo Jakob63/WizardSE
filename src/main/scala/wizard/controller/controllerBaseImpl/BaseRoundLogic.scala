@@ -10,11 +10,11 @@ import wizard.model.rounds.Round;
 class BaseRoundLogic extends Observable with aRoundLogic {
   
   // Logics
-  val playerLogic: aPlayerLogic = BasePlayerLogic()
+  var playerLogic: aPlayerLogic = _
   
   
 
-  def playRound(currentround: Int, players: List[Player]): Unit = {
+  override def playRound(currentround: Int, players: List[Player]): Unit = {
     val round = new Round(players)
     val trumpCardIndex = currentround * players.length
     val trumpCard = if (trumpCardIndex < Dealer.allCards.length) {
@@ -75,7 +75,7 @@ class BaseRoundLogic extends Observable with aRoundLogic {
     notifyObservers("print points all players", players)
   }
 
-  def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
+  override def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
     val leadColor = trick.head._2.color
     val trump = round.trump
     val leadColorCards = trick.filter(_._2.color == leadColor)

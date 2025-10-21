@@ -1,7 +1,9 @@
 package wizard
 
 
+import wizard.aView.TextUI
 import wizard.components.{Configuration, DefaultConfig}
+import wizard.controller.controllerBaseImpl.{BaseGameLogic, BasePlayerLogic, BaseRoundLogic}
 import wizard.controller.{GameLogic, PlayerLogic, RoundLogic}
 
 object Wizard {
@@ -11,12 +13,19 @@ object Wizard {
   }
 
   def entry(config: Configuration) = {
+    val gameLogic = BaseGameLogic()
+    val playerLogic = BasePlayerLogic()
+    val roundLogic = BaseRoundLogic()
+    
+    TextUI.gameLogic = gameLogic
+    gameLogic.roundLogic = roundLogic
+    roundLogic.playerLogic = playerLogic
     for (observer <- config.observables) {
-      GameLogic.add(observer)
-      PlayerLogic.add(observer)
-      RoundLogic.add(observer)
+      gameLogic.add(observer)
+      playerLogic.add(observer)
+      roundLogic.add(observer)
     }
-    GameLogic.startGame()
+    gameLogic.startGame()
   }
 
   def main(args: Array[String]): Unit = {

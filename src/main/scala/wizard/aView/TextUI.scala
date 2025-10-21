@@ -1,11 +1,14 @@
 package wizard.aView
 
 import wizard.actionmanagement.Observer
-import wizard.controller.GameLogic
+import wizard.controller.{GameLogic, aGameLogic}
+import wizard.controller.controllerBaseImpl.BaseGameLogic
 import wizard.model.cards.*
 import wizard.model.player.Player
 
 object TextUI extends Observer {
+  
+  var gameLogic: aGameLogic = _
 
   override def update(updateMSG: String, obj: Any*): Unit = {
     updateMSG match {
@@ -15,7 +18,7 @@ object TextUI extends Observer {
       case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
       case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
       case "print trump card" => println(s"Trump card: \n${showcard(obj.head.asInstanceOf[Card])}")
-      case "cards dealt" => println("Cards have been dealt to all players.")
+      case "cards dealt" => println("Cards have been dealt to all players.") //TODO muss raus
       case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
       case "points after round" => println("Points after this round:")
       case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
@@ -50,7 +53,7 @@ object TextUI extends Observer {
       gameMenuTUI()
     } else {
       println("Starting the game...")
-      GameLogic.askPlayerNumber()
+      gameLogic.askPlayerNumber()
     }
   }
 
@@ -70,7 +73,7 @@ object TextUI extends Observer {
           println("Invalid input. Please enter a valid number.")
       }
     }
-    GameLogic.createPlayers(numPlayers)
+    gameLogic.createPlayers(numPlayers)
   }
 
   def playerNames(numPlayers: Int, current: Int, players: List[Player]): Unit = {
@@ -85,7 +88,7 @@ object TextUI extends Observer {
     }
     val player = Player(name)
 
-    GameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
+    gameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
   }
 
   def showHand(player: Player): Unit = {

@@ -7,10 +7,8 @@ import wizard.model.rounds.{Game, Round}
 
 class BaseGameLogic extends Observable with aGameLogic{
   
-  
-  
   // Logics
-  val roundLogic: aRoundLogic = new BaseRoundLogic()
+  var roundLogic: aRoundLogic = _
   
   
   
