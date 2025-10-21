@@ -1,11 +1,13 @@
 package wizard.aView
 
 import wizard.actionmanagement.Observer
-import wizard.controller.GameLogic
+import wizard.controller.{GameLogic, aGameLogic}
 import wizard.model.cards.*
 import wizard.model.player.Player
 
 object TextUI extends Observer {
+  
+  var gameLogic: aGameLogic = _
 
   override def update(updateMSG: String, obj: Any*): Unit = {
     updateMSG match {
@@ -50,7 +52,7 @@ object TextUI extends Observer {
       gameMenuTUI()
     } else {
       println("Starting the game...")
-      GameLogic.askPlayerNumber()
+      gameLogic.askPlayerNumber()
     }
   }
 
@@ -70,7 +72,7 @@ object TextUI extends Observer {
           println("Invalid input. Please enter a valid number.")
       }
     }
-    GameLogic.createPlayers(numPlayers)
+    gameLogic.createPlayers(numPlayers)
   }
 
   def playerNames(numPlayers: Int, current: Int, players: List[Player]): Unit = {
@@ -85,7 +87,7 @@ object TextUI extends Observer {
     }
     val player = Player(name)
 
-    GameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
+    gameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
   }
 
   def showHand(player: Player): Unit = {
