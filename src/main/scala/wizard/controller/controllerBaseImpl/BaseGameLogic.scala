@@ -9,9 +9,29 @@ class BaseGameLogic extends Observable with aGameLogic{
 
   // Logics
   var roundLogic: aRoundLogic = _
+  
+  var varchoice: Option[Int] = None
 
   override def startGame() = {
     notifyObservers("main menu")
+  }
+  
+  override def handleChoice(choice: Int) = {
+    varchoice = Some(choice)
+    if (choice == 2) {
+      notifyObservers("main menu exit")
+      System.exit(0)
+    } else if (choice != 1) {
+      notifyObservers("main menu wrong input")
+      notifyObservers("main menu")
+    } else {
+      println("Starting the game...")
+      askPlayerNumber()
+    }
+  }
+
+  override def enterPlayerNumber(playernumber: Int, current: Int, list: List[Player]): Unit = {
+    notifyObservers("player names", playernumber, current, list)
   }
 
   override def askPlayerNumber(): Unit = {
@@ -49,4 +69,6 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def isOver(game: Game): Boolean = {
     game.rounds == 0
   }
+  
+  override def getChoice: Option[Int] = varchoice
 }

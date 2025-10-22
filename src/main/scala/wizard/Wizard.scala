@@ -17,9 +17,11 @@ object Wizard {
     val playerLogic = BasePlayerLogic()
     val roundLogic = BaseRoundLogic()
 
-    TextUI.gameLogic = gameLogic
     gameLogic.roundLogic = roundLogic
     roundLogic.playerLogic = playerLogic
+    for (view <- config.views) {
+      view.init(gameLogic)
+    }
     for (observer <- config.observables) {
       gameLogic.add(observer)
       playerLogic.add(observer)

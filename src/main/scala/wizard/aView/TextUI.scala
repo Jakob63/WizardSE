@@ -5,9 +5,13 @@ import wizard.controller.aGameLogic
 import wizard.model.cards.*
 import wizard.model.player.Player
 
-object TextUI extends Observer {
+object TextUI extends Observer with View {
   
-  var gameLogic: aGameLogic = _
+  var gameLogic: Option[aGameLogic] = None
+  
+  override def init(gameLogic: aGameLogic): Unit = {
+    this.gameLogic = Some(gameLogic)
+  }
 
   override def update(updateMSG: String, obj: Any*): Unit = {
     updateMSG match {
@@ -26,6 +30,8 @@ object TextUI extends Observer {
       case "game started" => println("Game officially started.")
       case "player names" => playerNames(obj.head.asInstanceOf[Int], obj(1).asInstanceOf[Int], obj(2).asInstanceOf[List[Player]])
       case "handle choice" => handleChoice(obj.head.asInstanceOf[Int])
+      case "main menu wrong input" => println("Invalid choice. Please enter 1 or 2.")
+      case "main menu exit" => println("Exiting the game. Goodbye!")
     }
     // Fetch new data von Controller und update die View
   }
@@ -40,7 +46,7 @@ object TextUI extends Observer {
     val input = scala.io.StdIn.readLine()
     choice = input.toInt
     if (choice.isInstanceOf[Int]) {
-      handleChoice(choice)
+      gameLogic.get.handleChoice(choice)
     }
   }
   def handleChoice(choice: Int): Unit = {
@@ -52,7 +58,7 @@ object TextUI extends Observer {
       gameMenuTUI()
     } else {
       println("Starting the game...")
-      gameLogic.askPlayerNumber()
+      gameLogic.get.askPlayerNumber()
     }
   }
 
@@ -72,7 +78,7 @@ object TextUI extends Observer {
           println("Invalid input. Please enter a valid number.")
       }
     }
-    gameLogic.createPlayers(numPlayers)
+    gameLogic.get.createPlayers(numPlayers)
   }
 
   def playerNames(numPlayers: Int, current: Int, players: List[Player]): Unit = {
@@ -87,7 +93,7 @@ object TextUI extends Observer {
     }
     val player = Player(name)
 
-    gameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
+    gameLogic.get.createPlayers(numPlayers, current + 1, players.appended(player))
   }
 
   def showHand(player: Player): Unit = {
