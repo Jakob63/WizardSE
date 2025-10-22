@@ -49,6 +49,7 @@ object TextUI extends Observer with View {
       gameLogic.get.handleChoice(choice)
     }
   }
+
   def handleChoice(choice: Int): Unit = {
     if (choice == 2) {
       println("Exiting the game. Goodbye!")
