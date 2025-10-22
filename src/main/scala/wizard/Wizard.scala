@@ -1,6 +1,7 @@
 package wizard
 
 
+import util.UserInput
 import wizard.aView.TextUI
 import wizard.components.{Configuration, DefaultConfig}
 import wizard.controller.controllerBaseImpl.{BaseGameLogic, BasePlayerLogic, BaseRoundLogic}
@@ -28,6 +29,32 @@ object Wizard {
       playerLogic.add(observer)
       roundLogic.add(observer)
     }
+    gameLogic.startGame()
+  }
+
+  // weitere entry Methode um sie zu überladen und userInput durchzureichen
+  def entry(config: Configuration, input: UserInput): Unit = {
+    val gameLogic = BaseGameLogic()
+    val playerLogic = BasePlayerLogic()
+    val roundLogic = BaseRoundLogic()
+
+    // Logik verknüpfen
+    gameLogic.roundLogic = roundLogic
+    roundLogic.playerLogic = playerLogic
+    roundLogic.gameLogic = gameLogic
+
+    // UserInput an alle Bedarfsträger verteilen
+    playerLogic.userInput = input
+    wizard.aView.TextUI.userInput = input
+
+    // Views/Observer verdrahten
+    for (view <- config.views) view.init(gameLogic)
+    for (observer <- config.observables) {
+      gameLogic.add(observer)
+      playerLogic.add(observer)
+      roundLogic.add(observer)
+    }
+
     gameLogic.startGame()
   }
 

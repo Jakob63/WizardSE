@@ -1,13 +1,14 @@
 package wizard.aView
 
+import util.UserInput
 import wizard.actionmanagement.Observer
 import wizard.controller.aGameLogic
 import wizard.model.cards.*
 import wizard.model.player.Player
 
 object TextUI extends Observer with View {
-  
   var gameLogic: Option[aGameLogic] = None
+  var userInput: UserInput = _ // wird beim Bootstrap gesetzt
   
   override def init(gameLogic: aGameLogic): Unit = {
     this.gameLogic = Some(gameLogic)
@@ -44,7 +45,7 @@ object TextUI extends Observer with View {
     println("2. Exit")
     println("Please enter your choice (1 or 2): ")
     var choice = 0
-    val input = scala.io.StdIn.readLine()
+    val input = userInput.readLine()
     choice = input.toInt
     if (choice.isInstanceOf[Int]) {
       gameLogic.get.handleChoice(choice)
@@ -69,7 +70,7 @@ object TextUI extends Observer with View {
     while (numPlayers < 3 || numPlayers > 6) {
       print("Enter the number of players (3-6): \n")
       try {
-        val input = scala.io.StdIn.readLine()
+        val input = userInput.readLine()
         numPlayers = input.toInt
         if (numPlayers < 3 || numPlayers > 6) {
           println("Invalid number of players. Please enter a number between 3 and 6.")
@@ -88,7 +89,7 @@ object TextUI extends Observer with View {
     val pattern = "^[a-zA-Z0-9]+$".r
     while (name == "" || !pattern.pattern.matcher(name).matches()) {
       print(s"Enter the name of player ${current + 1}: ")
-      name = scala.io.StdIn.readLine()
+      name = userInput.readLine()
       if (name == "" || !pattern.pattern.matcher(name).matches()) {
         println("Invalid name. Please enter a name containing only letters and numbers.")
       }
