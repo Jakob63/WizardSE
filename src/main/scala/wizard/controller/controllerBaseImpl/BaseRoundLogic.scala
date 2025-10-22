@@ -14,6 +14,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
   
   override def playRound(currentround: Int, players: List[Player]): Unit = {
     val round = new Round(players)
+    Dealer.shuffleCards()
     val trumpCardIndex = currentround * players.length
     val trumpCard = if (trumpCardIndex < Dealer.allCards.length) {
       Dealer.allCards(trumpCardIndex)
@@ -24,7 +25,6 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     gameLogic.trumpCard(trumpCard)
     notifyObservers("print trump card", trumpCard)
 
-    Dealer.shuffleCards()
     players.foreach { player =>
       val hand = Dealer.dealCards(currentround, Some(trumpCard))
       player.addHand(hand)
