@@ -2,6 +2,7 @@ package wizard.controller
 
 import wizard.model.player.Player
 import wizard.model.rounds.Game
+import wizard.model.cards.Card
 
 trait aGameLogic {
   def startGame(): Unit
@@ -14,5 +15,10 @@ trait aGameLogic {
   def playGame(game: Game, players: List[Player]): Unit
   def isOver(game: Game): Boolean
   
+  def playersHands(player: List[Player]): Unit
+  def trumpCard(trumpCard: Card): Unit
+  
   def getChoice: Option[Int]
+  def getPlayer: Option[List[Player]]
+  def getTrumpCard: Option[Card]
 }

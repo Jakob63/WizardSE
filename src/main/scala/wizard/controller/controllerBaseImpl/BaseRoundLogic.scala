@@ -2,7 +2,7 @@ package wizard.controller.controllerBaseImpl
 
 import wizard.aView.TextUI.showHand
 import wizard.actionmanagement.Observable
-import wizard.controller.{aPlayerLogic, aRoundLogic}
+import wizard.controller.{aGameLogic, aPlayerLogic, aRoundLogic}
 import wizard.model.cards.{Card, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round;
@@ -10,6 +10,7 @@ import wizard.model.rounds.Round;
 class BaseRoundLogic extends Observable with aRoundLogic{
   
   var playerLogic: aPlayerLogic = _
+  var gameLogic: aGameLogic = _
   
   override def playRound(currentround: Int, players: List[Player]): Unit = {
     val round = new Round(players)
@@ -20,6 +21,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
       throw new IndexOutOfBoundsException("No trump card available.")
     }
     round.setTrump(trumpCard.color)
+    gameLogic.trumpCard(trumpCard)
     notifyObservers("print trump card", trumpCard)
 
     Dealer.shuffleCards()
@@ -27,6 +29,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
       val hand = Dealer.dealCards(currentround, Some(trumpCard))
       player.addHand(hand)
     }
+    gameLogic.playersHands(players)
 
     // Determine the starting player index for this round (rotates each round)
     val startIdx = (currentround - 1) % players.length

@@ -4,6 +4,7 @@ import wizard.actionmanagement.Observable
 import wizard.controller.{aGameLogic, aRoundLogic}
 import wizard.model.player.Player
 import wizard.model.rounds.{Game, Round}
+import wizard.model.cards.Card
 
 class BaseGameLogic extends Observable with aGameLogic{
 
@@ -11,6 +12,8 @@ class BaseGameLogic extends Observable with aGameLogic{
   var roundLogic: aRoundLogic = _
   
   var varchoice: Option[Int] = None
+  var lastplayer: Option[List[Player]] = None
+  var trumpcard: Option[Card] = None
 
   override def startGame() = {
     notifyObservers("main menu")
@@ -70,5 +73,14 @@ class BaseGameLogic extends Observable with aGameLogic{
     game.rounds == 0
   }
   
+  override def playersHands(players: List[Player]): Unit = {
+    lastplayer = Some(players)
+  }
+  override def trumpCard(card: Card): Unit = {
+      trumpcard = Some(card)
+  }
+  
   override def getChoice: Option[Int] = varchoice
+  override def getPlayer: Option[List[Player]] = lastplayer
+  override def getTrumpCard: Option[Card] = trumpcard
 }
