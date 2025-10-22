@@ -1,7 +1,7 @@
 package wizard.aView
 
 import wizard.actionmanagement.Observer
-import wizard.controller.{GameLogic, aGameLogic}
+import wizard.controller.aGameLogic
 import wizard.model.cards.*
 import wizard.model.player.Player
 
