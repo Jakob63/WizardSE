@@ -11,14 +11,17 @@ import scalafx.scene.text.{Font, FontWeight}
 import scalafx.Includes._
 import scalafx.application.Platform
 import javafx.beans.binding.Bindings
-import wizard.controller.GameLogic
+import wizard.controller.aGameLogic
 import wizard.actionmanagement.{Observer, Debug, InputRouter}
 import wizard.model.player.{PlayerFactory, PlayerType, Player}
 import wizard.model.cards.{Card, Color, Value}
 import scalafx.scene.Node
 import java.util.NoSuchElementException
 
-class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
+class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
+  // self-register as observer
+  gameController.add(this)
+  
   // keep reference to current root for overlay management
   private var rootPane: Option[StackPane] = None
   // top-left undo/redo toolbar (visible from player-name stage onwards)
@@ -45,8 +48,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   private val inputFieldStyle: String = "-fx-control-inner-background: #2B2B2B; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.6);"
   // Unified style for primary buttons in the UI (dark gray background like inputs)
   private val buttonStyle: String = "-fx-background-color: #2B2B2B; -fx-text-fill: white;"
-  // self-register as observer
-  gameController.add(this)
   Debug.log("WizardGUI constructed and registered as observer")
 
   // --- Undo/Redo toolbar helpers ---
@@ -582,13 +583,4 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     }
   }
   private[aView] def testLocalBackToPlayerCount(): Unit = goBackToPlayerCountLocal()
-}
-
-object WizardGUI {
-  // Fallback launcher creating its own controller if started standalone
-  def main(args: Array[String]): Unit = {
-    val controller = new GameLogic
-    val app = new WizardGUI(controller)
-    app.main(args)
-  }
 }
