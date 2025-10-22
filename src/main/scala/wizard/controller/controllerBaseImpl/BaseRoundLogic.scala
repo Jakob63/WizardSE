@@ -89,7 +89,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     while (idx < orderPlayers.length) {
       val player = orderPlayers(idx)
       // Show only the current player's hand and ask for the bid
-      showHand(player)
+      notifyObservers("show hand of Player x", player)
       playerLogic.bid(player)
       idx += 1
     }

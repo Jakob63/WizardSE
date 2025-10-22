@@ -32,6 +32,7 @@ object TextUI extends Observer with View {
       case "handle choice" => handleChoice(obj.head.asInstanceOf[Int])
       case "main menu wrong input" => println("Invalid choice. Please enter 1 or 2.")
       case "main menu exit" => println("Exiting the game. Goodbye!")
+      case "show hand of Player x" => showHand(obj.head.asInstanceOf[Player])
     }
     // Fetch new data von Controller und update die View
   }
