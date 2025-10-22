@@ -1,150 +1,127 @@
 package wizard.controller
 
 import wizard.aView.TextUI
-import wizard.controller.PlayerLogic
+import wizard.aView.TextUI.showHand
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round
-import wizard.actionmanagement.{CardsDealt, Observable, Observer, ShowHand}
 
+import wizard.actionmanagement.{Observable, Observer}
 
-class RoundLogic extends Observable {
-    
-    private val playerLogic = new PlayerLogic
-
-    // Make sure observers added to RoundLogic also observe PlayerLogic events
-    override def add(s: Observer): Unit = {
-        super.add(s)
-        playerLogic.add(s)
+object RoundLogic extends Observable {
+  def playRound(currentround: Int, players: List[Player]): Unit = {
+    val round = new Round(players)
+    val trumpCardIndex = currentround * players.length
+    val trumpCard = if (trumpCardIndex < Dealer.allCards.length) {
+      Dealer.allCards(trumpCardIndex)
+    } else {
+      throw new IndexOutOfBoundsException("No trump card available.")
     }
-    
-    def playRound(currentround: Int, players: List[Player]): Unit = {
-        val round = new Round(players)
-        val trumpCardIndex = currentround * players.length
-        val trumpCardOpt: Option[Card] = if (trumpCardIndex < Dealer.allCards.length) {
-            Some(Dealer.allCards(trumpCardIndex))
-        } else {
-            None
-        }
+    round.setTrump(trumpCard.color)
+    notifyObservers("print trump card", trumpCard)
 
-        trumpCardOpt match {
-            case Some(trumpCard) =>
-                trumpCard.value match {
-                    case Value.Chester => round.setState(new ChesterCardState)
-                    case Value.WizardKarte => round.setState(new WizardCardState)
-                    case _ => round.setState(new NormalCardState)
-                }
-            case None =>
-                // No trump card available this round (e.g., final round). No trump.
-                round.setTrump(None)
-                round.setState(new NormalCardState)
-        }
-
-        Dealer.shuffleCards()
-        players.foreach { player =>
-            val hand = Dealer.dealCards(currentround, trumpCardOpt)
-            player.addHand(hand)
-        }
-        notifyObservers("CardsDealt", CardsDealt(players))
-
-        trumpCardOpt.foreach { trumpCard =>
-            round.handleTrump(trumpCard, players)
-            // Ensure trump is displayed to observers (TUI/GUI) before bidding
-            notifyObservers("print trump card", trumpCard)
-        }
-
-        players.foreach(player => playerLogic.bid(player))
-        for (i <- 1 to currentround) {
-            round.leadColor = None
-            var trick = List[(Player, Card)]()
-            var firstPlayerIndex = 0
-
-            while (round.leadColor.isEmpty && firstPlayerIndex < players.length) {
-                val player = players(firstPlayerIndex)
-                val card = playerLogic.playCard(None, round.trump, firstPlayerIndex, player)
-                if (card.value != Value.WizardKarte && card.value != Value.Chester) {
-                    round.leadColor = Some(card.color)
-                }
-                trick = trick :+ (player, card)
-                firstPlayerIndex += 1
-            }
-
-            for (j <- firstPlayerIndex until players.length) {
-                val player = players(j)
-                val card = playerLogic.playCard(round.leadColor, round.trump, j, player)
-                trick = trick :+ (player, card)
-            }
-
-            val winner = trickwinner(trick, round)
-            notifyObservers("trick winner", winner)
-            winner.roundTricks += 1
-
-            trick.foreach { case (player, _) =>
-                if (!player.hand.isEmpty) {
-                    notifyObservers("ShowHand", ShowHand(player))
-                }
-            }
-        }
-
-        players.foreach(player => {
-            player.addTricks(player.roundTricks)
-        })
-        players.foreach(player => {
-            playerLogic.addPoints(player)
-        })
-        notifyObservers("points after round")
-        notifyObservers("print points all players", players)
+    Dealer.shuffleCards()
+    players.foreach { player =>
+      val hand = Dealer.dealCards(currentround, Some(trumpCard))
+      player.addHand(hand)
     }
 
-    def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
-        // 1) If any Wizard cards are played, the first Wizard wins the trick.
-        trick.find { case (_, card) => card.value == Value.WizardKarte } match {
-            case Some((player, _)) => return player
-            case None => ()
-        }
+    // Determine the starting player index for this round (rotates each round)
+    val startIdx = (currentround - 1) % players.length
+    val orderPlayers: List[Player] = players.drop(startIdx) ++ players.take(startIdx)
 
-        // 2) Consider trump (if any), ignoring Jesters (Chester) for determining winners
-        val trumpColorOpt = round.trump
-        trumpColorOpt match {
-            case Some(trumpColor) =>
-                val trumpCards = trick.filter { case (_, card) => card.color == trumpColor && card.value != Value.Chester }
-                if (trumpCards.nonEmpty) {
-                    return trumpCards.maxBy(_._2.value.ordinal)._1
-                }
-            case None => ()
-        }
+    // Bidding phase: each player (starting from rotating start) sees only their own hand and bids
+    playersTurn(currentround, players, startIdx)
 
-        // 3) Fall back to lead color. Lead color is tracked in round.leadColor and is set to the first non-special (non-Wizard, non-Chester) card played.
-        val leadColorOpt: Option[Color] = round.leadColor.orElse {
-            trick.collectFirst { case (_, c) if c.value != Value.WizardKarte && c.value != Value.Chester => c.color }
-        }
-
-        leadColorOpt match {
-            case Some(leadColor) =>
-                val leadColorCards = trick.filter { case (_, card) => card.color == leadColor && card.value != Value.Chester }
-                if (leadColorCards.nonEmpty) {
-                    return leadColorCards.maxBy(_._2.value.ordinal)._1
-                }
-            case None => ()
-        }
-
-        // 4) If we get here, there were no Wizards, no winning trump/lead cards; likely all Jesters were played.
-        // According to Wizard rules, the first Jester wins in this scenario.
-        trick.find { case (_, card) => card.value == Value.Chester } match {
-            case Some((player, _)) => player
-            case None =>
-                // Fallback: should not happen, but return the first player's card holder to be safe
-                trick.head._1
-        }
+    // Playing phase: play tricks
+    for (_ <- 1 to currentround) {
+      val winner = playTrick(orderPlayers, round)
+      notifyObservers("trick winner", winner)
+      winner.roundTricks += 1
     }
-}
 
-object RoundLogic {
-  private val instance = new RoundLogic
-  
-  def playRound(currentround: Int, players: List[Player]): Unit =
-    instance.playRound(currentround, players)
+    players.foreach(player => {
+      player.addTricks(player.roundTricks)
+    })
+    players.foreach(player => {
+      PlayerLogic.addPoints(player)
+    })
+    notifyObservers("points after round")
+    notifyObservers("print points all players", players)
+  }
 
-  def trickwinner(trick: List[(Player, Card)], round: Round): Player =
-    instance.trickwinner(trick, round)
+  def playTrick(orderPlayers: List[Player], round: Round): Player = {
+    round.leadColor = None
+    var trick = List[(Player, Card)]()
+    var firstPlayerIndex = 0
+
+    // Players play until a non-Wizard/Jester sets the lead color
+    while (round.leadColor.isEmpty && firstPlayerIndex < orderPlayers.length) {
+      val player = orderPlayers(firstPlayerIndex)
+      showHand(player)
+      val card = PlayerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+      if (card.value != Value.WizardKarte && card.value != Value.Chester) {
+        round.leadColor = Some(card.color)
+      }
+      trick = trick :+ (player, card)
+      firstPlayerIndex += 1
+    }
+
+    // Remaining players must follow the lead color if possible
+    for (j <- firstPlayerIndex until orderPlayers.length) {
+      val player = orderPlayers(j)
+      showHand(player)
+      val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+      trick = trick :+ (player, card)
+    }
+
+    trickwinner(trick, round)
+  }
+
+  def playersTurn(currentround: Int, players: List[Player], startIdx: Int): Unit = {
+    val orderPlayers: List[Player] = players.drop(startIdx) ++ players.take(startIdx)
+    var idx = 0
+    while (idx < orderPlayers.length) {
+      val player = orderPlayers(idx)
+      // Show only the current player's hand and ask for the bid
+      showHand(player)
+      PlayerLogic.bid(player)
+      idx += 1
+    }
+  }
+
+
+  def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
+    // Wizard/Jester resolution (Wizard = highest, Jester = lowest)
+    // 1) If any Wizard was played, the first Wizard wins the trick.
+    val wizards = trick.zipWithIndex.filter { case ((_, card), _) => card.value == Value.WizardKarte }
+    if (wizards.nonEmpty) {
+      val ((player, _), _) = wizards.minBy(_._2) // first wizard by play order
+      return player
+    }
+
+    // Determine the lead color as the color of the first non-Jester, non-Wizard card.
+    val leadColorOpt = trick.collectFirst {
+      case ((_, card)) if card.value != Value.WizardKarte && card.value != Value.Chester => card.color
+    }
+    val trump = round.trump
+
+    // 2) If any trump (non-Jester) was played, highest trump (by value) wins.
+    val trumpCards = trick.filter { case (_, c) => c.color == trump && c.value != Value.Chester }
+    if (trumpCards.nonEmpty) {
+      return trumpCards.maxBy(_._2.value.ordinal)._1
+    }
+
+    // 3) Otherwise, highest card of the lead color (non-Jester) wins.
+    val leadColorCards = leadColorOpt.toList.flatMap { lc =>
+      trick.filter { case (_, c) => c.color == lc && c.value != Value.Chester }
+    }
+    if (leadColorCards.nonEmpty) {
+      return leadColorCards.maxBy(_._2.value.ordinal)._1
+    }
+
+    // 4) If only Jesters were played, the first Jester wins the trick.
+    val firstJester = trick.find { case (_, c) => c.value == Value.Chester }
+    firstJester.map(_._1).getOrElse(trick.head._1)
+  }
 }
