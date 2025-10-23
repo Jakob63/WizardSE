@@ -42,6 +42,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     for (_ <- 1 to currentround) {
       val winner = playTrick(orderPlayers, round)
       notifyObservers("trick winner", winner)
+      gameLogic.resetTrickCards()
       winner.roundTricks += 1
     }
 
