@@ -43,6 +43,7 @@ object Wizard {
     gameLogic.roundLogic = roundLogic
     roundLogic.playerLogic = playerLogic
     roundLogic.gameLogic = gameLogic
+    playerLogic.gameLogic = gameLogic
 
     // UserInput an alle Bedarfsträger verteilen
     playerLogic.userInput = input

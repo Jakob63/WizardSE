@@ -80,9 +80,11 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def trumpCard(card: Card): Unit = {
       trumpcard = Some(card)
   }
-  
+
   override def trickCardsList(playedCard: Card): Unit = {
-    if (trickCards.get.length < 4) {
+    if (trickCards.isEmpty) {
+      trickCards = Some(List(playedCard))
+    } else if (trickCards.get.length < 4) {
       val updatedTrickCards = trickCards.get :+ playedCard
       trickCards = Some(updatedTrickCards)
     } else {
