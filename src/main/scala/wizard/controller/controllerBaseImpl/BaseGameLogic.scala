@@ -14,6 +14,7 @@ class BaseGameLogic extends Observable with aGameLogic{
   var varchoice: Option[Int] = None
   var lastplayer: Option[List[Player]] = None
   var trumpcard: Option[Card] = None
+  var trickCards: Option[List[Card]] = None
 
   override def startGame() = {
     notifyObservers("main menu")
@@ -79,6 +80,15 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def trumpCard(card: Card): Unit = {
       trumpcard = Some(card)
   }
+  
+  override def trickCardsList(playedCard: Card): Unit = {
+    if (trickCards.get.length < 4) {
+      val updatedTrickCards = trickCards.get :+ playedCard
+      trickCards = Some(updatedTrickCards)
+    } else {
+      trickCards = None
+    }
+  }
 
   override def playRound(currentround: Int, players: List[Player]): Unit = {
     val round = new Round(players)
@@ -124,4 +134,5 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def getChoice: Option[Int] = varchoice
   override def getPlayer: Option[List[Player]] = lastplayer
   override def getTrumpCard: Option[Card] = trumpcard
+  override def getTrickCards: Option[List[Card]] = trickCards
 }

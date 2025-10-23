@@ -21,6 +21,7 @@ object Wizard {
     gameLogic.roundLogic = roundLogic
     roundLogic.playerLogic = playerLogic
     roundLogic.gameLogic = gameLogic
+    playerLogic.gameLogic = gameLogic
     for (view <- config.views) {
       view.init(gameLogic)
     }

@@ -1,11 +1,13 @@
 package wizard.controller.controllerBaseImpl
 
 import wizard.actionmanagement.Observable
-import wizard.controller.aPlayerLogic
+import wizard.controller.{aGameLogic, aPlayerLogic}
 import wizard.model.cards.{Card, Color, Value}
 import wizard.model.player.Player;
 
 class BasePlayerLogic extends Observable with aPlayerLogic{
+
+  var gameLogic: aGameLogic = _
 
 
   override def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
@@ -21,6 +23,7 @@ class BasePlayerLogic extends Observable with aPlayerLogic{
       return playCard(leadColor, trump, currentPlayerIndex, player)
     }
     val cardToPlay = player.hand.cards(cardIndex - 1)
+    gameLogic.trickCardsList(cardToPlay)
     if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
       notifyObservers("follow lead", leadColor)
       return playCard(leadColor, trump, currentPlayerIndex, player)

@@ -17,10 +17,12 @@ trait aGameLogic {
   
   def playersHands(player: List[Player]): Unit
   def trumpCard(trumpCard: Card): Unit
+  def trickCardsList(card: Card): Unit
   
   def getChoice: Option[Int]
   def getPlayer: Option[List[Player]]
   def getTrumpCard: Option[Card]
+  def getTrickCards: Option[List[Card]]
 
   def playRound(currentround: Int, players: List[Player]): Unit
 }
