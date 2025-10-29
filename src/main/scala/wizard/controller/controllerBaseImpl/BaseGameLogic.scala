@@ -1,7 +1,8 @@
 package wizard.controller.controllerBaseImpl
 
 import wizard.actionmanagement.Observable
-import wizard.controller.{aGameLogic, aRoundLogic}
+import wizard.controller.GameState.Menu
+import wizard.controller.{GameState, aGameLogic, aRoundLogic}
 import wizard.model.player.Player
 import wizard.model.rounds.{Game, Round}
 import wizard.model.cards.{Card, Dealer}
@@ -15,6 +16,8 @@ class BaseGameLogic extends Observable with aGameLogic{
   var lastplayer: Option[List[Player]] = None
   var trumpcard: Option[Card] = None
   var trickCards: Option[List[Card]] = None
+  var state: Option[GameState] = Some(GameState.Menu)
+
 
   override def startGame() = {
     notifyObservers("main menu")
@@ -44,6 +47,7 @@ class BaseGameLogic extends Observable with aGameLogic{
 
   override def createGame(players: List[Player]) = {
     val game = Game(players)
+    state = Some(GameState.Ingame)
     notifyObservers("game started")
     playGame(game, players)
   }
@@ -71,6 +75,7 @@ class BaseGameLogic extends Observable with aGameLogic{
 
   // game is over if all rounds are played
   override def isOver(game: Game): Boolean = {
+    state = Some(GameState.Endscreen)
     game.rounds == 0
   }
   
@@ -135,6 +140,7 @@ class BaseGameLogic extends Observable with aGameLogic{
   }
 
   override def getChoice: Option[Int] = varchoice
+  override def getState: Option[GameState] = state
   override def getPlayer: Option[List[Player]] = lastplayer
   override def getTrumpCard: Option[Card] = trumpcard
   override def getTrickCards: Option[List[Card]] = trickCards
