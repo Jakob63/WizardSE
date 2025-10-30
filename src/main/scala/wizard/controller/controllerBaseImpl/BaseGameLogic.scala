@@ -73,7 +73,6 @@ class BaseGameLogic extends Observable with aGameLogic{
     }
   }
 
-  // game is over if all rounds are played
   override def isOver(game: Game): Boolean = {
     state = Some(GameState.Endscreen)
     game.rounds == 0
@@ -99,44 +98,7 @@ class BaseGameLogic extends Observable with aGameLogic{
   }
 
   override def playRound(currentround: Int, players: List[Player]): Unit = {
-    val round = new Round(players)
-
-    Dealer.shuffleCards()
-    val trumpCardIndex = currentround * players.length
-    val trumpCard = if (trumpCardIndex < Dealer.allCards.length) {
-      Dealer.allCards(trumpCardIndex)
-    } else {
-      throw new IndexOutOfBoundsException("No trump card available.")
-    }
-    round.setTrump(trumpCard.color)
-    trumpcard = Some(trumpCard)
-    notifyObservers("print trump card", trumpCard)
-
-    players.foreach { player =>
-      val hand = Dealer.dealCards(currentround, Some(trumpCard))
-      player.addHand(hand)
-    }
-    playersHands(players)
-
-    // Determine the starting player index for this round (rotates each round)
-    val startIdx = (currentround - 1) % players.length
-    val orderPlayers: List[Player] = players.drop(startIdx) ++ players.take(startIdx)
-
-    // Bidding phase: each player (starting from rotating start) sees only their own hand and bids
-    roundLogic.playersTurn(currentround, players, startIdx)
-
-    // Playing phase: play tricks
-    for (_ <- 1 to currentround) {
-      val winner = roundLogic.playTrick(orderPlayers, round)
-      notifyObservers("trick winner", winner)
-      winner.roundTricks += 1
-    }
-
-    players.foreach(player => {
-      player.addTricks(player.roundTricks)
-    })
-    notifyObservers("points after round")
-    notifyObservers("print points all players", players)
+    roundLogic.playRound(currentround, players)
   }
 
   override def getChoice: Option[Int] = varchoice

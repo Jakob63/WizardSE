@@ -35,7 +35,7 @@ object GameLogic extends Observable {
     }
 
     def playGame(game: Game, players: List[Player]): Unit = {
-        for (i <- 1 to game.rounds) { // i = 1, 2, 3, ..., rounds
+        for (i <- 1 to game.rounds) {
             game.currentround = i
             val round = new Round(players)
             RoundLogic.playRound(game.currentround, players)
