@@ -21,7 +21,8 @@ class BaseGameLogic extends Observable with aGameLogic{
 
 
   override def startGame() = {
-    notifyObservers("main menu")
+    varchoice = Some(1)
+    askPlayerNumber()
   }
   
   override def handleChoice(choice: Int) = {
