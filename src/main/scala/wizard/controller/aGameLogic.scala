@@ -25,6 +25,7 @@ trait aGameLogic {
   def getTrumpCard: Option[Card]
   def getTrickCards: Option[List[Card]]
   def getState: Option[GameState]
+  def getPlayerNumber: Option[Int]
 
   def playRound(currentround: Int, players: List[Player]): Unit
 }

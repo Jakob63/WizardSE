@@ -17,6 +17,7 @@ class BaseGameLogic extends Observable with aGameLogic{
   var trumpcard: Option[Card] = None
   var trickCards: Option[List[Card]] = None
   var state: Option[GameState] = Some(GameState.Menu)
+  var playerNumber: Option[Int] = None
 
 
   override def startGame() = {
@@ -53,6 +54,7 @@ class BaseGameLogic extends Observable with aGameLogic{
   }
 
   override def createPlayers(numPlayers: Int, current: Int = 0, players: List[Player] = List()) = {
+    playerNumber = Some(numPlayers)
     if (current < numPlayers) {
       notifyObservers("player names", numPlayers, current, players)
     } else {
@@ -106,4 +108,5 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def getPlayer: Option[List[Player]] = lastplayer
   override def getTrumpCard: Option[Card] = trumpcard
   override def getTrickCards: Option[List[Card]] = trickCards
+  override def getPlayerNumber: Option[Int] = playerNumber
 }
