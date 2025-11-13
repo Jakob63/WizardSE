@@ -19,6 +19,8 @@ class BaseGameLogic extends Observable with aGameLogic{
   var state: Option[GameState] = Some(GameState.Menu)
   var playerNumber: Option[Int] = None
 
+  private var lastIllegalReason: Option[String] = None
+
 
   override def startGame() = {
     varchoice = Some(1)
@@ -110,4 +112,20 @@ class BaseGameLogic extends Observable with aGameLogic{
   override def getTrumpCard: Option[Card] = trumpcard
   override def getTrickCards: Option[List[Card]] = trickCards
   override def getPlayerNumber: Option[Int] = playerNumber
+
+  override def setLastIllegalReason(reason: String): Unit = {
+    lastIllegalReason = Option(reason)
+  }
+
+  override def getLastIllegalReason: Option[String] = lastIllegalReason
+
+  override def clearLastIllegalReason(): Unit = {
+    lastIllegalReason = None
+  }
+
+  override def consumeLastIllegalReason(): Option[String] = {
+    val tmp = lastIllegalReason
+    lastIllegalReason = None
+    tmp
+  }
 }

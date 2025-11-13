@@ -27,5 +27,10 @@ trait aGameLogic {
   def getState: Option[GameState]
   def getPlayerNumber: Option[Int]
 
+  def setLastIllegalReason(reason: String): Unit
+  def getLastIllegalReason: Option[String]
+  def clearLastIllegalReason(): Unit
+  def consumeLastIllegalReason(): Option[String]
+
   def playRound(currentround: Int, players: List[Player]): Unit
 }

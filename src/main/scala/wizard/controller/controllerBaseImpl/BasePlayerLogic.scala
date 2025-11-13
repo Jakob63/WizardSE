@@ -25,6 +25,7 @@ class BasePlayerLogic extends Observable with aPlayerLogic{
     val cardToPlay = player.hand.cards(cardIndex - 1)
     gameLogic.trickCardsList(cardToPlay)
     if (leadColor != null && cardToPlay.color != leadColor && player.hand.hasColor(leadColor) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester) {
+      gameLogic.setLastIllegalReason("You have to follow the lead suit " + leadColor + ".")
       notifyObservers("follow lead", leadColor)
       return playCard(leadColor, trump, currentPlayerIndex, player)
     } else {
