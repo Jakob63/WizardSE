@@ -1,33 +1,35 @@
 package wizard.controller.controllerBaseImpl
 
+import org.apache.pekko.actor.ActorRef
 import wizard.actionmanagement.Observable
 import wizard.controller.GameState.Menu
 import wizard.controller.{GameState, aGameLogic, aRoundLogic}
 import wizard.model.player.Player
 import wizard.model.rounds.{Game, Round}
 import wizard.model.cards.{Card, Dealer}
+import wizard.aView.TextUI.showHand
 
-class BaseGameLogic extends Observable with aGameLogic{
+class BaseGameLogic extends Observable with aGameLogic {
 
-  // Logics
   var roundLogic: aRoundLogic = _
-  
+
   var varchoice: Option[Int] = None
   var lastplayer: Option[List[Player]] = None
   var trumpcard: Option[Card] = None
   var trickCards: Option[List[Card]] = None
   var state: Option[GameState] = Some(GameState.Menu)
   var playerNumber: Option[Int] = None
+  var gameSocketActor: Option[ActorRef] = None
 
   private var lastIllegalReason: Option[String] = None
 
 
-  override def startGame() = {
+  override def startGame(): Unit = {
     varchoice = Some(1)
     askPlayerNumber()
   }
-  
-  override def handleChoice(choice: Int) = {
+
+  override def handleChoice(choice: Int): Unit = {
     varchoice = Some(choice)
     if (choice == 2) {
       notifyObservers("main menu exit")
@@ -49,21 +51,21 @@ class BaseGameLogic extends Observable with aGameLogic{
     notifyObservers("input players")
   }
 
-  override def createGame(players: List[Player]) = {
+  override def createGame(players: List[Player]): Unit = {
     val game = Game(players)
     state = Some(GameState.Ingame)
     notifyObservers("game started")
     playGame(game, players)
+    gameSocketActor.foreach(_.tell("gameStarted", ActorRef.noSender))
   }
 
-  override def createPlayers(numPlayers: Int, current: Int = 0, players: List[Player] = List()) = {
+  override def createPlayers(numPlayers: Int, current: Int = 0, players: List[Player] = List()): Unit = {
     playerNumber = Some(numPlayers)
     if (current < numPlayers) {
       notifyObservers("player names", numPlayers, current, players)
     } else {
       createGame(players)
     }
-
   }
 
   override def validGame(number: Int): Boolean = {
@@ -75,6 +77,7 @@ class BaseGameLogic extends Observable with aGameLogic{
       game.currentround = i
       val round = new Round(players)
       roundLogic.playRound(game.currentround, players)
+      gameSocketActor.foreach(_.tell(s"roundStarted:$i", ActorRef.noSender))
     }
   }
 
@@ -82,12 +85,17 @@ class BaseGameLogic extends Observable with aGameLogic{
     state = Some(GameState.Endscreen)
     game.rounds == 0
   }
-  
+
+  // an Websocket
+
   override def playersHands(players: List[Player]): Unit = {
     lastplayer = Some(players)
+    gameSocketActor.foreach(_.tell("playersHands", ActorRef.noSender))
   }
+
   override def trumpCard(card: Card): Unit = {
-      trumpcard = Some(card)
+    trumpcard = Some(card)
+    gameSocketActor.foreach(_.tell(s"trumpCard:${card.color}:${card.value}", ActorRef.noSender))
   }
 
   override def trickCardsList(playedCard: Card): Unit = {
@@ -97,13 +105,16 @@ class BaseGameLogic extends Observable with aGameLogic{
       val updatedTrickCards = trickCards.get :+ playedCard
       trickCards = Some(updatedTrickCards)
     }
+    gameSocketActor.foreach(_.tell(s"trickCards:${playedCard.value}", ActorRef.noSender))
   }
+
   override def resetTrickCards(): Unit = {
     trickCards = None
   }
 
   override def playRound(currentround: Int, players: List[Player]): Unit = {
     roundLogic.playRound(currentround, players)
+    gameSocketActor.foreach(_.tell(s"roundPlayed:$currentround", ActorRef.noSender))
   }
 
   override def getChoice: Option[Int] = varchoice
@@ -127,5 +138,9 @@ class BaseGameLogic extends Observable with aGameLogic{
     val tmp = lastIllegalReason
     lastIllegalReason = None
     tmp
+  }
+
+  def setGameSocketActor(actor: ActorRef): Unit = {
+    gameSocketActor = Some(actor)
   }
 }

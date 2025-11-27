@@ -5,16 +5,23 @@ import wizard.actionmanagement.Observable
 import wizard.controller.{aGameLogic, aPlayerLogic, aRoundLogic}
 import wizard.model.cards.{Card, Dealer, Value}
 import wizard.model.player.Player
-import wizard.model.rounds.Round;
+import wizard.model.rounds.Round
+import org.apache.pekko.actor.ActorRef
 
-class BaseRoundLogic extends Observable with aRoundLogic{
-  
+class BaseRoundLogic extends Observable with aRoundLogic {
+
   var playerLogic: aPlayerLogic = _
   var gameLogic: aGameLogic = _
-  
+  var gameSocketActor: Option[ActorRef] = None
+
+  def setGameSocketActor(actor: ActorRef): Unit = {
+    gameSocketActor = Some(actor)
+  }
+
   override def playRound(currentround: Int, players: List[Player]): Unit = {
     val round = new Round(players)
     Dealer.shuffleCards()
+
     val trumpCardIndex = currentround * players.length
     val trumpCard = if (trumpCardIndex < Dealer.allCards.length) {
       Dealer.allCards(trumpCardIndex)
@@ -24,6 +31,9 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     round.setTrump(trumpCard.color)
     gameLogic.trumpCard(trumpCard)
     notifyObservers("print trump card", trumpCard)
+    gameSocketActor.foreach { actor =>
+      actor ! s"Trump card for round $currentround: ${trumpCard.value} of ${trumpCard.color}"
+    }
 
     players.foreach { player =>
       val hand = Dealer.dealCards(currentround, Some(trumpCard))
@@ -31,29 +41,33 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     }
     gameLogic.playersHands(players)
 
-    // Determine the starting player index for this round (rotates each round)
     val startIdx = (currentround - 1) % players.length
     val orderPlayers: List[Player] = players.drop(startIdx) ++ players.take(startIdx)
 
-    // Bidding phase: each player (starting from rotating start) sees only their own hand and bids
     playersTurn(currentround, players, startIdx)
 
-    // Playing phase: play tricks
     for (_ <- 1 to currentround) {
       val winner = playTrick(orderPlayers, round)
       notifyObservers("trick winner", winner)
+      gameSocketActor.foreach { actor =>
+        actor ! s"Trick winner: ${winner.name}"
+      }
       gameLogic.resetTrickCards()
       winner.roundTricks += 1
     }
 
-    players.foreach(player => {
+    players.foreach { player =>
       player.addTricks(player.roundTricks)
-    })
-    players.foreach(player => {
       playerLogic.addPoints(player)
-    })
+    }
+
     notifyObservers("points after round")
     notifyObservers("print points all players", players)
+    players.foreach { player =>
+      gameSocketActor.foreach { actor =>
+        actor ! s"Player ${player.name} has ${player.points} points."
+      }
+    }
   }
 
   override def playTrick(orderPlayers: List[Player], round: Round): Player = {
@@ -61,7 +75,6 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     var trick = List[(Player, Card)]()
     var firstPlayerIndex = 0
 
-    // Players play until a non-Wizard/Jester sets the lead color
     while (round.leadColor.isEmpty && firstPlayerIndex < orderPlayers.length) {
       val player = orderPlayers(firstPlayerIndex)
       showHand(player)
@@ -73,7 +86,6 @@ class BaseRoundLogic extends Observable with aRoundLogic{
       firstPlayerIndex += 1
     }
 
-    // Remaining players must follow the lead color if possible
     for (j <- firstPlayerIndex until orderPlayers.length) {
       val player = orderPlayers(j)
       showHand(player)
@@ -89,8 +101,10 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     var idx = 0
     while (idx < orderPlayers.length) {
       val player = orderPlayers(idx)
-      // Show only the current player's hand and ask for the bid
       notifyObservers("show hand of Player x", player)
+      gameSocketActor.foreach { actor =>
+        actor ! s"Player ${player.name}, please place your bid."
+      }
       playerLogic.bid(player)
       idx += 1
     }
@@ -98,27 +112,22 @@ class BaseRoundLogic extends Observable with aRoundLogic{
 
 
   override def trickwinner(trick: List[(Player, Card)], round: Round): Player = {
-    // Wizard/Jester resolution (Wizard = highest, Jester = lowest)
-    // 1) If any Wizard was played, the first Wizard wins the trick.
     val wizards = trick.zipWithIndex.filter { case ((_, card), _) => card.value == Value.WizardKarte }
     if (wizards.nonEmpty) {
-      val ((player, _), _) = wizards.minBy(_._2) // first wizard by play order
+      val ((player, _), _) = wizards.minBy(_._2)
       return player
     }
 
-    // Determine the lead color as the color of the first non-Jester, non-Wizard card.
     val leadColorOpt = trick.collectFirst {
       case ((_, card)) if card.value != Value.WizardKarte && card.value != Value.Chester => card.color
     }
     val trump = round.trump
 
-    // 2) If any trump (non-Jester) was played, highest trump (by value) wins.
     val trumpCards = trick.filter { case (_, c) => c.color == trump && c.value != Value.Chester }
     if (trumpCards.nonEmpty) {
       return trumpCards.maxBy(_._2.value.ordinal)._1
     }
 
-    // 3) Otherwise, highest card of the lead color (non-Jester) wins.
     val leadColorCards = leadColorOpt.toList.flatMap { lc =>
       trick.filter { case (_, c) => c.color == lc && c.value != Value.Chester }
     }
@@ -126,7 +135,6 @@ class BaseRoundLogic extends Observable with aRoundLogic{
       return leadColorCards.maxBy(_._2.value.ordinal)._1
     }
 
-    // 4) If only Jesters were played, the first Jester wins the trick.
     val firstJester = trick.find { case (_, c) => c.value == Value.Chester }
     firstJester.map(_._1).getOrElse(trick.head._1)
   }
