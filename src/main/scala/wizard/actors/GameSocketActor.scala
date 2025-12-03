@@ -27,6 +27,19 @@ class GameSocketActor(
 
   private case class Outgoing[E](event: String, data: E)
 
+  override def preStart(): Unit = {
+    playerLogic.userInput = input
+    TextUI.userInput = input
+    TextUI.init(gameLogic)
+    gameLogic.add(TextUI)
+    playerLogic.add(TextUI)
+    roundLogic.add(TextUI)
+
+    gameLogic.setGameSocketActor(self)
+    playerLogic.setGameSocketActor(self)
+    roundLogic.setGameSocketActor(self)
+  }
+
   // {"name": <cmd>, "value": <string?>}
   private given Reads[ClientCommand] = Reads { js =>
     for {
@@ -103,19 +116,6 @@ class GameSocketActor(
     } else {
       parsePlaintext(txt).toRight(ErrorUnknownCommand -> Json.obj("name" -> txt.takeWhile(_ != ':')))
     }
-  }
-
-  override def preStart(): Unit = {
-    playerLogic.userInput = input
-    TextUI.userInput = input
-    TextUI.init(gameLogic)
-    gameLogic.add(TextUI)
-    playerLogic.add(TextUI)
-    roundLogic.add(TextUI)
-
-    gameLogic.setGameSocketActor(self)
-    playerLogic.setGameSocketActor(self)
-    roundLogic.setGameSocketActor(self)
   }
 
   override def receive: Receive = {
