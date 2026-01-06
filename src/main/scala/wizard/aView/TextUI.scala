@@ -25,74 +25,19 @@ object TextUI extends Observer {
       case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
       case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
       case "print trump card" => println(s"Trump card: \n${showcard(obj.head.asInstanceOf[Card])}")
-      case "cards dealt" => println("Cards have been dealt to all players.")
+      case "CardsDealt" | "cards dealt" => println("Cards have been dealt to all players.")
       case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
       case "points after round" => println("Points after this round:")
       case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
-      case "main menu" => gameMenuTUI()
-      case "input players" => inputPlayers()
+      case "input players" => println("Enter the number of players (3-6):")
       case "game started" => println("Game officially started.")
-      case "player names" => playerNames(obj.head.asInstanceOf[Int], obj(1).asInstanceOf[Int], obj(2).asInstanceOf[List[Player]])
-      case "handle choice" => handleChoice(obj.head.asInstanceOf[Int])
+      case "invalid name" => println("Invalid name. Please enter a name containing only letters and numbers.")
+      case "player names" =>
+        val current = obj(1).asInstanceOf[Int]
+        print(s"Enter the name of player ${current + 1}: ")
+      case _ => Debug.log(s"TextUI: Unhandled message '$updateMSG'")
     }
     // Fetch new data von Controller und update die View
-  }
-
-  def gameMenuTUI(): Unit = {
-    println("Welcome to Wizard!")
-    println("1. Start Game")
-    println()
-    println("2. Exit")
-    println("Please enter your choice (1 or 2): ")
-    var choice = 0
-    val input = scala.io.StdIn.readLine()
-    choice = input.toInt
-    if (choice.isInstanceOf[Int]) {
-      handleChoice(choice)
-    }
-  }
-  def handleChoice(choice: Int): Unit = {
-    if (choice == 2) {
-      println("Exiting the game. Goodbye!")
-      System.exit(0)
-    } else if (choice != 1) {
-      println("Invalid choice. Please enter 1 or 2.")
-      gameMenuTUI()
-    } else {
-      println("Starting the game...")
-      gameLogic.askPlayerNumber()
-    }
-  }
-
-  def inputPlayers():Unit = {
-    var numPlayers = -1
-    while (numPlayers < 3 || numPlayers > 6) {
-      print("Enter the number of players (3-6): \n")
-      val input = InputRouter.readLine() // TODO: GUI beim Bestätigen der Spielerzahl: InputRouter.offer("4")
-      numPlayers = input.toInt
-      if (numPlayers < 3 || numPlayers > 6) {
-        println("Invalid number of players. Please enter a number between 3 and 6.")
-        numPlayers = -1
-      } else {
-        println("Invalid input. Please enter a valid number.")
-      }
-    }
-    gameLogic.createPlayers(numPlayers)
-  }
-
-  def playerNames(numPlayers: Int, current: Int, players: List[Player]): Unit = {
-    var name = ""
-    val pattern = "^[a-zA-Z0-9]+$".r
-    while (name == "" || !pattern.pattern.matcher(name).matches()) {
-      print(s"Enter the name of player ${current + 1}: ")
-      name = scala.io.StdIn.readLine()
-      if (name == "" || !pattern.pattern.matcher(name).matches()) {
-        println("Invalid name. Please enter a name containing only letters and numbers.")
-      }
-    }
-    val player = Player(name)
-
-    gameLogic.createPlayers(numPlayers, current + 1, players.appended(player))
   }
 
   def showHand(player: Player): Unit = {

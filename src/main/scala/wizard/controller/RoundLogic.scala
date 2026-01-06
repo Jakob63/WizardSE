@@ -17,7 +17,7 @@ object RoundLogic extends Observable {
     } else {
       throw new IndexOutOfBoundsException("No trump card available.")
     }
-    round.setTrump(trumpCard.color)
+    round.setTrump(Some(trumpCard.color))
     notifyObservers("print trump card", trumpCard)
 
     Dealer.shuffleCards()
@@ -59,7 +59,7 @@ object RoundLogic extends Observable {
     while (round.leadColor.isEmpty && firstPlayerIndex < orderPlayers.length) {
       val player = orderPlayers(firstPlayerIndex)
       showHand(player)
-      val card = PlayerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+      val card = PlayerLogic.playCard(null, round.trump.getOrElse(null), firstPlayerIndex, player)
       if (card.value != Value.WizardKarte && card.value != Value.Chester) {
         round.leadColor = Some(card.color)
       }
@@ -71,7 +71,7 @@ object RoundLogic extends Observable {
     for (j <- firstPlayerIndex until orderPlayers.length) {
       val player = orderPlayers(j)
       showHand(player)
-      val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+      val card = PlayerLogic.playCard(round.leadColor.getOrElse(null), round.trump.getOrElse(null), j, player)
       trick = trick :+ (player, card)
     }
 
@@ -104,10 +104,10 @@ object RoundLogic extends Observable {
     val leadColorOpt = trick.collectFirst {
       case ((_, card)) if card.value != Value.WizardKarte && card.value != Value.Chester => card.color
     }
-    val trump = round.trump
+    val trumpOpt = round.trump
 
     // 2) If any trump (non-Jester) was played, highest trump (by value) wins.
-    val trumpCards = trick.filter { case (_, c) => c.color == trump && c.value != Value.Chester }
+    val trumpCards = trick.filter { case (_, c) => trumpOpt.exists(tc => c.color == tc) && c.value != Value.Chester }
     if (trumpCards.nonEmpty) {
       return trumpCards.maxBy(_._2.value.ordinal)._1
     }

@@ -10,7 +10,7 @@ class BuildAI extends PlayerBuilder {
         if (unfinished.isEmpty) {
             unfinished = Some(AI(name))
         } else {
-            unfinished.get.name = name
+          unfinished = Some(AI(name))
         }
         this
     }

@@ -42,7 +42,6 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
   // Players currently in the game (for scoreboard)
   private var currentPlayers: List[Player] = Nil
   // UI elements for per-player info
-  private var currentBidsLabel: Option[Label] = None
   private var scoresBox: Option[VBox] = None
   // Unified style for all text input fields (dark gray like the player count box)
   private val inputFieldStyle: String = "-fx-control-inner-background: #2B2B2B; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.6);"
@@ -98,13 +97,18 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
       // Prevent the bar from intercepting mouse clicks outside its visible buttons
       try { bar.pickOnBounds = false } catch { case _: Throwable => () }
       undoRedoBar = Some(bar)
+    }
+    
+    undoRedoBar.foreach { bar =>
       rootPane.foreach { rp =>
         Platform.runLater {
           val kids = rp.children
           if (!kids.contains(bar)) {
-            rp.children.add(bar)
-            setAlignment(bar, Pos.TopLeft)
+            kids.add(bar)
           }
+          bar.toFront()
+          StackPane.setAlignment(bar, Pos.TopLeft)
+          Debug.log(s"WizardGUI.ensureUndoRedoBarVisible -> bar added to rootPane and aligned TopLeft")
         }
       }
     }
@@ -139,13 +143,10 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
         root = createInitialScreen()
       }
     }
-    // Ensure we are definitely registered (in case the instance was created before add or re-created by JavaFX)
+    // Observer registration should have happened in constructor or by external caller.
+    // If we were re-started, ensure we are registered.
     gameController.add(this)
-    Debug.log("WizardGUI.start -> ensured observer registration and starting controller")
-    // Start the controller now that the GUI is ready (on a background daemon thread)
-    val controllerThread = new Thread(new Runnable { override def run(): Unit = gameController.start() })
-    controllerThread.setDaemon(true)
-    controllerThread.start()
+    Debug.log("WizardGUI.start -> stage created and observer presence ensured")
     // If an early PlayerCountSelected arrived before the stage was ready, apply it now
     pendingPlayerCount.foreach { cnt =>
       Platform.runLater {
@@ -201,7 +202,9 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
     nextButton.onAction = _ => {
       val playerCount = playerCountField.text.value
       if (playerCount.matches("[3-6]")) {
-        val t = new Thread(new Runnable { override def run(): Unit = gameController.playerCountSelected(playerCount.toInt) })
+        val t = new Thread(new Runnable { override def run(): Unit = {
+          gameController.playerCountSelected(playerCount.toInt) 
+        }})
         t.setDaemon(true)
         t.start()
         ui.children = createPlayerNameScreen(playerCount.toInt)
@@ -248,7 +251,7 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
 
     root
   }
-
+  
   private def createPlayerNameRoot(playerCount: Int): StackPane = {
     val ui = new VBox(20) {
       alignment = Pos.Center
@@ -321,7 +324,9 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
       val playerNames = playerFields.map(_.text.value.trim).filter(_.nonEmpty)
       if (playerNames.length == playerCount) {
         val players = playerNames.map(name => PlayerFactory.createPlayer(Some(name), PlayerType.Human))
-        gameController.setPlayers(players)
+        val t = new Thread(new Runnable { override def run(): Unit = gameController.setPlayers(players) })
+        t.setDaemon(true)
+        t.start()
       }
     }
 
@@ -330,18 +335,24 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
 
   // --- Game table helpers ---
   private def updateScores(): Unit = {
-    (scoresBox, Option(currentPlayers)) match {
-      case (Some(box), _) =>
-        val labels = currentPlayers.map(p => new Label(s"${p.name}: ${p.points}") { style = "-fx-text-fill: white; -fx-font-size: 14px;" })
-        box.children = labels
-      case _ => ()
-    }
-  }
-
-  private def updateCurrentBids(p: Player): Unit = {
-    currentBidsLabel.foreach { lbl =>
-      val value = try { p.roundBids } catch { case _: Throwable => 0 }
-      lbl.setText(s"Bids (so far): ${value}")
+    scoresBox.foreach { box =>
+      val header = new HBox(10) {
+        children = Seq(
+          new Label("Spieler") { prefWidth = 80; style = "-fx-text-fill: #39FF14; -fx-font-weight: bold;" },
+          new Label("Bids") { prefWidth = 40; style = "-fx-text-fill: #39FF14; -fx-font-weight: bold;" },
+          new Label("Points") { prefWidth = 50; style = "-fx-text-fill: #39FF14; -fx-font-weight: bold;" }
+        )
+      }
+      val rows = currentPlayers.map { p =>
+        new HBox(10) {
+          children = Seq(
+            new Label(p.name) { prefWidth = 80; style = "-fx-text-fill: white;" },
+            new Label(p.roundBids.toString) { prefWidth = 40; style = "-fx-text-fill: white;" },
+            new Label(p.points.toString) { prefWidth = 50; style = "-fx-text-fill: white;" }
+          )
+        }
+      }
+      box.children = header :: rows
     }
   }
 
@@ -351,20 +362,28 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
     val trump = new ImageView() { preserveRatio = true }
     val hand = new HBox(10) { alignment = Pos.Center; padding = Insets(10) }
 
+    val trumpLabel = new Label("Trump:") {
+      style = "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"
+    }
+    val trumpContainer = new VBox(5) {
+      alignment = Pos.Center
+      children = Seq(trumpLabel, trump)
+    }
+
     val centerLabel = new Label("") // placeholder for table area
 
-    val bidsSmallLabel = new Label("") { style = "-fx-text-fill: white; -fx-font-size: 12px;" }
-    currentBidsLabel = Some(bidsSmallLabel)
-
-    val scores = new VBox(6) { alignment = Pos.TopRight; padding = Insets(10) }
+    val scores = new VBox(6) {
+      alignment = Pos.TopRight
+      padding = Insets(0)
+      pickOnBounds = false
+    }
     scoresBox = Some(scores)
 
     val tablePane = new BorderPane {
-      top = new HBox { alignment = Pos.Center; padding = Insets(10); children = Seq(trump) }
+      top = new HBox { alignment = Pos.Center; padding = Insets(10); children = Seq(trumpContainer) }
       center = new StackPane { children = Seq(centerLabel) }
-      right = new VBox(20) { alignment = Pos.TopCenter; padding = Insets(10); children = Seq(scores) }
       bottom = hand
-      padding = Insets(10)
+      padding = Insets(5)
     }
 
     trumpView = Some(trump)
@@ -378,11 +397,16 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
     rootPane = Some(root)
     if (bgRes != null) {
       val bgView = new ImageView(new Image(bgRes.toExternalForm)) { preserveRatio = false }
-      root.children = Seq(bgView, tablePane, bidsSmallLabel)
+      root.children = Seq(bgView, tablePane, scores)
       bgView.fitWidth  <== root.width
       bgView.fitHeight <== root.height
     } else {
-      root.children = Seq(tablePane, bidsSmallLabel)
+      root.children = Seq(tablePane, scores)
+    }
+
+    Platform.runLater {
+      StackPane.setAlignment(scores, Pos.TopRight)
+      scores.toFront()
     }
 
     // Ensure undo/redo bar is visible on the game table too
@@ -390,11 +414,10 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
 
     gameRoot = Some(tablePane)
 
-    // place the small bids label at top-right corner of the root overlay
-    try { setAlignment(bidsSmallLabel, Pos.TopRight) } catch { case _: Throwable => () }
-
     Platform.runLater {
-      if (stage != null && stage.scene() != null) stage.scene().root = root
+      if (stage != null && stage.scene() != null) {
+        stage.scene().root = root
+      }
     }
   }
 
@@ -482,9 +505,8 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
 
   // Minimal observer implementation to keep GUI and TUI in sync via events
   override def update(updateMSG: String, obj: Any*): Any = {
-    Debug.log(s"WizardGUI.update('$updateMSG') received on JavaFX?=${Platform.isFxApplicationThread}")
     updateMSG match {
-      case "AskForPlayerCount" =>
+      case "input players" | "AskForPlayerCount" =>
         // Cancel any pending transitions by bumping the navigation epoch, then switch back to player-count UI
         navEpoch += 1
         val thisEpoch = navEpoch
@@ -527,7 +549,10 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
         ()
       case "CardsDealt" =>
         // Switch to game table; capture players for scoreboard and update UI.
-        obj.headOption.collect { case cd: wizard.actionmanagement.CardsDealt => cd.players }.foreach { ps => currentPlayers = ps }
+        obj.headOption.collect {
+          case cd: wizard.actionmanagement.CardsDealt => cd.players
+          case players: List[Player] => players
+        }.foreach { ps => currentPlayers = ps }
         Platform.runLater({
           ensureGameTableRoot()
           updateScores()
@@ -544,20 +569,17 @@ class WizardGUI(val gameController: aGameLogic) extends JFXApp3 with Observer {
         }
         playerOpt.foreach(p => Platform.runLater({
           renderHand(p)
-          updateCurrentBids(p)
         }))
         ()
       case "which card" =>
         obj.headOption.collect { case p: Player => p }.foreach { p => Platform.runLater({
           renderHand(p)
-          updateCurrentBids(p)
         }) }
         ()
       case "which bid" =>
         obj.headOption.collect { case p: Player => p }.foreach { p =>
           Platform.runLater({
             renderHand(p)
-            updateCurrentBids(p)
             showBidPrompt(p)
           })
         }

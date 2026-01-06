@@ -1,9 +1,9 @@
 package wizard.model.player
 
-import wizard.model.cards.{Card, Hand}
+import wizard.model.cards.{Card, Color, Hand}
 import wizard.actionmanagement.{Observable, Observer}
 
-case class Player(name: String) extends Observable {
+class Player(var name: String) extends Observable {
   // Hand-Objekt zur Verwaltung der Karten des Spielers
   var hand: Hand = Hand(List[Card]())
 
@@ -33,5 +33,11 @@ case class Player(name: String) extends Observable {
   // Methode zum Hinzufügen von Tricks
   def addTricks(tricks: Int): Unit = {
     this.tricks += tricks
+  }
+
+  def bid(): Int = 0
+
+  def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card = {
+    if (hand.cards.nonEmpty) hand.cards.head else null
   }
 }

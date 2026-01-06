@@ -19,14 +19,17 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     } else {
       throw new IndexOutOfBoundsException("No trump card available.")
     }
-    round.setTrump(trumpCard.color)
-    notifyObservers("print trump card", trumpCard)
-
+    round.setTrump(Some(trumpCard.color))
+    
+    // Zuerst Karten verteilen, damit GUI beim "CardsDealt" Event die Spielerliste hat
     Dealer.shuffleCards()
     players.foreach { player =>
       val hand = Dealer.dealCards(currentround, Some(trumpCard))
       player.addHand(hand)
     }
+    
+    notifyObservers("CardsDealt", wizard.actionmanagement.CardsDealt(players))
+    notifyObservers("print trump card", trumpCard)
 
     // Determine the starting player index for this round (rotates each round)
     val startIdx = (currentround - 1) % players.length
@@ -60,8 +63,8 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     // Players play until a non-Wizard/Jester sets the lead color
     while (round.leadColor.isEmpty && firstPlayerIndex < orderPlayers.length) {
       val player = orderPlayers(firstPlayerIndex)
-      showHand(player)
-      val card = playerLogic.playCard(null, round.trump, firstPlayerIndex, player)
+      // showHand(player) - removed as notifyObservers is used in playerLogic.playCard
+      val card = playerLogic.playCard(null, round.trump.getOrElse(null), firstPlayerIndex, player)
       if (card.value != Value.WizardKarte && card.value != Value.Chester) {
         round.leadColor = Some(card.color)
       }
@@ -72,8 +75,8 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     // Remaining players must follow the lead color if possible
     for (j <- firstPlayerIndex until orderPlayers.length) {
       val player = orderPlayers(j)
-      showHand(player)
-      val card = playerLogic.playCard(round.leadColor.getOrElse(null), round.trump, j, player)
+      // showHand(player) - removed
+      val card = playerLogic.playCard(round.leadColor.getOrElse(null), round.trump.getOrElse(null), j, player)
       trick = trick :+ (player, card)
     }
 
@@ -86,7 +89,7 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     while (idx < orderPlayers.length) {
       val player = orderPlayers(idx)
       // Show only the current player's hand and ask for the bid
-      showHand(player)
+      // showHand(player) - removed
       playerLogic.bid(player)
       idx += 1
     }
@@ -106,10 +109,10 @@ class BaseRoundLogic extends Observable with aRoundLogic{
     val leadColorOpt = trick.collectFirst {
       case ((_, card)) if card.value != Value.WizardKarte && card.value != Value.Chester => card.color
     }
-    val trump = round.trump
+    val trumpOpt = round.trump
 
     // 2) If any trump (non-Jester) was played, highest trump (by value) wins.
-    val trumpCards = trick.filter { case (_, c) => c.color == trump && c.value != Value.Chester }
+    val trumpCards = trick.filter { case (_, c) => trumpOpt.exists(tc => c.color == tc) && c.value != Value.Chester }
     if (trumpCards.nonEmpty) {
       return trumpCards.maxBy(_._2.value.ordinal)._1
     }

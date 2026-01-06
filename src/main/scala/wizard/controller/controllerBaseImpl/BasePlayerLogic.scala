@@ -10,7 +10,7 @@ class BasePlayerLogic extends Observable with aPlayerLogic{
 
   override def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int, player: Player): Card = {
     notifyObservers("which card", player)
-    val input = scala.io.StdIn.readLine()
+    val input = wizard.actionmanagement.InputRouter.readLine()
     val cardIndex = try {
       input.toInt
     } catch {
@@ -33,8 +33,8 @@ class BasePlayerLogic extends Observable with aPlayerLogic{
   // Method to bid
   override def bid(player: Player): Int = {
     notifyObservers("which bid", player)
-    val input = scala.io.StdIn.readLine()
-    if (input == "" || input.trim.isEmpty || !input.forall(_.isDigit)) {
+    val input = wizard.actionmanagement.InputRouter.readLine()
+    if (input == null || input == "" || input.trim.isEmpty || !input.forall(_.isDigit)) {
       notifyObservers("invalid input, bid again")
       return bid(player)
     }

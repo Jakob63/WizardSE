@@ -7,7 +7,7 @@ class AI private[player](name: String) extends Player(name) {
     override def bid(): Int =
         throw new NotImplementedError("AI bidding strategy not implemented yet")
     
-    def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card =
+    override def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card =
         throw new NotImplementedError("AI playCard strategy not implemented yet")
     
     // Backward-compatible overload used in some tests

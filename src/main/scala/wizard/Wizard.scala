@@ -30,17 +30,21 @@ object Wizard {
       roundLogic.asInstanceOf[BaseRoundLogic].add(observer)
     }
 
-    // GUI immer starten (ScalaFX App Thread)
+    // GUI immer starten (ScalaFX App Thread) – ignoriert launchGUI, da GUI stets benötigt wird
     val guiThread = new Thread(() => {
       try {
-        new WizardGUI(gameLogic).main(Array.empty)
+        val gui = new WizardGUI(gameLogic)
+        // Registrierungen für GUI an weiteren Logiken (gameLogic erfolgt im WizardGUI-Konstruktor)
+        playerLogic.asInstanceOf[BasePlayerLogic].add(gui)
+        roundLogic.asInstanceOf[BaseRoundLogic].add(gui)
+        gui.main(Array.empty)
       } catch {
-        case_: Throwable
-        => ()
+        case t: Throwable =>
+          t.printStackTrace()
       }
     })
     guiThread.setDaemon(true)
-    guiThread.setName("WizardGUI-ScalaFX") // TODO: warum javaund nicht scala, was machen wenn ich nur scala darf
+    guiThread.setName("WizardGUI-ScalaFX")
     guiThread.start()
 
     // trigger Spielstart
@@ -49,25 +53,25 @@ object Wizard {
 
     val eol = sys.props("line.separator")
 
-    def bar(cellWidth: Int = 4, cellNum: Int = 2) =
+    def bar(cellWidth: Int = 4, cellNum: Int = 2): String =
       (("-" * cellWidth) * cellNum) + "-" + eol
 
-    def bar2(cellWidth: Int = 16, cellNum: Int = 2) =
+    def bar2(cellWidth: Int = 16, cellNum: Int = 2): String =
       (("-" * cellWidth) * cellNum) + "-" + eol
 
-    def cells(cellWidth: Int = 7, cellNum: Int = 1) =
+    def cells(cellWidth: Int = 7, cellNum: Int = 1): String =
       ("|" + " " * cellWidth) * cellNum + "|" + eol
 
-    def cells2() =
+    def cells2(): String =
       "|" + " game  " + "|" + eol
 
-    def cells3() =
+    def cells3(): String =
       "|" + " trump " + "|" + eol
 
-    def cells4() =
+    def cells4(): String =
       ("|" + "Set win" + "|" + "\t") * 3 + eol
 
-    def cells5(cellWidth: Int = 7, cellNum: Int = 1) =
+    def cells5(cellWidth: Int = 7, cellNum: Int = 1): String =
       (("|" + " " * cellWidth) * cellNum + "|" + "\t") * 3 + eol
 
 
@@ -80,12 +84,13 @@ object Wizard {
     def mesh3: String =
       bar() + cells() + cells3() + cells() + bar()
 
-    def mesh4: String =
+    def mesh4: String = {
       bar2() + cells5() + cells4() + cells5() + bar2()
+    }
 
-      println(mesh2)
-      println(mesh3)
-      println(mesh4)
+    println(mesh2)
+    println(mesh3)
+    println(mesh4)
   }
 
   def main(args: Array[String]): Unit = {

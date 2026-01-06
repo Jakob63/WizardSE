@@ -10,7 +10,8 @@ class BuildHuman extends PlayerBuilder {
         if (unfinished.isEmpty) {
             unfinished = Some(Human(name))
         } else {
-            unfinished.get.name = name
+            // Reassignment to val is illegal; create a new Human with the updated name
+            unfinished = Some(Human(name))
         }
         this
     }
@@ -22,7 +23,7 @@ class BuildHuman extends PlayerBuilder {
 
     override def build(): Player = {
         if (unfinished.isDefined) {
-            var player = unfinished.get
+            val player = unfinished.get
             reset()
             return player
         }

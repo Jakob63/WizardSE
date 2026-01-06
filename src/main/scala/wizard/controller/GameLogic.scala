@@ -9,7 +9,7 @@ import wizard.actionmanagement.{Observable, Observer}
 object GameLogic extends Observable {
 
     def startGame(): Unit = {
-      notifyObservers("main menu")
+      askPlayerNumber()
     }
 
     def askPlayerNumber(): Unit = {
@@ -45,5 +45,10 @@ object GameLogic extends Observable {
     // game is over if all rounds are played
     def isOver(game: Game): Boolean = {
         game.rounds == 0
+    }
+
+    // Navigate back to player count input (used by GUI/TUI undo flow)
+    def resetPlayerCountSelection(): Unit = {
+      notifyObservers("input players")
     }
 }

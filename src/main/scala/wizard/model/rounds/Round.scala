@@ -3,16 +3,17 @@ package wizard.model.rounds
 
 import wizard.model.cards.{Color, Dealer, Value}
 import wizard.model.player.Player
+import wizard.actionmanagement.Observable
 import scala.compiletime.uninitialized
 
-class Round(players: List[Player]) {
-  // Aktueller Trumpf
-  var trump: Color = uninitialized
+class Round(players: List[Player]) extends Observable {
+  // Aktueller Trumpf (None = kein Trumpf festgelegt)
+  var trump: Option[Color] = None
   var leadColor: Option[Color] = None
   var currentPlayerIndex = 0
 
   // Methode zum Setzen des Trumpfs
-  def setTrump(trump: Color): Unit = {
+  def setTrump(trump: Option[Color]): Unit = {
     this.trump = trump
   }
 
@@ -39,7 +40,7 @@ class Round(players: List[Player]) {
   }
 
   override def toString: String = {
-    s"Trump: $trump, LeadColor: $leadColor, CurrentPlayerIndex: $currentPlayerIndex, Players: $players"
+    s"Trump: ${trump.fold("None")(c => c.toString)}, LeadColor: $leadColor, CurrentPlayerIndex: $currentPlayerIndex, Players: $players"
   }
 
 }

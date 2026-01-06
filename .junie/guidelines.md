@@ -10,6 +10,7 @@ Scope and Non‑negotiable Constraints
 - Architectural pattern: MVC must be preserved.
 - Design patterns: Keep the existing patterns, in particular the Observer pattern used between controller and views.
 - Dual UI: Both TUI and GUI must remain usable interchangeably; they observe the same controller so that actions in one are reflected in the other.
+- Dual GUI: Both TUI and GUI must be launched. No optional launch for either of them.
 
 Current High‑Level Architecture (MVC + Observer)
 - Model (wizard.model.*)
@@ -29,6 +30,7 @@ Observer Pattern Expectations
 - Do not introduce view-to-view dependencies; communication flows through the controller only.
 
 Testing Information
+- OVERRIDE: do note write test, do not adjust exisiting tests. Ignore the tests. Ignore the other Stichpunkte hier unter "Testing Information" for now. i will remove this line, when i am ready.
 - Always add tests for any new content you generate. No feature or bugfix should be merged without tests.
 - Test framework: ScalaTest (already used in this repo). Keep new tests consistent with existing style.
 - Locations:

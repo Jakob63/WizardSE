@@ -6,7 +6,7 @@ import wizard.actionmanagement.InputRouter
 
 class Human private[player](name: String) extends Player(name) {
     
-    def bid(): Int = {
+    override def bid(): Int = {
         def loop(): Int = {
             val line = InputRouter.readLine()
             line.toIntOption match {
@@ -17,7 +17,7 @@ class Human private[player](name: String) extends Player(name) {
         loop()
     }
     
-    def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card = {
+    override def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card = {
         def loop(): Card = {
             val line = InputRouter.readLine()
             val idx = line.toIntOption.getOrElse(0) - 1
