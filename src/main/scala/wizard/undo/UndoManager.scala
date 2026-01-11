@@ -13,7 +13,7 @@ class UndoManager {
 
     def undoStep(): Unit = {
         undoStack match {
-            case Nil => throw new NoSuchElementException("No commands to undo")
+            case Nil => // No commands to undo
             case head :: stack =>
                 head.undoStep()
                 undoStack = stack
@@ -23,7 +23,7 @@ class UndoManager {
 
     def redoStep(): Unit = {
         redoStack match {
-            case Nil => throw new NoSuchElementException("No commands to redo")
+            case Nil => // No commands to redo
             case head :: stack =>
                 head.doStep()
                 redoStack = stack

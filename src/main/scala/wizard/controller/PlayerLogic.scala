@@ -11,24 +11,39 @@ class PlayerLogic extends Observable {
 
     def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card = {
         notifyObservers("which card", player)
-        val cardToPlay = player.playCard(leadColor, trump, currentPlayerIndex)
-        leadColor match {
-            case Some(lc) if cardToPlay.color != lc && player.hand.hasColor(lc) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester =>
-                notifyObservers("follow lead", lc)
-                playCard(leadColor, trump, currentPlayerIndex, player)
-            case _ =>
-                val before = player.hand
-                val after = player.hand.removeCard(cardToPlay)
-                UndoService.manager.doStep(new PlayCardCommand(player, before, after))
-                cardToPlay
+        try {
+            val cardToPlay = player.playCard(leadColor, trump, currentPlayerIndex)
+            leadColor match {
+                case Some(lc) if cardToPlay.color != lc && player.hand.hasColor(lc) && cardToPlay.value != Value.WizardKarte && cardToPlay.value != Value.Chester =>
+                    notifyObservers("follow lead", lc)
+                    playCard(leadColor, trump, currentPlayerIndex, player)
+                case _ =>
+                    val after = player.hand.removeCard(cardToPlay)
+                    UndoService.manager.doStep(new PlayCardCommand(player, after))
+                    notifyObservers("card played", cardToPlay)
+                    cardToPlay
+            }
+        } catch {
+            case e: wizard.actionmanagement.InputRouter.UndoException =>
+                // Re-throw to be handled in the round loop which knows about player turns
+                throw e
+            case e: wizard.actionmanagement.InputRouter.RedoException =>
+                throw e
         }
     }
 
     def bid(player: Player): Int = {
         notifyObservers("which bid", player)
-        val playersbid = player.bid()
-        UndoService.manager.doStep(new BidCommand(player, playersbid))
-        playersbid
+        try {
+            val playersbid = player.bid()
+            UndoService.manager.doStep(new BidCommand(player, playersbid))
+            playersbid
+        } catch {
+            case e: wizard.actionmanagement.InputRouter.UndoException =>
+                throw e
+            case e: wizard.actionmanagement.InputRouter.RedoException =>
+                throw e
+        }
     }
 
     def addPoints(player: Player): Unit = {
