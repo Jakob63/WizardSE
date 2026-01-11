@@ -13,6 +13,7 @@ class GameLogic extends Observable {
     private val roundLogic = new RoundLogic
     @volatile private var started: Boolean = false
     @volatile private var selectedPlayerCount: Option[Int] = None
+    @volatile private var stopCurrentGame: Boolean = false
 
     // Ensure any observer of the controller also observes RoundLogic (and thus PlayerLogic via RoundLogic)
     override def add(s: Observer): Unit = {
@@ -70,6 +71,23 @@ class GameLogic extends Observable {
     // New: set players provided by a view (TUI/GUI)
     def setPlayers(players: List[Player]): Unit = {
         Debug.log(s"GameLogic.setPlayers(${players.map(_.name).mkString(",")}); computing rounds and starting game thread")
+        
+        // Register this transition in the undo manager so we can go back to naming
+        import wizard.undo.{StartGameCommand, UndoService}
+        UndoService.manager.doStep(new StartGameCommand(this, players))
+
+        startGameThread(players)
+    }
+
+    // Called by StartGameCommand.redoStep to avoid double-adding to undo stack
+    def setPlayersFromRedo(players: List[Player]): Unit = {
+        Debug.log(s"GameLogic.setPlayersFromRedo(${players.map(_.name).mkString(",")})")
+        startGameThread(players)
+    }
+
+    private def startGameThread(players: List[Player]): Unit = {
+        stopCurrentGame = false
+        roundLogic.stopGame = false
         val rounds = if (players.nonEmpty) 60 / players.length else 0
         val currentround = 0
         // reset stats for a fresh game
@@ -100,17 +118,51 @@ class GameLogic extends Observable {
         Debug.log("GameLogic.CardAuswahl -> notifying 'CardAuswahl'")
         notifyObservers("CardAuswahl", CardAuswahlEvent)
     }
+
+    def undo(): Unit = {
+        import wizard.undo.UndoService
+        Debug.log("GameLogic.undo called")
+        // Signal the game thread if it's waiting for input
+        try { 
+            wizard.actionmanagement.InputRouter.offer("__UNDO__") 
+            // Also need to actually perform the undo on the stack
+            UndoService.manager.undoStep()
+        } catch { case _: Throwable => () }
+        notifyObservers("UndoPerformed")
+    }
+
+    def redo(): Unit = {
+        import wizard.undo.UndoService
+        Debug.log("GameLogic.redo called")
+        // Signal the game thread if it's waiting for input
+        try { 
+            wizard.actionmanagement.InputRouter.offer("__REDO__") 
+            UndoService.manager.redoStep()
+        } catch { case _: Throwable => () }
+        notifyObservers("RedoPerformed")
+    }
     
+    def stopGame(): Unit = {
+        Debug.log("GameLogic.stopGame() called")
+        stopCurrentGame = true
+        roundLogic.stopGame = true
+    }
+
     def playGame(players: List[Player], rounds: Int, initialRound: Int): Unit = {
         Debug.log(s"GameLogic.playGame starting with rounds=$rounds from=$initialRound for players=${players.map(_.name).mkString(",")}")
         var currentround = initialRound
-        for (i <- 1 to rounds) { // i = 1, 2, 3, ..., rounds
-            currentround = i
-            val round = new Round(players)
-            Debug.log(s"GameLogic.playGame -> Round $currentround starting")
-            roundLogic.playRound(currentround, players)
+        try {
+            for (i <- 1 to rounds if !stopCurrentGame) { // i = 1, 2, 3, ..., rounds
+                currentround = i
+                val round = new Round(players)
+                Debug.log(s"GameLogic.playGame -> Round $currentround starting")
+                roundLogic.playRound(currentround, players)
+            }
+        } catch {
+            case e: wizard.actionmanagement.GameStoppedException =>
+                Debug.log(s"GameLogic.playGame caught GameStoppedException: ${e.getMessage}")
         }
-        Debug.log("GameLogic.playGame completed")
+        Debug.log(s"GameLogic.playGame completed (stopped=$stopCurrentGame)")
     }
 }
 

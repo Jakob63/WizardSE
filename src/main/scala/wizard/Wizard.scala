@@ -39,7 +39,6 @@ object Wizard {
         bar2() + cells5() + cells4() + cells5() + bar2()
 
     def main(args: Array[String]): Unit = {
-        // Suppress JavaFX startup warning by configuring logging before any JavaFX class loads
         try {
             System.setProperty("javafx.logging.level", "OFF")
         } catch {
@@ -59,17 +58,14 @@ object Wizard {
         } catch {
             case _: Throwable => ()
         }
-        // Enable interactive TUI prompts even if System.console() is null (e.g., in IDEs)
         try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
         Debug.log("Wizard.main -> created GameLogic controller")
         val tui = new TextUI(controlG)
         Debug.log("Wizard.main -> created TextUI and registered as observer")
-        val gui = new WizardGUI(controlG) // GUI registers as observer in its constructor
+        val gui = new WizardGUI(controlG)
         Debug.log("Wizard.main -> created WizardGUI")
 
-        // Controller will be started from WizardGUI.start after the stage is ready
-        // Launch the ScalaFX application so the GUI window appears
         gui.main(args)
     }
-} // on click bild
+}

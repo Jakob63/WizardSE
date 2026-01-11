@@ -11,6 +11,7 @@ import wizard.actionmanagement.{CardsDealt, Observable, Observer, ShowHand}
 class RoundLogic extends Observable {
     
     private val playerLogic = new PlayerLogic
+    @volatile var stopGame: Boolean = false
 
     // Make sure observers added to RoundLogic also observe PlayerLogic events
     override def add(s: Observer): Unit = {
@@ -53,35 +54,74 @@ class RoundLogic extends Observable {
             notifyObservers("print trump card", trumpCard)
         }
 
-        players.foreach(player => playerLogic.bid(player))
-        for (i <- 1 to currentround) {
+        var pIdx = 0
+        while (pIdx < players.length && !stopGame) {
+            val player = players(pIdx)
+            try {
+                playerLogic.bid(player)
+                pIdx += 1
+            } catch {
+                case _: wizard.actionmanagement.InputRouter.UndoException =>
+                    if (pIdx > 0) {
+                        pIdx -= 1
+                    } else {
+                        // Undo at the very first bid: jump back to naming
+                        throw new wizard.actionmanagement.GameStoppedException("Undo to naming")
+                    }
+                case _: wizard.actionmanagement.InputRouter.RedoException =>
+                    if (pIdx < players.length - 1) pIdx += 1
+                    notifyObservers("RedoPerformed")
+            }
+        }
+
+        for (i <- 1 to currentround if !stopGame) {
             round.leadColor = None
             var trick = List[(Player, Card)]()
-            var firstPlayerIndex = 0
+            var trickIdx = 0
 
-            while (round.leadColor.isEmpty && firstPlayerIndex < players.length) {
-                val player = players(firstPlayerIndex)
-                val card = playerLogic.playCard(None, round.trump, firstPlayerIndex, player)
-                if (card.value != Value.WizardKarte && card.value != Value.Chester) {
-                    round.leadColor = Some(card.color)
+            while (trickIdx < players.length && !stopGame) {
+                val player = players(trickIdx)
+                try {
+                    val card = playerLogic.playCard(round.leadColor, round.trump, trickIdx, player)
+                    if (round.leadColor.isEmpty && card.value != Value.WizardKarte && card.value != Value.Chester) {
+                        round.leadColor = Some(card.color)
+                    }
+                    trick = trick :+ (player, card)
+                    trickIdx += 1
+                } catch {
+                    case _: wizard.actionmanagement.InputRouter.UndoException =>
+                        if (trickIdx > 0) {
+                            if (trick.nonEmpty) {
+                                val removedCard = trick.last._2
+                                trick = trick.dropRight(1)
+                                if (round.leadColor.contains(removedCard.color)) {
+                                     if (!trick.exists(t => t._2.value != Value.WizardKarte && t._2.value != Value.Chester)) {
+                                         round.leadColor = None
+                                     }
+                                }
+                            }
+                            trickIdx -= 1
+                            // Synchronize observers: send the current trick state
+                            notifyObservers("TrickUpdated", trick.map(_._2))
+                        }
+                    case _: wizard.actionmanagement.InputRouter.RedoException =>
+                         if (trickIdx < players.length - 1) {
+                             trickIdx += 1
+                             // After redo, we'd need to know the new trick state
+                             // This is still limited as redo doesn't easily populate 'trick' list here
+                         }
+                         notifyObservers("RedoPerformed")
                 }
-                trick = trick :+ (player, card)
-                firstPlayerIndex += 1
             }
+            if (!stopGame) {
+                val winner = trickwinner(trick, round)
+                notifyObservers("trick winner", winner)
+                winner.roundTricks += 1
 
-            for (j <- firstPlayerIndex until players.length) {
-                val player = players(j)
-                val card = playerLogic.playCard(round.leadColor, round.trump, j, player)
-                trick = trick :+ (player, card)
-            }
-
-            val winner = trickwinner(trick, round)
-            notifyObservers("trick winner", winner)
-            winner.roundTricks += 1
-
-            trick.foreach { case (player, _) =>
-                if (!player.hand.isEmpty) {
-                    notifyObservers("ShowHand", ShowHand(player))
+                trick.foreach { case (player, _) =>
+                    if (!player.hand.isEmpty) {
+                        notifyObservers("ShowHand", ShowHand(player))
+                    }
                 }
             }
         }

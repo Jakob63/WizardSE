@@ -261,7 +261,8 @@ class TextUI(GameController: GameLogic) extends Observer {
             case "AskForPlayerNames" => {
                 // Now prompt for player names using the last selected count. Doing it on this separate event avoids blocking the prior notification.
                 val count = lastSelectedCount
-                if (count >= 3 && count <= 6 && phase == "AwaitPlayerNames") {
+                if (count >= 3 && count <= 6 && (phase == "AwaitPlayerNames" || phase == "InGame")) {
+                    phase = "AwaitPlayerNames"
                     // Start name input on a background thread so we can cancel it if GUI requests going back
                     // Allow restart even if a previous name reader thread is still winding down after cancellation
                     if (isInteractive && (!nameReaderStarted || cancelNameReader)) {
@@ -358,8 +359,25 @@ class TextUI(GameController: GameLogic) extends Observer {
                 println("Cards have been dealt to all players.")
             }
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
+            case "card played" => println(s"Played card: \n${TextUI.showcard(obj.head.asInstanceOf[Card])}")
             case "points after round" => println("Points after this round:")
-            case "print points all players" => obj.head.asInstanceOf[List[Player]].foreach(player => println(s"${player.name}: ${player.points} points"))
+            case "print points all players" => 
+                val players = obj.head.asInstanceOf[List[Player]]
+                val nameWidth = (players.map(_.name.length).maxOption.getOrElse(0) max "Name".length)
+                val bidWidth = 5
+                val pointWidth = 6
+                
+                val totalWidth = nameWidth + bidWidth + pointWidth + 10 // 3 separators + spaces
+                val separator = "+" + "-" * (nameWidth + 2) + "+" + "-" * (bidWidth + 2) + "+" + "-" * (pointWidth + 2) + "+"
+                
+                println(separator)
+                val headerFormat = "| %-" + nameWidth + "s | %-" + bidWidth + "s | %-" + pointWidth + "s |"
+                println(headerFormat.format("Name", "Bids", "Points"))
+                println(separator)
+                players.foreach { player =>
+                    println(headerFormat.format(player.name, player.roundBids.toString, player.points.toString))
+                }
+                println(separator)
             case "bid einlesen" => scala.io.StdIn.readLine()
             case "card einlesen" => scala.io.StdIn.readLine()
             case "which trump" => {

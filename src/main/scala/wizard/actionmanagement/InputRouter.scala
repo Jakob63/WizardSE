@@ -52,8 +52,14 @@ object InputRouter {
     */
   def readLine(): String = {
     ensureFeeder()
-    queue.take()
+    val res = queue.take()
+    if (res == "__UNDO__") throw new UndoException("undo")
+    if (res == "__REDO__") throw new RedoException("redo")
+    res
   }
+
+  class UndoException(msg: String) extends RuntimeException(msg)
+  class RedoException(msg: String) extends RuntimeException(msg)
 
   /**
     * Convenience helper to read an Int, ignoring non-integer inputs until a valid one arrives.
