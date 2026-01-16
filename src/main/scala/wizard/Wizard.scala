@@ -65,7 +65,6 @@ object Wizard {
         Debug.log("Wizard.main -> created TextUI and registered as observer")
         val gui = new WizardGUI(controlG)
         Debug.log("Wizard.main -> created WizardGUI")
-
         gui.main(args)
     }
 }
