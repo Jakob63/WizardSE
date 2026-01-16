@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Jakob63/WizardSE/compare/wizard-v1.2.0...wizard-v1.2.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* build jar ([#57](https://github.com/Jakob63/WizardSE/issues/57)) ([79c6ff1](https://github.com/Jakob63/WizardSE/commit/79c6ff1ee2c9ba41ba9e834556bbb0f0bbc53db2))
+
 ## [1.2.0](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.7...wizard-v1.2.0) (2026-01-16)
 
 
