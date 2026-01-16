@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.7...wizard-v1.2.0) (2026-01-16)
+
+
+### Features
+
+* File IO ([#55](https://github.com/Jakob63/WizardSE/issues/55)) ([b389f07](https://github.com/Jakob63/WizardSE/commit/b389f07bcbae7ef322b9bf4ba1d4dea6871c89b8))
+
 ## [1.1.7](https://github.com/Jakob63/WizardSE/compare/wizard-v1.1.6...wizard-v1.1.7) (2025-10-09)
 
 
