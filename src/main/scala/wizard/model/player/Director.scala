@@ -1,9 +1,10 @@
 package wizard.model.player
 
 import scala.util.Random
+import scala.compiletime.uninitialized
 
 object Director {
-    private var builder: PlayerBuilder = _
+    private var builder: PlayerBuilder = uninitialized
 
     var names = List("Jakob", "Elena", "Janis", "Leon")
     
