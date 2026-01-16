@@ -1,3 +1,5 @@
+import sbtassembly.AssemblyPlugin.autoImport._
+
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.5.1"
@@ -5,7 +7,8 @@ ThisBuild / scalaVersion := "3.5.1"
 lazy val root = (project in file("."))
   .settings(
     name := "ProjektSE",
-    Compile / run / mainClass := Some("wizard.Wizard")
+    Compile / run / mainClass := Some("wizard.Wizard"),
+    assembly / mainClass := Some("wizard.Wizard")
   )
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % "test"
@@ -30,3 +33,17 @@ Compile / libraryDependencies ++= {
 }
 
 Test / testOptions += Tests.Filter(_.equals("wizard.aTestSequence.TestSequence"))
+
+assembly / assemblyMergeStrategy := {
+  case PathList("META-INF", "versions", xs @ _*) => MergeStrategy.first
+  case PathList("META-INF", xs @ _*) =>
+    xs match {
+      case "module-info.class" :: Nil => MergeStrategy.discard
+      case "substrate" :: _ => MergeStrategy.first
+      case _ => MergeStrategy.discard
+    }
+  case "module-info.class" => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assembly / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
