@@ -1,42 +1,12 @@
 package wizard
 
-
-import wizard.model.cards.Dealer
-import wizard.model.rounds.Game
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
+import wizard.aView.aView_GUI.WizardGUI
+import java.util.logging.{Level, Logger}
+import wizard.actionmanagement.Debug
 
 object Wizard {
-
-    class Wizard {
-
-    }
-
-    def main(args: Array[String]): Unit = {
-        println("Welcome to Wizard!")
-//        Dealer.shuffleCards()
-//        println(Dealer.allCards)
-        val players = TextUI.inputPlayers()
-        val game = new Game(players)
-        println("Game officially started.")
-        GameLogic.playGame(game, players)
-//        val player = Player("Player1")
-//        val player2 = Player("Player2")
-//        val player3 = Player("Player3")
-//        val players = List(player, player2, player3)
-        //val game = Game(players)
-        //game.playGame()
-//        players.foreach { player =>
-//            val hand = Dealer.dealCards(3)
-//            player.addHand(hand)
-//        }
-//        println("Cards dealt to all players.")
-//        players.foreach(showHand) // scala ist toll
-//        println("Trump card:")
-//        // Eigentlich CurrentRound * PlayerCount müssen wir noch machen
-//        Dealer.printCardAtIndex(3*3)
-    }
-
     val eol = sys.props("line.separator")
     def bar(cellWidth: Int = 4, cellNum: Int = 2) =
         (("-" * cellWidth) * cellNum) + "-" + eol
@@ -59,10 +29,6 @@ object Wizard {
     def cells5(cellWidth: Int = 7, cellNum: Int = 1) =
         (("|" + " " * cellWidth) * cellNum + "|" + "\t") * 3 + eol
 
-
-    //def mesh =
-    //    (bar() + cells() * 3) + bar()
-
     def mesh2: String =
         bar() + cells() + cells2() + cells() + bar()
 
@@ -72,9 +38,33 @@ object Wizard {
     def mesh4: String =
         bar2() + cells5() + cells4() + cells5() + bar2()
 
-    println(mesh2)
-    println(mesh3)
-    println(mesh4)
-
-
+    def main(args: Array[String]): Unit = {
+        try {
+            System.setProperty("javafx.logging.level", "OFF")
+        } catch {
+            case _: Throwable => ()
+        }
+        try {
+            val loggers = List(
+                "javafx",
+                "com.sun.javafx",
+                "com.sun.javafx.application"
+            )
+            loggers.foreach { name =>
+                val l = Logger.getLogger(name)
+                l.setUseParentHandlers(false)
+                l.setLevel(Level.OFF)
+            }
+        } catch {
+            case _: Throwable => ()
+        }
+        try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
+        val controlG = new GameLogic
+        Debug.log("Wizard.main -> created GameLogic controller")
+        val tui = new TextUI(controlG)
+        Debug.log("Wizard.main -> created TextUI and registered as observer")
+        val gui = new WizardGUI(controlG)
+        Debug.log("Wizard.main -> created WizardGUI")
+        gui.main(args)
+    }
 }
