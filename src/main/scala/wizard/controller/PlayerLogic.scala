@@ -7,7 +7,6 @@ import wizard.actionmanagement.{Observable, Observer}
 import wizard.undo.{BidCommand, PlayCardCommand, UndoService}
 
 class PlayerLogic extends Observable {
-    //add(TextUI)
 
     def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card = {
         notifyObservers("which card", player)
@@ -25,7 +24,6 @@ class PlayerLogic extends Observable {
             }
         } catch {
             case e: wizard.actionmanagement.InputRouter.UndoException =>
-                // Re-throw to be handled in the round loop which knows about player turns
                 throw e
             case e: wizard.actionmanagement.InputRouter.RedoException =>
                 throw e
