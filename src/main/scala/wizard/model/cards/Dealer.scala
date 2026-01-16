@@ -12,7 +12,9 @@ object Dealer extends Observable {
             color <- Color.values.toList
             value <- Value.values.toList
         } buffer += Card(value, color)
-        buffer.toList
+        val initial = buffer.toList
+        wizard.actionmanagement.Debug.log(s"Dealer.allCards initialization (deterministic) -> first card: ${initial.headOption}")
+        initial
     }
     var index = 0
 
@@ -21,7 +23,8 @@ object Dealer extends Observable {
     //schreibe eine methode die alle karten in eine zufällige reihenfolge bringt
     def shuffleCards(): Boolean = {
         index = 0
-        allCards = scala.util.Random.shuffle(allCards)
+        allCards = scala.util.Random().shuffle(allCards)
+        wizard.actionmanagement.Debug.log(s"Dealer.shuffleCards -> first card: ${allCards.headOption}")
         true
     }
     // mische alle karten

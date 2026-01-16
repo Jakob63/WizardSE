@@ -11,9 +11,11 @@ lazy val root = (project in file("."))
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % "test"
 libraryDependencies += "org.scalafx" %% "scalafx" % "22.0.0-R33"
 
-// Ensure OpenJFX native libraries are present for the current OS. Needed by ScalaFX.
-// The classifier must match the platform: "win", "linux", or "mac".
-// SBT evaluates System.getProperty at build time, which is fine for local development.
+libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.3.0"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6"
+libraryDependencies += "com.google.inject" % "guice" % "7.0.0"
+libraryDependencies += "net.codingwell" %% "scala-guice" % "7.0.0"
+
 Compile / libraryDependencies ++= {
   val os = System.getProperty("os.name").toLowerCase
   val platform =

@@ -384,6 +384,17 @@ class TextUI(GameController: GameLogic) extends Observer {
                 println(s"${obj.head.asInstanceOf[Player].name}, which color do you want to choose as trump?")
                 scala.io.StdIn.readLine()
             }
+            case "GameLoaded" => {
+                val game = obj.head.asInstanceOf[wizard.model.Game]
+                lastSelectedCount = game.players.length
+                phase = "InGame"
+                cancelCountReader = true
+                cancelNameReader = true
+                try { 
+                    InputRouter.offer("__CANCEL_COUNT__")
+                    InputRouter.offer("__BACK_TO_COUNT__")
+                } catch { case _: Throwable => () }
+            }
             case _ => ()
         }
     }

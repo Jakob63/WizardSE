@@ -45,7 +45,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   private var scoresTable: Option[TableView[PlayerRow]] = None
   private var activePlayerName: Option[String] = None
   private var trickBar: Option[HBox] = None
-  private var currentTrickCards: List[Card] = Nil
+  @volatile private var currentTrickCards: List[Card] = Nil
 
   case class PlayerRow(nameProp: String, bidProp: String, pointsProp: String) {
     val name = new StringProperty(this, "name", nameProp)
@@ -79,6 +79,10 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       tooltip = Tooltip("Redo")
       style = buttonStyle + "; -fx-font-size: 10px; -fx-padding: 2 5 2 5;"
     }
+    val saveBtn = new Button("Save Game") {
+      style = buttonStyle + "; -fx-font-size: 10px; -fx-padding: 2 5 2 5;"
+      onAction = _ => showSaveDialog()
+    }
     undoBtn.onAction = _ => {
       val t = new Thread(new Runnable {
         override def run(): Unit = {
@@ -101,7 +105,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       val t = new Thread(new Runnable { override def run(): Unit = try { gameController.redo() } catch { case _: Throwable => () } })
       t.setDaemon(true); t.start()
     }
-    new HBox(6) { alignment = Pos.TopLeft; padding = Insets(8); children = Seq(undoBtn, redoBtn) }
+    new HBox(6) { alignment = Pos.TopLeft; padding = Insets(8); children = Seq(undoBtn, redoBtn, saveBtn) }
   }
   private def ensureUndoRedoBarVisible(): Unit = {
     if (undoRedoBar.isEmpty) {
@@ -147,6 +151,60 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
             stage.scene().root = createInitialScreen()
           }
       }
+    }
+  }
+
+  private def showSaveDialog(): Unit = {
+    Platform.runLater {
+      var saveBoxRef: VBox = null
+      saveBoxRef = new VBox(10) {
+        alignment = Pos.Center
+        padding = Insets(20)
+        style = "-fx-background-color: rgba(0,0,0,0.8); -fx-background-radius: 10;"
+        maxWidth = 300
+        maxHeight = 200
+        children = Seq(
+          new Label("Game title") { style = "-fx-text-fill: white; -fx-font-size: 16px;" },
+          new TextField {
+            id = "saveTitleField"
+            promptText = "Enter title..."
+            style = inputFieldStyle
+            onAction = _ => {
+              val title = this.text.value
+              if (title.nonEmpty) {
+                gameController.save(title)
+                rootPane.foreach(_.children.remove(saveBoxRef))
+              }
+            }
+          },
+          new HBox(10) {
+            alignment = Pos.Center
+            children = Seq(
+              new Button("Save") {
+                style = buttonStyle
+                onAction = _ => {
+                  val field = saveBoxRef.lookup("#saveTitleField")
+                  val title = (field: Any) match {
+                    case tf: javafx.scene.control.TextField => tf.getText
+                    case sn: scalafx.scene.Node if sn.delegate.isInstanceOf[javafx.scene.control.TextField] => 
+                      sn.delegate.asInstanceOf[javafx.scene.control.TextField].getText
+                    case _ => ""
+                  }
+                  if (title != null && title.nonEmpty) {
+                    gameController.save(title)
+                    rootPane.foreach(_.children.remove(saveBoxRef))
+                  }
+                }
+              },
+              new Button("Cancel") {
+                style = buttonStyle
+                onAction = _ => rootPane.foreach(_.children.remove(saveBoxRef))
+              }
+            )
+          }
+        )
+      }
+      rootPane.foreach(_.children.add(saveBoxRef))
     }
   }
 
@@ -231,7 +289,67 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       }
     }
 
-    List(titleLabel, playerCountLabel, playerCountField, nextButton)
+    val resumeButton = new Button("Resume Game") {
+      style = buttonStyle
+      onAction = _ => showResumeDialog()
+    }
+
+    List(titleLabel, playerCountLabel, playerCountField, nextButton, resumeButton)
+  }
+
+  private def showResumeDialog(): Unit = {
+    Platform.runLater {
+      var resumeBoxRef: VBox = null
+      resumeBoxRef = new VBox(10) {
+        alignment = Pos.Center
+        padding = Insets(20)
+        style = "-fx-background-color: rgba(0,0,0,0.8); -fx-background-radius: 10;"
+        maxWidth = 300
+        maxHeight = 200
+        children = Seq(
+          new Label("Resume Game") { style = "-fx-text-fill: white; -fx-font-size: 16px;" },
+          new Label("Enter save name:") { style = "-fx-text-fill: white;" },
+          new TextField {
+            id = "resumeTitleField"
+            promptText = "Enter title..."
+            style = inputFieldStyle
+            onAction = _ => {
+              val title = this.text.value
+              if (title.nonEmpty) {
+                gameController.load(title)
+                rootPane.foreach(_.children.remove(resumeBoxRef))
+              }
+            }
+          },
+          new HBox(10) {
+            alignment = Pos.Center
+            children = Seq(
+              new Button("Resume") {
+                style = buttonStyle
+                onAction = _ => {
+                  val field = resumeBoxRef.lookup("#resumeTitleField")
+                  val title = (field: Any) match {
+                    case tf: javafx.scene.control.TextField => tf.getText
+                    case sn: scalafx.scene.Node if sn.delegate.isInstanceOf[javafx.scene.control.TextField] => 
+                      sn.delegate.asInstanceOf[javafx.scene.control.TextField].getText
+                    case _ => ""
+                  }
+                  if (title != null && title.nonEmpty) {
+                    gameController.load(title)
+                    rootPane.foreach(_.children.remove(resumeBoxRef))
+                  }
+                }
+              },
+              new Button("Cancel") {
+                style = buttonStyle
+                onAction = _ => rootPane.foreach(_.children.remove(resumeBoxRef))
+              }
+            )
+          }
+        )
+      }
+      rootPane.foreach(_.children.add(resumeBoxRef))
+    }
   }
 
   private def createInitialScreen(): StackPane = {
@@ -486,16 +604,10 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       iv.fitHeight = 140
       iv.preserveRatio = true
       iv.onMouseClicked = _ => {
-        // Hide hand and show "Next Player" button before offering the card
-        val nextBtn = new Button("Next Player") {
-          style = buttonStyle
-          onAction = _ => {
-            // Provide 1-based index to the model as expected by Human.playCard
-            InputRouter.offer((idx + 1).toString)
-            bar.children.clear()
-          }
-        }
-        bar.children = Seq(nextBtn)
+        // Play the card immediately
+        InputRouter.offer((idx + 1).toString)
+        bar.children.clear()
+        // The "Next Player" button will be shown via the "card played" event
       }
       iv
     }
@@ -504,6 +616,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
 
   private def renderTrick(): Unit = {
     ensureGameTableRoot()
+    Debug.log(s"WizardGUI.renderTrick -> cards: ${currentTrickCards.size}")
     trickBar.foreach { bar =>
       val images = currentTrickCards.map { card =>
         val iv = new ImageView()
@@ -530,22 +643,11 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     ok.onAction = _ => {
       val text = tf.text.value
       if (text != null && text.matches("\\d+")) {
-        if (ok.text.value == "OK") {
-          // Hide current player's hand so next player doesn't see it
-          handBar.foreach { hb => 
-             // Keep only the overlay in the handBar
-             hb.children = Seq(overlay)
-          }
-          tf.disable = true
-          ok.text = "Next Player"
-          // Button remains enabled for the "Next Player" click
-        } else {
-          // "Next Player" was clicked
-          InputRouter.offer(text)
-          // The overlay will be removed by the next call to showBidPrompt or other UI updates
-          handBar.foreach(_.children.remove(overlay))
-          bidOverlay = None
-        }
+        // Send the bid to the router immediately
+        InputRouter.offer(text)
+        // Clear everything in handBar immediately to hide the current player's state
+        handBar.foreach(_.children.clear())
+        bidOverlay = None
       }
     }
     // place left of the hand bar content
@@ -648,7 +750,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       case "CardsDealt" =>
         // Switch to game table; capture players for scoreboard and update UI.
         obj.headOption.collect { case cd: wizard.actionmanagement.CardsDealt => cd.players }.foreach { ps => currentPlayers = ps }
-        currentTrickCards = Nil
         Platform.runLater({
           ensureGameTableRoot()
           updateScores()
@@ -658,12 +759,16 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
         ()
       case "card played" =>
         obj.headOption.collect { case c: Card => c }.foreach { card =>
-          if (currentPlayers.nonEmpty && currentTrickCards.size >= currentPlayers.size) {
-            currentTrickCards = List(card)
-          } else {
-            currentTrickCards = currentTrickCards :+ card
-          }
-          Platform.runLater(renderTrick())
+          Debug.log(s"WizardGUI.update('card played') -> $card")
+          Platform.runLater({
+            if (!currentTrickCards.contains(card)) {
+              currentTrickCards = currentTrickCards :+ card
+            }
+            renderTrick()
+            
+            // Clear handBar immediately
+            handBar.foreach(_.children.clear())
+          })
         }
         ()
       case "print trump card" =>
@@ -677,31 +782,105 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
         }
         playerOpt.foreach(p => Platform.runLater({
           activePlayerName = Some(p.name)
-          renderHand(p)
           updateCurrentBids(p)
+          
+          handBar.foreach { bar =>
+            bar.children.clear()
+            val nextBtn = new Button("Next Player: " + p.name) {
+              style = buttonStyle
+              onAction = _ => {
+                renderHand(p)
+              }
+            }
+            bar.children = Seq(nextBtn)
+          }
         }))
         ()
       case "which card" =>
         obj.headOption.collect { case p: Player => p }.foreach { p => Platform.runLater({
+          val targetText = "Next Player: " + p.name
+          Debug.log(s"WizardGUI.update('which card') for ${p.name}. target: $targetText")
           activePlayerName = Some(p.name)
-          renderHand(p)
           updateCurrentBids(p)
+          
+          handBar.foreach { bar =>
+            val currentlyShowingNext = bar.children.exists(node => node.isInstanceOf[javafx.scene.control.Button] && node.asInstanceOf[javafx.scene.control.Button].getText.startsWith("Next Player"))
+            val showingTarget = bar.children.exists(node => node.isInstanceOf[javafx.scene.control.Button] && node.asInstanceOf[javafx.scene.control.Button].getText == targetText)
+            
+            if (!showingTarget) {
+                Debug.log(s"WizardGUI -> showing Next Player button for ${p.name}")
+                bar.children.clear()
+                val nextBtn = new Button(targetText) {
+                  style = buttonStyle
+                  onAction = _ => {
+                    renderHand(p)
+                  }
+                }
+                bar.children = Seq(nextBtn)
+            } else {
+                Debug.log(s"WizardGUI -> already showing button for ${p.name}")
+            }
+          }
         }) }
         ()
       case "which bid" =>
         obj.headOption.collect { case p: Player => p }.foreach { p =>
           Platform.runLater({
             activePlayerName = Some(p.name)
-            renderHand(p)
             updateCurrentBids(p)
-            showBidPrompt(p)
+            
+            handBar.foreach { bar =>
+              bar.children.clear()
+              val nextBtn = new Button("Next Player: " + p.name) {
+                style = buttonStyle
+                onAction = _ => {
+                  renderHand(p)
+                  showBidPrompt(p)
+                }
+              }
+              bar.children = Seq(nextBtn)
+            }
           })
         }
         ()
       case "TrickUpdated" =>
         obj.headOption.collect { case cards: List[Card] => cards }.foreach { cards =>
-          currentTrickCards = cards
-          Platform.runLater(renderTrick())
+          Debug.log(s"WizardGUI.update('TrickUpdated') -> ${cards.size} cards: ${cards.mkString(", ")}")
+          Platform.runLater({
+            currentTrickCards = cards
+            renderTrick()
+          })
+        }
+        ()
+      case "LoadFailed" =>
+        val title = obj.headOption.collect { case s: String => s }.getOrElse("Unknown")
+        Platform.runLater {
+          val alertBox = new VBox(10) {
+            alignment = Pos.Center
+            padding = Insets(20)
+            style = "-fx-background-color: rgba(200,0,0,0.9); -fx-background-radius: 10;"
+            maxWidth = 250
+            children = Seq(
+              new Label(s"'$title' not found") { style = "-fx-text-fill: white; -fx-font-weight: bold;" },
+              new Button("OK") {
+                style = buttonStyle
+                onAction = _ => rootPane.foreach(_.children.remove(this.parent.value))
+              }
+            )
+          }
+          rootPane.foreach(_.children.add(alertBox))
+        }
+        ()
+      case "GameLoaded" =>
+        obj.headOption.collect { case g: wizard.model.Game => g }.foreach { game =>
+          Platform.runLater({
+            currentPlayers = game.players
+            currentTrickCards = game.currentTrick
+            ensureGameTableRoot()
+            updateScores()
+            renderTrick()
+            ensureUndoRedoBarVisible()
+          })
         }
         ()
       case "UndoPerformed" | "RedoPerformed" =>
