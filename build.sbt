@@ -32,7 +32,7 @@ Compile / libraryDependencies ++= {
   )
 }
 
-Test / testOptions += Tests.Filter(_.equals("wizard.aTestSequence.TestSequence"))
+// Test / testOptions += Tests.Filter(_.equals("wizard.aTestSequence.TestSequence"))
 
 assembly / assemblyMergeStrategy := {
   case PathList("META-INF", "versions", xs @ _*) => MergeStrategy.first

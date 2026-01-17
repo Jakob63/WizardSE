@@ -3,7 +3,6 @@ package wizard
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
 import wizard.aView.aView_GUI.WizardGUI
-import java.util.logging.{Level, Logger}
 import wizard.actionmanagement.Debug
 
 object Wizard {
@@ -39,25 +38,7 @@ object Wizard {
         bar2() + cells5() + cells4() + cells5() + bar2()
 
     def main(args: Array[String]): Unit = {
-        try {
-            System.setProperty("javafx.logging.level", "OFF")
-        } catch {
-            case _: Throwable => ()
-        }
-        try {
-            val loggers = List(
-                "javafx",
-                "com.sun.javafx",
-                "com.sun.javafx.application"
-            )
-            loggers.foreach { name =>
-                val l = Logger.getLogger(name)
-                l.setUseParentHandlers(false)
-                l.setLevel(Level.OFF)
-            }
-        } catch {
-            case _: Throwable => ()
-        }
+        Debug.initEnvironment()
         try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
         Debug.log("Wizard.main -> created GameLogic controller")

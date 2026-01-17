@@ -23,14 +23,12 @@
     -fx-text-fill: white;
 }
 
-/* Hide scrollbars */
 .table-view .virtual-flow .scroll-bar:vertical,
 .table-view .virtual-flow .scroll-bar:horizontal {
     -fx-opacity: 0;
     -fx-padding: -10;
 }
 
-/* Remove selection highlight */
 .table-view .table-row-cell:filled:selected {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -40,7 +38,6 @@
     -fx-background-color: transparent;
 }
 
-/* Highlight for current player */
 .table-row-cell.current-player-row {
     -fx-background-color: rgba(144, 238, 144, 0.3); /* Light green with transparency */
 }

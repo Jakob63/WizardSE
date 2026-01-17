@@ -20,6 +20,10 @@ object TextUI {
             case "follow lead" => println(s"You must follow the lead suit ${obj.head.asInstanceOf[Color].toString}.")
             case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
+            case "invalid bid" => 
+                val max = obj.head.asInstanceOf[Int]
+                val playerMsg = if (obj.length > 1) s" for player ${obj(1).asInstanceOf[Player].name}" else ""
+                println(s"Invalid bid$playerMsg. You can only bid between 0 and $max.")
             case "print trump card" => println(s"Trump card: \n${showcard(obj.head.asInstanceOf[Card])}")
             case "cards dealt" => println("Cards have been dealt to all players.")
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
@@ -29,11 +33,9 @@ object TextUI {
     }
 
     def inputPlayers(): List[Player] = {
-        // Outer loop allows restarting the whole input if user types 'undo' at the first player's name
         var finished = false
         var result: List[Player] = List()
         while (!finished) {
-            // 1) Ask for number of players
             var numPlayers = -1
             while (numPlayers < 3 || numPlayers > 6) {
                 print("Enter the number of players (3-6): ")
@@ -43,7 +45,6 @@ object TextUI {
                     println("Invalid number of players. Please enter a number between 3 and 6.")
                     -1
                   } else if (input == "undo" || input == "redo") {
-                    // Treat undo/redo as no-ops at the count prompt (do not print error)
                     -1
                   } else {
                     Try(input.toInt) match {
@@ -55,7 +56,6 @@ object TextUI {
                   }
             }
 
-            // 2) Ask for player names (with undo/redo). If user types 'undo' at player 1, go back to step 1.
             var players = List[Player]()
             var i = 1
             val undoManager = new UndoManager
@@ -73,7 +73,6 @@ object TextUI {
                                 i -= 1
                                 players = players.dropRight(1)
                             } else {
-                                // User wants to correct the player count
                                 backToCount = true
                             }
                         case "redo" =>
@@ -99,8 +98,7 @@ object TextUI {
             }
 
             if (backToCount) {
-                // Restart the entire input process to change player count
-                () // simply continue while(!finished)
+                ()
             } else {
                 result = players
                 finished = true
@@ -110,7 +108,6 @@ object TextUI {
     }
 
     def showHand(player: Player): Unit = {
-        // Show numeric representation like "7 of Red" as required by tests
         val numericHand = player.hand.cards.map(c => s"${c.value.cardType()} of ${c.color}")
         println(s"${player.name}'s hand: ${numericHand.mkString(", ")}")
         if (player.hand.cards.isEmpty) {
@@ -157,26 +154,24 @@ object TextUI {
     }
 }
 
-// object zu class geändert
 class TextUI(GameController: GameLogic) extends Observer {
 
     GameController.add(this)
     private val undoManager = new UndoManager
-    @volatile private var phase: String = "Idle" // Idle, AwaitPlayerCount, AwaitPlayerNames, InGame
+    @volatile private var phase: String = "Idle"
     @volatile private var lastSelectedCount: Int = 0
     @volatile private var countReaderStarted: Boolean = false
     @volatile private var cancelCountReader: Boolean = false
     @volatile private var skipNextAskForPlayerCountReader: Boolean = false
-    // New: cooperative cancellation for player-name input and a state flag
     @volatile private var nameReaderStarted: Boolean = false
     @volatile private var cancelNameReader: Boolean = false
     
-    // --- Test helpers (package-private) ---
     private[aView] def testPhase: String = phase
     private[aView] def testSetPhase(p: String): Unit = { phase = p }
     private[aView] def testSetNameReaderStarted(v: Boolean): Unit = { nameReaderStarted = v }
     private[aView] def testIsCountReaderStarted: Boolean = countReaderStarted
     private[aView] def testIsNameReaderStarted: Boolean = nameReaderStarted
+    private[aView] def testSetLastSelectedCount(c: Int): Unit = { lastSelectedCount = c }
 
     private def isInteractive: Boolean = {
         val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
@@ -187,24 +182,18 @@ class TextUI(GameController: GameLogic) extends Observer {
         Debug.log(s"TextUI(class).update('$updateMSG') in phase=$phase")
         updateMSG match {
             case "StartGame" | "AskForPlayerCount" => {
-                // If we are currently in name entry, cancel it and transition back to AwaitPlayerCount
                 if (nameReaderStarted) {
                     cancelNameReader = true
-                    // Unblock any pending InputRouter.readLine in name-entry thread
                     try { InputRouter.offer("__BACK_TO_COUNT__") } catch { case _: Throwable => () }
                 }
-                // Reset local selection snapshot; controller already cleared it
                 lastSelectedCount = 0
                 if (phase != "AwaitPlayerCount") phase = "AwaitPlayerCount"
-                // Prompt for number of players without blocking the observer notification loop.
                 if (isInteractive && (phase == "Idle" || phase == "AwaitPlayerCount")) {
                     if (skipNextAskForPlayerCountReader) {
-                        // Consume this event without starting a background reader; a synchronous prompt will follow.
                         skipNextAskForPlayerCountReader = false
                     } else if (!countReaderStarted) {
                         countReaderStarted = true
                         cancelCountReader = false
-                        // Spawn a background reader so GUI can still receive updates immediately.
                         val readerStarted = new Thread(new Runnable {
                             override def run(): Unit = {
                                 var count = -1
@@ -213,11 +202,8 @@ class TextUI(GameController: GameLogic) extends Observer {
                                     val input = InputRouter.readLine()
                                     count =
                                       if (input == null || input.trim.isEmpty) {
-                                        // No input provided (e.g., started from IDE without console focus).
-                                        // Do not print an error; just keep waiting quietly.
                                         -1
                                       } else if (input == "undo" || input == "redo" || input == "__BACK_TO_COUNT__" || input == "__CANCEL_COUNT__") {
-                                        // Ignore undo/redo and internal sentinels at count prompt; keep asking without error
                                         -1
                                       } else {
                                         scala.util.Try(input.toInt) match {
@@ -228,7 +214,6 @@ class TextUI(GameController: GameLogic) extends Observer {
                                           }
                                       }
                                 }
-                                // If GUI/TUI already set the count, skip; controller will ignore duplicates anyway.
                                 try {
                                     if (!cancelCountReader && count >= 3 && count <= 6) {
                                         GameController.playerCountSelected(count)
@@ -244,7 +229,6 @@ class TextUI(GameController: GameLogic) extends Observer {
                 }
             }
             case "PlayerCountSelected" => {
-                // Record the selected count, and wait for AskForPlayerNames to actually read names to avoid blocking other observers.
                 val count = obj.headOption match {
                     case Some(pcs: wizard.actionmanagement.PlayerCountSelected) => pcs.count
                     case Some(i: Int) => i
@@ -253,18 +237,14 @@ class TextUI(GameController: GameLogic) extends Observer {
                 if (count >= 3 && count <= 6) {
                     lastSelectedCount = count
                     phase = "AwaitPlayerNames"
-                    // Ensure any background count reader thread stops and does not consume future inputs (like bids)
                     cancelCountReader = true
                     try { InputRouter.offer("__CANCEL_COUNT__") } catch { case _: Throwable => () }
                 }
             }
             case "AskForPlayerNames" => {
-                // Now prompt for player names using the last selected count. Doing it on this separate event avoids blocking the prior notification.
                 val count = lastSelectedCount
                 if (count >= 3 && count <= 6 && (phase == "AwaitPlayerNames" || phase == "InGame")) {
                     phase = "AwaitPlayerNames"
-                    // Start name input on a background thread so we can cancel it if GUI requests going back
-                    // Allow restart even if a previous name reader thread is still winding down after cancellation
                     if (isInteractive && (!nameReaderStarted || cancelNameReader)) {
                         nameReaderStarted = true
                         cancelNameReader = false
@@ -288,7 +268,6 @@ class TextUI(GameController: GameLogic) extends Observer {
                                                     i -= 1
                                                     if (players.nonEmpty) players = players.dropRight(1)
                                                 } else {
-                                                    // Go back to player count selection (user-triggered)
                                                     lastSelectedCount = 0
                                                     phase = "AwaitPlayerCount"
                                                     countReaderStarted = false
@@ -335,7 +314,6 @@ class TextUI(GameController: GameLogic) extends Observer {
             case "invalid card" => println("Invalid card. Please enter a valid index.")
             case "follow lead" => println(s"You must follow the lead suit ${obj.head.asInstanceOf[Color].toString}.")
             case "which bid" => {
-                // Ensure we are no longer in name entry when bidding starts
                 phase = "InGame"
                 if (nameReaderStarted) {
                     cancelNameReader = true
@@ -344,15 +322,17 @@ class TextUI(GameController: GameLogic) extends Observer {
                 println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             }
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
+            case "invalid bid" => 
+                val max = obj.head.asInstanceOf[Int]
+                val playerMsg = if (obj.length > 1) s" for player ${obj(1).asInstanceOf[Player].name}" else ""
+                println(s"Invalid bid$playerMsg. You can only bid between 0 and $max.")
             case "print trump card" => println(s"Trump card: \n${TextUI.showcard(obj.head.asInstanceOf[Card])}")
             case "CardsDealt" => {
-                // Transition into game phase and ensure any name-entry prompt is stopped
                 phase = "InGame"
                 if (nameReaderStarted) {
                     cancelNameReader = true
                     try { InputRouter.offer("__BACK_TO_COUNT__") } catch { case _: Throwable => () }
                 }
-                // Print all players' hands first so that bidding happens after players saw their cards (TUI requirement)
                 obj.headOption.collect { case cd: CardsDealt => cd.players }.foreach { players =>
                     players.foreach(player => TextUI.showHand(player))
                 }
@@ -367,7 +347,7 @@ class TextUI(GameController: GameLogic) extends Observer {
                 val bidWidth = 5
                 val pointWidth = 6
                 
-                val totalWidth = nameWidth + bidWidth + pointWidth + 10 // 3 separators + spaces
+                val totalWidth = nameWidth + bidWidth + pointWidth + 10
                 val separator = "+" + "-" * (nameWidth + 2) + "+" + "-" * (bidWidth + 2) + "+" + "-" * (pointWidth + 2) + "+"
                 
                 println(separator)

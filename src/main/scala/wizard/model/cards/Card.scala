@@ -38,7 +38,6 @@ end Value
 def valueToAnsi(value: Value): String = value match {
     case Value.Chester => Console.RESET
     case Value.WizardKarte => Console.RESET
-    // dont change the console color for the other values
     case _ => ""
     
 }
