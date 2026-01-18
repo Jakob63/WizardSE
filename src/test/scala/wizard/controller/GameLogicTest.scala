@@ -2,10 +2,14 @@ package wizard.controller
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.player.{Player, Human}
 import wizard.actionmanagement.{AskForPlayerCount, AskForPlayerNames, StartGame}
 
-class GameLogicTest extends AnyWordSpec with Matchers {
+class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "GameLogic" should {
     val gameLogic = new GameLogic

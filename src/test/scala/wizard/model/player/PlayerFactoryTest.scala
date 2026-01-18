@@ -2,8 +2,12 @@ package wizard.model.player
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 
-class PlayerFactoryTest extends AnyWordSpec with Matchers {
+class PlayerFactoryTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "BuildHuman" should {
     "build a Human player" in {

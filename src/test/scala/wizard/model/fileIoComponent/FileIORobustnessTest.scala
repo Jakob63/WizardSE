@@ -2,11 +2,15 @@ package wizard.model.fileIoComponent
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.controller.GameLogic
 import wizard.actionmanagement.Observer
 import java.io.{File, PrintWriter}
 
-class FileIORobustnessTest extends AnyWordSpec with Matchers {
+class FileIORobustnessTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   class TestObserver extends Observer {
     var loadFailedCalled = false

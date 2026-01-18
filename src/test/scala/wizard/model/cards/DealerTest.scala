@@ -2,8 +2,12 @@ package wizard.model.cards
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 
-class DealerTest extends AnyWordSpec with Matchers {
+class DealerTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "The Dealer" should {
     "have all 60 cards initially (15 values * 4 colors)" in {

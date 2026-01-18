@@ -2,8 +2,12 @@ package wizard.model.cards
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 
-class CardTest extends AnyWordSpec with Matchers {
+class CardTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "A Color" should {
     "have the correct values" in {

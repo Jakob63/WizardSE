@@ -2,12 +2,16 @@ package wizard.model.fileIoComponent.fileIoJsonImpl
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.Game
 import wizard.model.cards.{Card, Color, Value, Hand}
 import wizard.model.player.{Player, PlayerFactory, PlayerType}
 import java.io.File
 
-class FileIOTest extends AnyWordSpec with Matchers {
+class FileIOTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "A JSON FileIO" should {
     val fileIo = new FileIO

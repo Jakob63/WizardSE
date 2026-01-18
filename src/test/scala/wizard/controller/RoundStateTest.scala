@@ -2,12 +2,16 @@ package wizard.controller
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.player.Player
 import wizard.model.cards.{Card, Color, Value}
 import wizard.model.rounds.Round
 import wizard.actionmanagement.InputRouter
 
-class RoundStateTest extends AnyWordSpec with Matchers {
+class RoundStateTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   class TestPlayer(name: String) extends Player(name) {
     override def bid(): Int = 0

@@ -2,9 +2,13 @@ package wizard.model.player
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.cards.{Card, Color, Hand, Value}
 
-class PlayerTest extends AnyWordSpec with Matchers {
+class PlayerTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   class ConcretePlayer(name: String) extends Player(name) {
     override def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card = 
