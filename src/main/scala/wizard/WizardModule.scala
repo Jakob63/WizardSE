@@ -6,9 +6,8 @@ import wizard.model.fileIoComponent.FileIOInterface
 
 class WizardModule extends AbstractModule with ScalaModule {
   override def configure(): Unit = {
-    // XML:
-    //bind[FileIOInterface].to[wizard.model.fileIoComponent.fileIoXmlImpl.FileIO]
+    bind[FileIOInterface].to[wizard.model.fileIoComponent.fileIoXmlImpl.FileIO]
     // JSON:
-    bind[FileIOInterface].to[wizard.model.fileIoComponent.fileIoJsonImpl.FileIO]
+    //bind[FileIOInterface].to[wizard.model.fileIoComponent.fileIoJsonImpl.FileIO]
   }
 }
