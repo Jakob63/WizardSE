@@ -96,12 +96,14 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
     }
 
     "play a round correctly (simplified)" in {
+      println("[DEBUG_LOG] Starting test: play a round correctly (simplified)")
       val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
       val p2 = new TestPlayer("P2")
       val p3 = new TestPlayer("P3")
       val testPlayers = List(p1, p2, p3)
       
+      println("[DEBUG_LOG] Setting up bids")
       p1.nextBid = 1
       p2.nextBid = 0
       p3.nextBid = 1
@@ -109,6 +111,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p2.roundBids = -1
       p3.roundBids = -1
       
+      println("[DEBUG_LOG] Setting up cards")
       val c1 = Card(Value.Five, Color.Red)
       val c2 = Card(Value.Ten, Color.Red)
       val c3 = Card(Value.Two, Color.Blue)
@@ -121,18 +124,24 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p2.hand = Hand(List(c2))
       p3.hand = Hand(List(c3))
       
+      println("[DEBUG_LOG] Setting up dealer")
       Dealer.allCards = List(c1, c2, c3, Card(Value.Seven, Color.Red)) ++ Dealer.allCards.drop(4)
       Dealer.index = 0
       
+      println("[DEBUG_LOG] Calling playRound(1, ...)")
       roundLogicLocal.playRound(1, testPlayers, isResumed = true)
+      println("[DEBUG_LOG] playRound returned")
       
+      println("[DEBUG_LOG] Verifying tricks")
       p2.roundTricks should be(1)
       p1.roundTricks should be(0)
       p3.roundTricks should be(0)
       
+      println("[DEBUG_LOG] Verifying points")
       p1.points should be(-10)
       p2.points should be(-10)
       p3.points should be(-10)
+      println("[DEBUG_LOG] Test finished successfully")
     }
 
     "handle various resumed scenarios and edge cases" in {
