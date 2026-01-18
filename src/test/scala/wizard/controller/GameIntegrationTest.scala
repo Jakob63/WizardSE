@@ -54,12 +54,25 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       InputRouter.offer("1")
       InputRouter.offer("0")
       
+      // Falls Wizard als Trumpf (4 Farben zur Wahl)
+      InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
       InputRouter.offer("1")
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+      
+      // Runde 2
+      InputRouter.offer("1")
       InputRouter.offer("0")
+      InputRouter.offer("1")
+
+      // Falls Wizard als Trumpf
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+      InputRouter.offer("1")
       InputRouter.offer("1")
 
       InputRouter.offer("1")

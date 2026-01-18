@@ -48,6 +48,7 @@ class RoundLogic extends Observable {
         lastTrumpCard = trumpCardOpt
         gameLogic.foreach(_.currentTrumpCard = trumpCardOpt)
 
+        round.currentPlayerIndex = initialFirstPlayerIdx
         trumpCardOpt match {
             case Some(trumpCard) =>
                 trumpCard.value match {
@@ -157,6 +158,7 @@ class RoundLogic extends Observable {
                         currentTrickCards = trick.map(_._2)
                         Debug.log(s"RoundLogic -> card played by ${player.name}: $card. Trick now has ${currentTrickCards.size} cards")
                         notifyObservers("TrickUpdated", currentTrickCards)
+                        
                         if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
                         trickIdx += 1
                     } catch {

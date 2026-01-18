@@ -18,7 +18,7 @@ class GameLogic extends Observable {
 
     def isInteractive: Boolean = {
         val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
-        prop || System.console() != null
+        prop || (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
     }
 
     val injector: Injector = Guice.createInjector(new WizardModule)
