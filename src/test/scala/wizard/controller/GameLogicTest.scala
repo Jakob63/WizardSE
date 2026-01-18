@@ -65,7 +65,6 @@ class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       gameLogic.start()
       lastMsg should be("AskForPlayerCount")
       
-      // Coverage for line 52: if (started) return
       lastMsg = ""
       gameLogic.start()
       lastMsg should be("")
