@@ -10,7 +10,6 @@ class AI private[player](name: String) extends Player(name) {
     def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int): Card =
         throw new NotImplementedError("AI playCard strategy not implemented yet")
     
-    // Backward-compatible overload used in some tests
     def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int): Card =
         playCard(Option(leadColor), Option(trump), currentPlayerIndex)
 }

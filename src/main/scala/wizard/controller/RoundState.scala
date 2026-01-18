@@ -37,18 +37,14 @@ class WizardCardState extends RoundState {
 
     private def determineTrump(round: Round, players: List[Player]): Unit = {
         val nextPlayer = players(round.currentPlayerIndex)
-        val colorOptions = List(Color.Red, Color.Yellow, Color.Green, Color.Blue)
+        val colorOptions = List(Color.Red, Color.Green, Color.Blue, Color.Yellow)
         val colorCards = colorOptions.map(color => Card(Value.One, color))
 
-        // Show color options to the user (through any observing views)
-        // Optionally notify views to display selection UI; but also support TUI input for tests
-        //TextUI.printColorOptions(colorCards)
-
-        // Notify observers (both TUI and GUI) to display trump selection prompt
         round.notifyObservers("which trump", nextPlayer)
-        // For backward compatibility and tests, still read from TUI if present
-        val inputRaw = TextUI.update("which trump", nextPlayer)
-        val inputStr = Option(inputRaw).map(_.toString.trim).getOrElse("")
+        val inputStr = wizard.actionmanagement.InputRouter.readLine().trim
+        if (inputStr == "__GAME_STOPPED__") throw new wizard.actionmanagement.GameStoppedException("Game stopped during trump selection")
+        
+        wizard.actionmanagement.Debug.log(s"WizardCardState.determineTrump -> inputStr: '$inputStr'")
         val chosenIdx = scala.util.Try(inputStr.toInt).toOption.getOrElse(1) - 1
         val chosenColor = colorOptions.lift(chosenIdx).getOrElse(Color.Red)
 

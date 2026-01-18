@@ -29,6 +29,6 @@ jobs:
         cache: 'sbt'
     - uses: sbt/setup-sbt@v1
     - name: Run tests
-      run: sbt clean coverage test coverageAggregate # erstellt report von coverall eingelesen werden kann
+      run: xvfb-run sbt clean coverage test coverageAggregate # erstellt report von coverall eingelesen werden kann
     - name: Coveralls GitHub Action
       uses: coverallsapp/github-action@v2.3.4

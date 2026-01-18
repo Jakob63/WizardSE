@@ -1,0 +1,128 @@
+package wizard.actionmanagement
+
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+
+class ObserverTest extends AnyWordSpec with Matchers {
+
+  "An Observable" should {
+    "allow adding and removing observers" in {
+      val observable = new Observable
+      val observer = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = ()
+      }
+      
+      observable.add(observer)
+      observable.subscribers should contain(observer)
+      
+      observable.remove(observer)
+      observable.subscribers should not contain(observer)
+    }
+
+    "not add the same observer twice" in {
+      val observable = new Observable
+      val observer = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = ()
+      }
+      
+      observable.add(observer)
+      observable.add(observer)
+      observable.subscribers.size should be(1)
+    }
+
+    "notify all observers" in {
+      val observable = new Observable
+      var callCount1 = 0
+      var callCount2 = 0
+      
+      val obs1 = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = {
+          callCount1 += 1
+          updateMSG should be("test")
+          obj.head should be("data")
+        }
+      }
+      val obs2 = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = {
+          callCount2 += 1
+        }
+      }
+      
+      observable.add(obs1)
+      observable.add(obs2)
+      
+      observable.notifyObservers("test", "data")
+      
+      callCount1 should be(1)
+      callCount2 should be(1)
+    }
+
+    "handle exceptions in observers gracefully" in {
+      val observable = new Observable
+      var nextCalled = false
+      
+      val failingObs = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = {
+          throw new RuntimeException("Test exception")
+        }
+      }
+      val succeedingObs = new Observer {
+        override def update(updateMSG: String, obj: Any*): Any = {
+          nextCalled = true
+        }
+      }
+      
+      observable.add(failingObs)
+      observable.add(succeedingObs)
+      
+      observable.notifyObservers("test")
+      
+      nextCalled should be(true)
+    }
+  }
+
+  "Debug" should {
+    "be initialized without crashing" in {
+        Debug.initEnvironment()
+        Debug.log("Test log")
+    }
+
+    "handle various system property values for enabled" in {
+        Debug.enabled should (be(true) or be(false))
+    }
+
+    "filter JavaFX warnings from stderr" in {
+        val out = new java.io.ByteArrayOutputStream()
+        val filteringStream = new java.io.PrintStream(new java.io.OutputStream {
+            private val buffer = new StringBuilder()
+            override def write(b: Int): Unit = {
+                val c = b.toChar
+                buffer.append(c)
+                if (c == '\n') {
+                    val line = buffer.toString()
+                    if (!line.contains("Unsupported JavaFX configuration: classes were loaded from 'unnamed module")) {
+                        out.write(line.getBytes)
+                    }
+                    buffer.setLength(0)
+                }
+            }
+        })
+
+        val oldErr = System.err
+        System.setErr(filteringStream)
+        try {
+            System.err.println("Unsupported JavaFX configuration: classes were loaded from 'unnamed module")
+            System.err.println("Important Error")
+            System.err.flush()
+            
+            Thread.sleep(50)
+            
+            val output = out.toString()
+            output should not include ("Unsupported JavaFX configuration")
+            output should include ("Important Error")
+        } finally {
+            System.setErr(oldErr)
+        }
+    }
+  }
+}

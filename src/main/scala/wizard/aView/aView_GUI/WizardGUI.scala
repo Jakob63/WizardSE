@@ -21,6 +21,8 @@ import scalafx.scene.Node
 import java.util.NoSuchElementException
 
 class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
+  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
+  
   private var rootPane: Option[StackPane] = None
   private var undoRedoBar: Option[HBox] = None
   private var pendingPlayerCount: Option[Int] = None
@@ -71,8 +73,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       onAction = _ => showSaveDialog()
     }
     undoBtn.onAction = _ => {
-      val t = new Thread(new Runnable {
-        override def run(): Unit = {
+      val t = new Thread(() => {
           try {
             if (currentScreen == "PlayerNames") {
               try { gameController.resetPlayerCountSelection() } catch { case _: Throwable => () }
@@ -82,12 +83,11 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
           } catch {
             case _: Throwable => ()
           }
-        }
       })
       t.setDaemon(true); t.start()
     }
     redoBtn.onAction = _ => {
-      val t = new Thread(new Runnable { override def run(): Unit = try { gameController.redo() } catch { case _: Throwable => () } })
+      val t = new Thread(() => try { gameController.redo() } catch { case _: Throwable => () })
       t.setDaemon(true); t.start()
     }
     new HBox(6) { alignment = Pos.TopLeft; padding = Insets(8); children = Seq(undoBtn, redoBtn, saveBtn) }
@@ -121,7 +121,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   }
 
   private def goBackToPlayerCountLocal(): Unit = {
-    navEpoch += 1 
+    navEpoch += 1
     val thisEpoch = navEpoch
     Platform.runLater {
       Debug.log(s"WizardGUI.localBackToPlayerCount at epoch=$thisEpoch")
@@ -203,7 +203,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     }
     gameController.add(this)
     Debug.log("WizardGUI.start -> ensured observer registration and starting controller")
-    val controllerThread = new Thread(new Runnable { override def run(): Unit = gameController.start() })
+    val controllerThread = new Thread(() => gameController.start())
     controllerThread.setDaemon(true)
     controllerThread.start()
     pendingPlayerCount.foreach { cnt =>
@@ -226,7 +226,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   private def buildPlayerCountChildren(ui: VBox): List[scalafx.scene.Node] = {
     val titleLabel = new Label("Willkommen bei Wizard") {
       font = Font.font(null, FontWeight.Bold, 24)
-      style = "-fx-text-fill: #39FF14;" 
+      style = "-fx-text-fill: #39FF14;"
     }
 
     val playerCountLabel = new Label("Spieleranzahl (3-6)") {
@@ -269,7 +269,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     nextButton.onAction = _ => {
       val playerCount = playerCountField.text.value
       if (playerCount.matches("[3-6]")) {
-        val t = new Thread(new Runnable { override def run(): Unit = gameController.playerCountSelected(playerCount.toInt) })
+        val t = new Thread(() => gameController.playerCountSelected(playerCount.toInt))
         t.setDaemon(true)
         t.start()
         ui.children = createPlayerNameScreen(playerCount.toInt)
@@ -458,12 +458,12 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     (scoresTable, Option(currentPlayers)) match {
       case (Some(table), Some(players)) =>
         val rows = snapshot match {
-            case Some(list) => 
+            case Some(list) =>
                 list.map {
-                    case p: Player => 
+                    case p: Player =>
                         val displayBid = if (p.roundBids == -1) "0" else p.roundBids.toString
                         PlayerRow(p.name, displayBid, p.points.toString)
-                    case s: PlayerSnapshot => 
+                    case s: PlayerSnapshot =>
                         val displayBid = if (s.roundBids == -1) "0" else s.roundBids.toString
                         PlayerRow(s.name, displayBid, s.points.toString)
                     case _ => PlayerRow("?", "?", "?")
@@ -490,7 +490,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     val trump = new ImageView() { preserveRatio = true }
     val hand = new HBox(10) { alignment = Pos.Center; padding = Insets(10) }
 
-    val centerLabel = new Label("") 
+    val centerLabel = new Label("")
     val trickBox = new HBox(10) { alignment = Pos.Center }
     trickBar = Some(trickBox)
 
@@ -516,7 +516,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       maxWidth = 210
       columnResizePolicy = TableView.ConstrainedResizePolicy
       selectionModel().cellSelectionEnabled = false
-      selectionModel().selectionMode = javafx.scene.control.SelectionMode.SINGLE // Selection will be hidden via CSS anyway
+      selectionModel().selectionMode = javafx.scene.control.SelectionMode.SINGLE
       
       rowFactory = { _ =>
         val row = new javafx.scene.control.TableRow[PlayerRow]()
@@ -745,7 +745,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
               currentTrickCards = currentTrickCards :+ card
             }
             renderTrick()
-            
+
             handBar.foreach(_.children.clear())
           })
         }
@@ -825,6 +825,33 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
           })
         }
         ()
+      case "invalid bid" =>
+        val max = obj.headOption.collect { case i: Int => i }.getOrElse(0)
+        val player = obj.drop(1).headOption.collect { case p: Player => p }
+        Platform.runLater {
+          val alert = new VBox(10) {
+            alignment = Pos.Center
+            padding = Insets(10)
+            style = "-fx-background-color: rgba(200, 100, 0, 0.9); -fx-background-radius: 5;"
+            maxWidth = 200
+            maxHeight = 100
+            children = Seq(
+              new Label(s"Invalid bid! Max: $max") { style = "-fx-text-fill: white; -fx-font-weight: bold;" },
+              new Button("OK") {
+                style = buttonStyle
+                onAction = _ => {
+                  rootPane.foreach(_.children.remove(this.parent.value))
+                  player.foreach { p =>
+                    renderHand(p)
+                    showBidPrompt(p)
+                  }
+                }
+              }
+            )
+          }
+          rootPane.foreach(_.children.add(alert))
+        }
+        ()
       case "TrickUpdated" =>
         obj.headOption.map(_.asInstanceOf[List[Card]]).foreach { cards =>
           Debug.log(s"WizardGUI.update('TrickUpdated') -> ${cards.size} cards: ${cards.mkString(", ")}")
@@ -861,8 +888,8 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
             style = "-fx-background-color: rgba(0,0,0,0.8); -fx-background-radius: 10; -fx-border-color: white; -fx-border-radius: 10;"
             maxWidth = 200
             children = Seq(
-              new Label("Bitte spiele diese Runde erst zuende.") { 
-                  style = "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;" 
+              new Label("Bitte spiele diese Runde erst zuende.") {
+                  style = "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11;"
                   wrapText = true
                   alignment = Pos.Center
               },

@@ -1,7 +1,5 @@
 package wizard.controller
 
-import wizard.aView.TextUI
-import wizard.controller.PlayerLogic
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round
@@ -33,7 +31,7 @@ class RoundLogic extends Observable {
         }
         gameLogic.foreach(_.setCanSave(true))
         val round = new Round(players)
-        
+
         val trumpCardOpt: Option[Card] = if (isResumed && lastTrumpCard.isDefined) {
             lastTrumpCard
         } else {
@@ -50,6 +48,7 @@ class RoundLogic extends Observable {
         lastTrumpCard = trumpCardOpt
         gameLogic.foreach(_.currentTrumpCard = trumpCardOpt)
 
+        round.currentPlayerIndex = initialFirstPlayerIdx
         trumpCardOpt match {
             case Some(trumpCard) =>
                 trumpCard.value match {
@@ -90,7 +89,7 @@ class RoundLogic extends Observable {
                     pIdx += 1
                 } else {
                     try {
-                        playerLogic.bid(player)
+                        playerLogic.bid(player, currentround)
                         gameLogic.foreach(_.setCanSave(false))
                         pIdx += 1
                     } catch {
@@ -113,7 +112,7 @@ class RoundLogic extends Observable {
 
         val tricksPlayed = players.map(_.roundTricks).sum
         var resumedTrickInProgress = isResumed && currentTrickCards.nonEmpty
-        
+
         var firstPlayerIdx = initialFirstPlayerIdx
 
         for (i <- tricksPlayed + 1 to currentround if !stopGame) {
@@ -121,21 +120,21 @@ class RoundLogic extends Observable {
                 round.leadColor = None
                 currentFirstPlayerIdx = firstPlayerIdx
             }
-            
+
             if (resumedTrickInProgress) {
                 currentTrickCards.find(c => c.value != Value.WizardKarte && c.value != Value.Chester).foreach { firstNormalCard =>
                     round.leadColor = Some(firstNormalCard.color)
                 }
                 Debug.log(s"RoundLogic -> Emitting initial resumed trick state: ${currentTrickCards.size} cards")
                 notifyObservers("TrickUpdated", currentTrickCards)
-                Thread.sleep(500)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
             }
 
             val trickPlayers = players.drop(firstPlayerIdx) ++ players.take(firstPlayerIdx)
 
             var trick = List[(Player, Card)]()
             var trickIdx = 0
-            
+
             Debug.log(s"RoundLogic -> Starting trick $i. currentTrickCards was: ${currentTrickCards.size} cards. First player: ${trickPlayers.head.name}. resumedTrickInProgress: $resumedTrickInProgress")
 
             while (trickIdx < trickPlayers.length && !stopGame) {
@@ -159,7 +158,8 @@ class RoundLogic extends Observable {
                         currentTrickCards = trick.map(_._2)
                         Debug.log(s"RoundLogic -> card played by ${player.name}: $card. Trick now has ${currentTrickCards.size} cards")
                         notifyObservers("TrickUpdated", currentTrickCards)
-                        Thread.sleep(500)
+                        
+                        if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
                         trickIdx += 1
                     } catch {
                         case _: wizard.actionmanagement.InputRouter.UndoException =>
@@ -189,13 +189,13 @@ class RoundLogic extends Observable {
                 val winner = trickwinner(trick, round)
                 Debug.log(s"RoundLogic -> trick winner: ${winner.name}")
                 notifyObservers("trick winner", winner)
-                Thread.sleep(800)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(800)
                 winner.roundTricks += 1
                 currentTrickCards = Nil
                 notifyObservers("TrickUpdated", Nil)
-                Thread.sleep(300)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(300)
                 resumedTrickInProgress = false 
-                
+
                 firstPlayerIdx = players.indexOf(winner)
                 currentFirstPlayerIdx = firstPlayerIdx
                 gameLogic.foreach(_.currentFirstPlayerIdx = firstPlayerIdx)
@@ -212,7 +212,7 @@ class RoundLogic extends Observable {
             playerLogic.addPoints(player)
         })
         val snapshots = players.map(p => PlayerSnapshot(p.name, p.roundBids, p.points))
-        
+
         notifyObservers("points after round")
         notifyObservers("print points all players", snapshots)
     }

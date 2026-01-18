@@ -30,10 +30,14 @@ class PlayerLogic extends Observable {
         }
     }
 
-    def bid(player: Player): Int = {
+    def bid(player: Player, maxBids: Int): Int = {
         notifyObservers("which bid", player)
         try {
-            val playersbid = player.bid()
+            var playersbid = player.bid()
+            while (playersbid < 0 || playersbid > maxBids) {
+                notifyObservers("invalid bid", maxBids, player)
+                playersbid = player.bid()
+            }
             UndoService.manager.doStep(new BidCommand(player, playersbid))
             playersbid
         } catch {
@@ -70,7 +74,7 @@ object PlayerLogic {
   def playCard(leadColor: Option[Color], trump: Option[Color], currentPlayerIndex: Int, player: Player): Card =
     instance.playCard(leadColor, trump, currentPlayerIndex, player)
 
-  def bid(player: Player): Int = instance.bid(player)
+  def bid(player: Player, maxBids: Int): Int = instance.bid(player, maxBids)
 
   def addPoints(player: Player): Unit = instance.addPoints(player)
 

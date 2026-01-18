@@ -5,7 +5,6 @@ import wizard.actionmanagement.{Observable, Observer}
 import wizard.aView.TextUI
 
 abstract case class Player(var name: String) extends Observable {
-    
     var hand: Hand = Hand(List[Card]())
 
     var points: Int = 0

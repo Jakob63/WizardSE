@@ -29,13 +29,10 @@ class Human private[player](name: String) extends Player(name) {
         loop()
     }
     
-    // Backward-compatible overload used in some tests
     def playCard(leadColor: Color, trump: Color, currentPlayerIndex: Int): Card =
         playCard(Option(leadColor), Option(trump), currentPlayerIndex)
 }
 
-// Companion object
-//factory method
 object Human {
     def create(name: String): Try[Human] = {
         if (name.isEmpty) Failure(new IllegalArgumentException("Name must not be empty"))

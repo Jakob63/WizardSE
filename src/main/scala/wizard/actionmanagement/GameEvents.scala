@@ -4,7 +4,6 @@ import wizard.model.player.Player
 
 sealed trait GameEvent
 
-//case object Event2 extends GameEvent
 case class SetPlayer(player1: String) extends GameEvent
 
 case object StartGame extends GameEvent
