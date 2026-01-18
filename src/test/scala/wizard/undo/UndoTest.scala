@@ -134,7 +134,8 @@ class UndoTest extends AnyWordSpec with Matchers {
       notified should be(true)
       
       // redoStep should call setPlayersFromRedo
-      // Since it starts a thread, we just verify it doesn't crash here
+      // We stop the game immediately to prevent the thread from hanging
+      gameLogic.stopGame()
       command.redoStep()
     }
   }
