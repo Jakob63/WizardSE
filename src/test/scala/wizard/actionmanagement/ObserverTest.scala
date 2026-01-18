@@ -2,8 +2,13 @@ package wizard.actionmanagement
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
+import scala.concurrent.duration.*
 
-class ObserverTest extends AnyWordSpec with Matchers {
+class ObserverTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "An Observable" should {
     "allow adding and removing observers" in {

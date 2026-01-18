@@ -2,12 +2,17 @@ package wizard.undo
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.player.Player
 import wizard.model.cards.{Card, Color, Value, Hand}
 import wizard.controller.GameLogic
 import wizard.actionmanagement.Observer
+import scala.concurrent.duration.*
 
-class UndoTest extends AnyWordSpec with Matchers {
+class UndoTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   class TestPlayer(name: String) extends Player(name) {
     override def bid(): Int = 0
