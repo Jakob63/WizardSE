@@ -46,42 +46,63 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       gameLogic.add(observer)
 
       Dealer.index = 0
-      Dealer.allCards = (for {
+      val myCards = (for {
         v <- Value.values.toList
         c <- Color.values.toList
       } yield Card(v, c))
+      Dealer.allCards = myCards
       
       // Round 1
-      // Trump card at index 3: Seven of Red (Regular card)
-      // Bids
-      InputRouter.offer("0")
-      InputRouter.offer("1")
-      InputRouter.offer("0")
+      // Trump card at index 3: (1 * 3) % 60 = 3. myCards(3) is Chester of Yellow.
+      // Dealer.dealCards(1, Some(Chester of Yellow))
+      // P1: myCards(0) - Chester of Red
+      // P2: myCards(1) - Chester of Green
+      // P3: myCards(2) - Chester of Blue
+      // Dealer.index = 3, but skipped 3 because it matches trump card? 
+      // No, Dealer.dealCards(1, Some(trump)):
+      // it takes myCards(0), if 0 != trump, it's done.
+      // So Round 1 hands: P1: myCards(0), P2: myCards(1), P3: myCards(2). Dealer.index = 3.
+
+      // Bids for Round 1
+      InputRouter.offer("0") // P1
+      InputRouter.offer("0") // P2
+      InputRouter.offer("0") // P3
       
-      // Trick 1
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
+      // Trick 1 for Round 1
+      InputRouter.offer("1") // P1 plays card 1
+      InputRouter.offer("1") // P2 plays card 1
+      InputRouter.offer("1") // P3 plays card 1
       
       // Round 2
-      // Trump card at index 6: Chester of Blue (Chester)
-      // Bids
+      // Dealer.shuffleCards() called, Dealer.index = 0.
+      // Trump card index = (2 * 3) % 60 = 6. myCards(6) is Wizard of Blue.
+      // Since it's a Wizard, WizardCardState.handleTrump is called.
+      // It expects one more input for trump color choice.
+      InputRouter.offer("1") // Choose Red as trump
+      
+      // Hands for Round 2 (2 cards each)
+      // P1: myCards(0), myCards(1)
+      // P2: myCards(2), myCards(3)
+      // P3: myCards(4), myCards(5)
+      // (myCards(6) is trump, so it's excluded if drawn, but it's at index 6, so not drawn yet)
+      
+      // Bids for Round 2
       InputRouter.offer("1")
-      InputRouter.offer("0")
+      InputRouter.offer("1")
       InputRouter.offer("1")
 
-      // Trick 1
+      // Trick 1 for Round 2
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
-      // Trick 2
+      // Trick 2 for Round 2
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
       // Ensure we have enough inputs just in case
-      for (_ <- 1 to 20) InputRouter.offer("1")
+      for (_ <- 1 to 50) InputRouter.offer("1")
 
       gameLogic.playGame(players, maxRounds, 0)
       
