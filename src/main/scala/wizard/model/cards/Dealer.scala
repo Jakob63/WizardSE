@@ -16,7 +16,6 @@ object Dealer extends Observable {
     var index = 0
 
     def shuffleCards(): Boolean = {
-        index = 0
         val isInteractive = {
             val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
             prop || (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
@@ -24,14 +23,19 @@ object Dealer extends Observable {
         if (isInteractive) {
             allCards = scala.util.Random().shuffle(allCards)
         }
+        index = 0
         true
     }
     def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {
         val listbuffer = ListBuffer[Card]()
         for (i <- 1 to cards_amount) {
+            if (index >= allCards.length) {
+                index = 0
+            }
             var card = allCards(index)
             while (excludeCard.contains(card)) {
                 index += 1
+                if (index >= allCards.length) index = 0
                 card = allCards(index)
             }
             listbuffer.addOne(card)
