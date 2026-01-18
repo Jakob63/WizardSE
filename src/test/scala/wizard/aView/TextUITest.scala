@@ -2,6 +2,8 @@ package wizard.aView
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.controller.GameLogic
 import wizard.model.player.{Player, Human, PlayerFactory}
 import wizard.model.cards.{Card, Color, Value, Hand, Dealer}
@@ -9,7 +11,8 @@ import wizard.actionmanagement.{AskForPlayerCount, AskForPlayerNames, CardsDealt
 import java.io.{ByteArrayOutputStream, PrintStream}
 import wizard.model.Game
 
-class TextUITest extends AnyWordSpec with Matchers {
+class TextUITest extends AnyWordSpec with Matchers with TimeLimitedTests {
+  val timeLimit = 30.seconds
 
   def captureOutput(f: => Unit): String = {
     val out = new ByteArrayOutputStream()

@@ -2,11 +2,14 @@ package wizard.controller
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.player.Player
 import wizard.model.cards.{Card, Color, Value, Hand}
 import scala.compiletime.uninitialized
 
-class PlayerLogicTest extends AnyWordSpec with Matchers {
+class PlayerLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+  val timeLimit = 30.seconds
 
   class TestPlayer(nameStr: String) extends Player(nameStr) {
     var nextBid: Int = 0

@@ -2,10 +2,13 @@ package wizard.model.player
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.cards.{Card, Color, Hand, Value}
 import wizard.actionmanagement.InputRouter
 
-class HumanTest extends AnyWordSpec with Matchers {
+class HumanTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+  val timeLimit = 30.seconds
 
   "A Human" should {
     
