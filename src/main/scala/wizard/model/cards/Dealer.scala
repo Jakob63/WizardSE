@@ -11,9 +11,7 @@ object Dealer extends Observable {
             color <- Color.values.toList
             value <- Value.values.toList
         } buffer += Card(value, color)
-        val initial = buffer.toList
-        wizard.actionmanagement.Debug.log(s"Dealer.allCards initialization (deterministic) -> first card: ${initial.headOption}")
-        initial
+        buffer.toList
     }
     var index = 0
 
@@ -26,7 +24,6 @@ object Dealer extends Observable {
         if (isInteractive) {
             allCards = scala.util.Random().shuffle(allCards)
         }
-        wizard.actionmanagement.Debug.log(s"Dealer.shuffleCards (interactive=$isInteractive) -> first card: ${allCards.headOption}")
         true
     }
     def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {

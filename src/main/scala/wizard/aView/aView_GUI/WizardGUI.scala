@@ -14,14 +14,13 @@ import scalafx.Includes._
 import scalafx.application.Platform
 import javafx.beans.binding.Bindings
 import wizard.controller.{GameLogic, PlayerSnapshot}
-import wizard.actionmanagement.{Observer, Debug, InputRouter}
+import wizard.actionmanagement.{Observer, InputRouter}
 import wizard.model.player.{PlayerFactory, PlayerType, Player}
 import wizard.model.cards.{Card, Color, Value}
 import scalafx.scene.Node
 import java.util.NoSuchElementException
 
 class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
-  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
   
   private var rootPane: Option[StackPane] = None
   private var undoRedoBar: Option[HBox] = None
@@ -48,7 +47,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   private val inputFieldStyle: String = "-fx-control-inner-background: #2B2B2B; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.6);"
   private val buttonStyle: String = "-fx-background-color: #2B2B2B; -fx-text-fill: white;"
   gameController.add(this)
-  Debug.log("WizardGUI constructed and registered as observer")
 
   private def hideUndoRedoBar(): Unit = {
     (for { rp <- rootPane; bar <- undoRedoBar } yield (rp, bar)) foreach { case (rp, bar) =>
@@ -124,7 +122,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     navEpoch += 1
     val thisEpoch = navEpoch
     Platform.runLater {
-      Debug.log(s"WizardGUI.localBackToPlayerCount at epoch=$thisEpoch")
       currentScreen = "PlayerCount"
       contentBox match {
         case Some(box) =>
@@ -192,7 +189,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   }
 
   override def start(): Unit = {
-    Debug.log("WizardGUI.start -> creating stage and initial screen")
     stage = new JFXApp3.PrimaryStage {
       title = "Wizard Card Game"
       width = 600
@@ -202,7 +198,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       }
     }
     gameController.add(this)
-    Debug.log("WizardGUI.start -> ensured observer registration and starting controller")
     val controllerThread = new Thread(() => gameController.start())
     controllerThread.setDaemon(true)
     controllerThread.start()
@@ -216,7 +211,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
             case None =>
               stage.scene().root = createPlayerNameRoot(cnt)
           }
-          Debug.log(s"WizardGUI.start -> applied pending PlayerCountSelected($cnt)")
           pendingPlayerCount = None
         }
       }
@@ -609,7 +603,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
 
   private def renderTrick(): Unit = {
     ensureGameTableRoot()
-    Debug.log(s"WizardGUI.renderTrick -> cards: ${currentTrickCards.size}")
     trickBar.foreach { bar =>
       val images = currentTrickCards.map { card =>
         val iv = new ImageView()
@@ -656,10 +649,8 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
 
   private def switchToPlayerNames(count: Int, capturedEpoch: Int): Unit = {
     if (capturedEpoch != navEpoch) {
-      Debug.log(s"WizardGUI.switchToPlayerNames skipped due to stale epoch (captured=$capturedEpoch, current=$navEpoch)")
       return
     }
-    Debug.log(s"WizardGUI.switchToPlayerNames applying for count=$count at epoch=$capturedEpoch")
     contentBox match {
       case Some(box) =>
         box.children = createPlayerNameScreen(count)
@@ -673,13 +664,11 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
   }
 
   override def update(updateMSG: String, obj: Any*): Any = {
-    Debug.log(s"WizardGUI.update('$updateMSG') received on JavaFX?=${Platform.isFxApplicationThread}")
     updateMSG match {
       case "AskForPlayerCount" =>
         navEpoch += 1
         val thisEpoch = navEpoch
         Platform.runLater {
-          Debug.log(s"WizardGUI.update -> handling AskForPlayerCount at epoch=$thisEpoch")
           currentScreen = "PlayerCount"
           contentBox match {
             case Some(box) =>
@@ -694,7 +683,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
         ()
       case "AskForPlayerNames" =>
         Platform.runLater {
-          Debug.log("WizardGUI.update -> handling AskForPlayerNames")
           gameRoot = None 
           currentScreen = "PlayerNames"
           val count = selectedPlayerCount.getOrElse(3)
@@ -710,16 +698,13 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
           case Some(i: Int) => i
           case _ => 0
         }
-        Debug.log(s"WizardGUI.update -> PlayerCountSelected($count)")
         if (count >= 3 && count <= 6) {
           selectedPlayerCount = Some(count)
           if (stage == null || stage.scene() == null) {
-            Debug.log("WizardGUI.update -> stage not ready, buffering player count")
             pendingPlayerCount = Some(count)
           } else {
             val epoch = navEpoch
             Platform.runLater {
-              Debug.log("WizardGUI.update -> attempting switch to player name screen")
               switchToPlayerNames(count, epoch)
               ensureUndoRedoBarVisible()
             }
@@ -739,7 +724,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
         ()
       case "card played" =>
         obj.headOption.collect { case c: Card => c }.foreach { card =>
-          Debug.log(s"WizardGUI.update('card played') -> $card")
           Platform.runLater({
             if (!currentTrickCards.contains(card)) {
               currentTrickCards = currentTrickCards :+ card
@@ -779,7 +763,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       case "which card" =>
         obj.headOption.collect { case p: Player => p }.foreach { p => Platform.runLater({
           val targetText = "Next Player: " + p.name
-          Debug.log(s"WizardGUI.update('which card') for ${p.name}. target: $targetText")
           activePlayerName = Some(p.name)
           updateCurrentBids(p)
           
@@ -788,7 +771,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
             val showingTarget = bar.children.exists(node => node.isInstanceOf[javafx.scene.control.Button] && node.asInstanceOf[javafx.scene.control.Button].getText == targetText)
             
             if (!showingTarget) {
-                Debug.log(s"WizardGUI -> showing Next Player button for ${p.name}")
                 bar.children.clear()
                 val nextBtn = new Button(targetText) {
                   style = buttonStyle
@@ -799,7 +781,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
                 }
                 bar.children = Seq(nextBtn)
             } else {
-                Debug.log(s"WizardGUI -> already showing button for ${p.name}")
             }
           }
         }) }
@@ -854,7 +835,6 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
         ()
       case "TrickUpdated" =>
         obj.headOption.map(_.asInstanceOf[List[Card]]).foreach { cards =>
-          Debug.log(s"WizardGUI.update('TrickUpdated') -> ${cards.size} cards: ${cards.mkString(", ")}")
           Platform.runLater({
             currentTrickCards = cards
             renderTrick()

@@ -1,7 +1,7 @@
 package wizard.controller
 
 import wizard.aView.TextUI
-import wizard.actionmanagement.{AskForPlayerNames, CardAuswahl as CardAuswahlEvent, GameEvent, Observable, Observer, StartGame, Debug}
+import wizard.actionmanagement.{AskForPlayerNames, CardAuswahl as CardAuswahlEvent, GameEvent, Observable, Observer, StartGame}
 import wizard.model.player.{AI, Human, Player}
 import wizard.model.rounds.Round
 import wizard.controller.RoundLogic
@@ -14,7 +14,6 @@ import scala.util.{Try, Success, Failure}
 
 
 class GameLogic extends Observable {
-  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
 
     def isInteractive: Boolean = {
         val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
@@ -50,46 +49,35 @@ class GameLogic extends Observable {
     }
 
     def start(): Unit = {
-        if (started) { Debug.log("GameLogic.start called but already started; returning"); return }
+        if (started) return
         started = true
         selectedPlayerCount = None
         wizard.model.cards.Dealer.shuffleCards()
-        Debug.log("GameLogic.start -> notifying StartGame and AskForPlayerCount")
         notifyObservers("StartGame", StartGame)
         notifyObservers("AskForPlayerCount", wizard.actionmanagement.AskForPlayerCount)
     }
 
     def playerCountSelected(count: Int): Unit = {
-        Debug.log(s"GameLogic.playerCountSelected($count) called; current selected = $selectedPlayerCount")
         if (!validGame(count)) {
-            Debug.log("GameLogic.playerCountSelected ignored (invalid count)")
             return
         }
         if (selectedPlayerCount.isEmpty) {
             selectedPlayerCount = Some(count)
         }
         if (selectedPlayerCount.contains(count)) {
-            Debug.log(s"GameLogic.playerCountSelected -> broadcasting PlayerCountSelected($count) and AskForPlayerNames")
             notifyObservers("PlayerCountSelected", wizard.actionmanagement.PlayerCountSelected(count))
             notifyObservers("AskForPlayerNames", wizard.actionmanagement.AskForPlayerNames)
-        } else {
-            Debug.log("GameLogic.playerCountSelected ignored (different count already selected)")
         }
     }
 
     def resetPlayerCountSelection(): Unit = {
         if (selectedPlayerCount.isDefined) {
-            Debug.log("GameLogic.resetPlayerCountSelection -> clearing previously selected player count")
             selectedPlayerCount = None
             notifyObservers("AskForPlayerCount", wizard.actionmanagement.AskForPlayerCount)
-        } else {
-            Debug.log("GameLogic.resetPlayerCountSelection ignored (no player count selected)")
         }
     }
 
     def setPlayers(players: List[Player]): Unit = {
-        Debug.log(s"GameLogic.setPlayers(${players.map(_.name).mkString(",")}); computing rounds and starting game thread")
-
         import wizard.undo.{StartGameCommand, UndoService}
         UndoService.manager.doStep(new StartGameCommand(this, players))
 
@@ -98,25 +86,21 @@ class GameLogic extends Observable {
     }
 
     def setPlayersFromRedo(players: List[Player]): Unit = {
-        Debug.log(s"GameLogic.setPlayersFromRedo(${players.map(_.name).mkString(",")})")
         val rounds = if (players.nonEmpty) 60 / players.length else 0
         startGameThread(players, rounds)
     }
 
 
     def setPlayer(numPlayers: Int): Unit = {
-        Debug.log(s"GameLogic.setPlayer(legacy) called with $numPlayers -> emitting AskForPlayerNames")
         notifyObservers("AskForPlayerNames", AskForPlayerNames)
     }
     
     def CardAuswahl(): Unit = {
-        Debug.log("GameLogic.CardAuswahl -> notifying 'CardAuswahl'")
         notifyObservers("CardAuswahl", CardAuswahlEvent)
     }
 
     def undo(): Unit = {
         import wizard.undo.UndoService
-        Debug.log("GameLogic.undo called")
         try { 
             wizard.actionmanagement.InputRouter.offer("__UNDO__")
             UndoService.manager.undoStep()
@@ -126,7 +110,6 @@ class GameLogic extends Observable {
 
     def redo(): Unit = {
         import wizard.undo.UndoService
-        Debug.log("GameLogic.redo called")
         try { 
             wizard.actionmanagement.InputRouter.offer("__REDO__") 
             UndoService.manager.redoStep()
@@ -135,13 +118,11 @@ class GameLogic extends Observable {
     }
     
     def stopGame(): Unit = {
-        Debug.log("GameLogic.stopGame() called")
         stopCurrentGame = true
         roundLogic.stopGame = true
     }
 
     def playGame(players: List[Player], rounds: Int, initialRound: Int): Unit = {
-        Debug.log(s"GameLogic.playGame starting with rounds=$rounds from=$initialRound for players=${players.map(_.name).mkString(",")}")
         currentPlayers = players
         var currentround = initialRound
         try {
@@ -150,7 +131,6 @@ class GameLogic extends Observable {
                 currentround = i
                 currentRoundNum = i
                 val round = new Round(players)
-                Debug.log(s"GameLogic.playGame -> Round $currentround starting")
 
                 val isResumed = i == initialRound && initialRound != 0
                 roundLogic.playRound(currentround, players, isResumed, currentFirstPlayerIdx)
@@ -159,14 +139,12 @@ class GameLogic extends Observable {
             }
         } catch {
             case e: wizard.actionmanagement.GameStoppedException =>
-                Debug.log(s"GameLogic.playGame caught GameStoppedException: ${e.getMessage}")
+                ()
         }
-        Debug.log(s"GameLogic.playGame completed (stopped=$stopCurrentGame)")
     }
 
     def save(title: String): Unit = {
         if (!canSave) {
-            Debug.log("Save not allowed at this moment")
             notifyObservers("SaveNotAllowed", wizard.actionmanagement.SaveNotAllowed)
             return
         }
@@ -177,7 +155,6 @@ class GameLogic extends Observable {
         game.currentround = currentRoundNum
         game.currentTrick = roundLogic.currentTrickCards
         fileIo.save(game, currentRoundNum, currentTrumpCard, wizard.model.cards.Dealer.index, roundLogic.currentFirstPlayerIdx, filename)
-        Debug.log(s"Game saved to $filename (firstPlayerIdx=${roundLogic.currentFirstPlayerIdx})")
     }
 
     def load(title: String): Unit = {
@@ -202,7 +179,6 @@ class GameLogic extends Observable {
                 if (game.currentTrick.isEmpty && game.players.forall(_.roundTricks == 0)) {
                     val allHaveBids = game.players.forall(_.roundBids >= 0)
                     if (allHaveBids) {
-                        Debug.log("Resume at round start detected; resetting bids to trigger new bidding phase")
                         game.players.foreach(_.roundBids = -1)
                     }
                 }
@@ -210,7 +186,6 @@ class GameLogic extends Observable {
                 startGameThread(game.players, game.rounds, roundNum)
                 notifyObservers("GameLoaded", game)
             case Failure(e) =>
-                Debug.log(s"Failed to load game $filename: ${e.getMessage}")
                 notifyObservers("LoadFailed", title)
         }
     }

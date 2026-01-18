@@ -130,8 +130,12 @@ class UndoTest extends AnyWordSpec with Matchers {
       command.doStep()
       
       // undoStep should stop game and notify
+      wizard.actionmanagement.InputRouter.clear()
       command.undoStep()
       notified should be(true)
+      
+      // Verify InputRouter received the stop signal
+      wizard.actionmanagement.InputRouter.readLine() should be("__GAME_STOPPED__")
       
       // redoStep should call setPlayersFromRedo
       // We stop the game immediately to prevent the thread from hanging

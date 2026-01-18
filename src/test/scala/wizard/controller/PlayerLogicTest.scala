@@ -137,6 +137,46 @@ class PlayerLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         player.hand.cards should not contain (narre)
     }
 
+    "propagate UndoException in playCard" in {
+      val player = new TestPlayer("Test") {
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int): Card = 
+          throw new wizard.actionmanagement.InputRouter.UndoException("undo")
+      }
+      intercept[wizard.actionmanagement.InputRouter.UndoException] {
+        playerLogic.playCard(None, None, 0, player)
+      }
+    }
+
+    "propagate RedoException in playCard" in {
+      val player = new TestPlayer("Test") {
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int): Card = 
+          throw new wizard.actionmanagement.InputRouter.RedoException("redo")
+      }
+      intercept[wizard.actionmanagement.InputRouter.RedoException] {
+        playerLogic.playCard(None, None, 0, player)
+      }
+    }
+
+    "propagate UndoException in bid" in {
+      val player = new TestPlayer("Test") {
+        override def bid(): Int = 
+          throw new wizard.actionmanagement.InputRouter.UndoException("undo")
+      }
+      intercept[wizard.actionmanagement.InputRouter.UndoException] {
+        playerLogic.bid(player, 5)
+      }
+    }
+
+    "propagate RedoException in bid" in {
+      val player = new TestPlayer("Test") {
+        override def bid(): Int = 
+          throw new wizard.actionmanagement.InputRouter.RedoException("redo")
+      }
+      intercept[wizard.actionmanagement.InputRouter.RedoException] {
+        playerLogic.bid(player, 5)
+      }
+    }
+
     "static methods should work" in {
       val player = new TestPlayer("Test")
       player.points = 100
