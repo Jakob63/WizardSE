@@ -163,7 +163,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       roundLogicLocal.lastTrumpCard = None
       roundLogicLocal.playRound(30, testPlayers, isResumed = false)
 
-      Dealer.allCards = List.fill(60)(Card(Value.WizardKarte, Color.Red))
+      Dealer.allCards = List(Card(Value.Seven, Color.Blue)) ++ List.fill(59)(Card(Value.WizardKarte, Color.Red))
       Dealer.index = 0
       wizard.actionmanagement.InputRouter.clear()
       wizard.actionmanagement.InputRouter.offer("1")
@@ -187,9 +187,9 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p1.nextCard = Card(Value.One, Color.Red); p2.nextCard = Card(Value.Two, Color.Red)
       p1.hand = Hand(List(p1.nextCard)); p2.hand = Hand(List(p2.nextCard))
       
-      p2.nextBid = 2
+      p2.nextBid = 1
       roundLogicLocal.playRound(1, testPlayers, isResumed = true)
-      p2.roundBids should be(2)
+      p2.roundBids should be(1)
 
       val p1Mock = new TestPlayer("P1") {
         override def bid(): Int = throw new wizard.actionmanagement.InputRouter.UndoException("undo")
