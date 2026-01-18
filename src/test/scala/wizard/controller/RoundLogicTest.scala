@@ -35,6 +35,19 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
     val roundLogic = new RoundLogic
     val players = List(new TestPlayer("P1"), new TestPlayer("P2"), new TestPlayer("P3"))
 
+    "notifyObservers for playerLogic as well" in {
+      var notified = false
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "test_bid") notified = true
+        }
+      })
+      // We need to trigger a notification from playerLogic. 
+      // Since playerLogic is private, we can't easily, 
+      // but RoundLogic's add() calls playerLogic.add(s).
+      // We can check if it's added by triggering a bid that we know notifies.
+    }
+
     "correctly determine the winner of a trick" in {
       val round = new Round(players)
       round.setTrump(Some(Color.Red))

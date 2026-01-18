@@ -22,13 +22,14 @@ Test / parallelExecution := false
 Test / testOptions += Tests.Setup(() => println("Setting up tests..."))
 
 Test / testOptions += Tests.Filter { name =>
-  val excluded = Set("wizard.controller.RoundLogicTest")
+  val excluded = Set[String]()
   !excluded.contains(name)
 }
 
 def testOrder(name: String): Int = name match {
   case n if n.startsWith("wizard.model.cards.Card") => 1
   case n if n.startsWith("wizard.model.cards.Hand") => 2
+  case n if n.startsWith("wizard.model.Game") => 2
   case n if n.startsWith("wizard.model.player.PlayerTest") => 3
   case n if n.startsWith("wizard.model.player.PlayerFactory") => 4
   case n if n.startsWith("wizard.actionmanagement.Observer") => 5
@@ -38,7 +39,8 @@ def testOrder(name: String): Int = name match {
   case n if n.startsWith("wizard.model.player.AI") => 13
   case n if n.startsWith("wizard.controller.RoundState") => 20
   case n if n.startsWith("wizard.controller.PlayerLogic") => 21
-  case n if n.startsWith("wizard.controller.GameLogic") => 22
+  case n if n.startsWith("wizard.controller.RoundLogic") => 22
+  case n if n.startsWith("wizard.controller.GameLogic") => 23
   case n if n.startsWith("wizard.controller.SpecialRules") => 23
   case n if n.contains("undo.Undo") => 24
   case n if n.contains("fileIo") || n.contains("FileIO") => 30
