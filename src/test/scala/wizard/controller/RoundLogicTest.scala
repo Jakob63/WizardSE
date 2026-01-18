@@ -105,9 +105,9 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p1.nextBid = 1
       p2.nextBid = 0
       p3.nextBid = 1
-      p1.roundBids = 1
-      p2.roundBids = 0
-      p3.roundBids = 1
+      p1.roundBids = -1
+      p2.roundBids = -1
+      p3.roundBids = -1
       
       val c1 = Card(Value.Five, Color.Red)
       val c2 = Card(Value.Ten, Color.Red)
