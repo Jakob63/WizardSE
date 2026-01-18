@@ -3,7 +3,7 @@ package wizard.controller
 import wizard.model.cards.{Card, Color, Dealer, Value}
 import wizard.model.player.Player
 import wizard.model.rounds.Round
-import wizard.actionmanagement.{CardsDealt, Observable, Observer, ShowHand, Debug}
+import wizard.actionmanagement.{CardsDealt, Observable, Observer, ShowHand}
 
 
 case class PlayerSnapshot(name: String, roundBids: Int, points: Int)
@@ -35,15 +35,9 @@ class RoundLogic extends Observable {
         val trumpCardOpt: Option[Card] = if (isResumed && lastTrumpCard.isDefined) {
             lastTrumpCard
         } else {
-            val trumpCardIndex = currentround * players.length
-            if (trumpCardIndex < Dealer.allCards.length) {
-                val card = Dealer.allCards(trumpCardIndex)
-                Debug.log(s"RoundLogic.playRound -> Round $currentround, trump index $trumpCardIndex, trump card: $card")
-                Some(card)
-            } else {
-                Debug.log(s"RoundLogic.playRound -> Round $currentround, no trump card left at index $trumpCardIndex")
-                None
-            }
+            val trumpCardIndex = (currentround * players.length) % Dealer.allCards.length
+            val card = Dealer.allCards(trumpCardIndex)
+            Some(card)
         }
         lastTrumpCard = trumpCardOpt
         gameLogic.foreach(_.currentTrumpCard = trumpCardOpt)
@@ -80,12 +74,10 @@ class RoundLogic extends Observable {
         val biddingDone = isResumed && players.forall(_.roundBids >= 0)
         
         if (!biddingDone) {
-            Debug.log(s"Starting bidding phase. isResumed=$isResumed, bids=${players.map(_.roundBids).mkString(",")}")
             var pIdx = 0
             while (pIdx < players.length && !stopGame) {
                 val player = players(pIdx)
                 if (isResumed && player.roundBids >= 0) {
-                    Debug.log(s"Skipping bid for ${player.name} as it's already ${player.roundBids}")
                     pIdx += 1
                 } else {
                     try {
@@ -106,7 +98,6 @@ class RoundLogic extends Observable {
                 }
             }
         } else {
-            Debug.log("Bidding phase skipped during resume")
             players.foreach(p => notifyObservers("ShowHand", ShowHand(p)))
         }
 
@@ -125,7 +116,6 @@ class RoundLogic extends Observable {
                 currentTrickCards.find(c => c.value != Value.WizardKarte && c.value != Value.Chester).foreach { firstNormalCard =>
                     round.leadColor = Some(firstNormalCard.color)
                 }
-                Debug.log(s"RoundLogic -> Emitting initial resumed trick state: ${currentTrickCards.size} cards")
                 notifyObservers("TrickUpdated", currentTrickCards)
                 if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
             }
@@ -135,28 +125,22 @@ class RoundLogic extends Observable {
             var trick = List[(Player, Card)]()
             var trickIdx = 0
 
-            Debug.log(s"RoundLogic -> Starting trick $i. currentTrickCards was: ${currentTrickCards.size} cards. First player: ${trickPlayers.head.name}. resumedTrickInProgress: $resumedTrickInProgress")
-
             while (trickIdx < trickPlayers.length && !stopGame) {
                 if (resumedTrickInProgress && trickIdx < currentTrickCards.size) {
                     val resumedPlayer = trickPlayers(trickIdx)
                     val resumedCard = currentTrickCards(trickIdx)
-                    Debug.log(s"RoundLogic -> resuming card at trickIdx $trickIdx for ${resumedPlayer.name}: $resumedCard")
                     trick = trick :+ (resumedPlayer, resumedCard)
                     trickIdx += 1
                 } else {
                     val player = trickPlayers(trickIdx)
-                    Debug.log(s"RoundLogic -> Waiting for card from ${player.name} at trickIdx $trickIdx")
                     try {
                         val card = playerLogic.playCard(round.leadColor, round.trump, trickIdx, player)
                         gameLogic.foreach(_.setCanSave(false))
                         if (round.leadColor.isEmpty && card.value != Value.WizardKarte && card.value != Value.Chester) {
                             round.leadColor = Some(card.color)
-                            Debug.log(s"RoundLogic -> leadColor set to ${card.color}")
                         }
                         trick = trick :+ (player, card)
                         currentTrickCards = trick.map(_._2)
-                        Debug.log(s"RoundLogic -> card played by ${player.name}: $card. Trick now has ${currentTrickCards.size} cards")
                         notifyObservers("TrickUpdated", currentTrickCards)
                         
                         if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
@@ -178,16 +162,15 @@ class RoundLogic extends Observable {
                                 notifyObservers("TrickUpdated", trick.map(_._2))
                             }
                         case _: wizard.actionmanagement.InputRouter.RedoException =>
-                             if (trickIdx < trickPlayers.length - 1) {
-                                 trickIdx += 1
-                             }
-                             notifyObservers("RedoPerformed")
+                            if (trickIdx < trickPlayers.length - 1) {
+                                trickIdx += 1
+                            }
+                            notifyObservers("RedoPerformed")
                     }
                 }
             }
             if (!stopGame) {
                 val winner = trickwinner(trick, round)
-                Debug.log(s"RoundLogic -> trick winner: ${winner.name}")
                 notifyObservers("trick winner", winner)
                 if (gameLogic.exists(_.isInteractive)) Thread.sleep(800)
                 winner.roundTricks += 1

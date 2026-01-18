@@ -58,5 +58,17 @@ class RoundStateTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       state.handleTrump(round, trumpCard, players)
       round.trump should be(Some(Color.Red))
     }
+
+    "WizardCardState should throw GameStoppedException when __GAME_STOPPED__ is received" in {
+      val state = new WizardCardState
+      val trumpCard = Card(Value.WizardKarte, Color.Yellow)
+      
+      InputRouter.clear()
+      InputRouter.offer("__GAME_STOPPED__")
+      
+      intercept[wizard.actionmanagement.GameStoppedException] {
+        state.handleTrump(round, trumpCard, players)
+      }
+    }
   }
 }

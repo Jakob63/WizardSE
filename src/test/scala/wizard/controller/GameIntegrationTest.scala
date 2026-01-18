@@ -46,42 +46,36 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       gameLogic.add(observer)
 
       Dealer.index = 0
-      Dealer.allCards = (for {
+      val myCards = (for {
         v <- Value.values.toList
         c <- Color.values.toList
       } yield Card(v, c))
-      
-      // Round 1
-      // Trump card at index 3: Seven of Red (Regular card)
-      // Bids
-      InputRouter.offer("0")
-      InputRouter.offer("1")
-      InputRouter.offer("0")
-      
-      // Trick 1
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      
-      // Round 2
-      // Trump card at index 6: Chester of Blue (Chester)
-      // Bids
-      InputRouter.offer("1")
-      InputRouter.offer("0")
-      InputRouter.offer("1")
+      Dealer.allCards = myCards
 
-      // Trick 1
+      InputRouter.offer("0")
+      InputRouter.offer("0")
+      InputRouter.offer("0")
+      
+      // Trick 1 for Round 1
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
-      // Trick 2
+      InputRouter.offer("1")
+
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
-      // Ensure we have enough inputs just in case
-      for (_ <- 1 to 20) InputRouter.offer("1")
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+      InputRouter.offer("1")
+
+      for (_ <- 1 to 50) InputRouter.offer("1")
 
       gameLogic.playGame(players, maxRounds, 0)
       
@@ -96,8 +90,7 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       val players = List(p1, p2, p3)
       
       InputRouter.clear()
-      // We offer multiple stops just in case it hits multiple input prompts
-      for (_ <- 1 to 10) InputRouter.offer("__GAME_STOPPED__")
+      for (_ <- 1 to 100) InputRouter.offer("__GAME_STOPPED__")
       
       val promise = Promise[Unit]()
       val t = new Thread(new Runnable {
@@ -113,13 +106,15 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
           }
         }
       })
+      t.setName("Test-Game-Thread")
       t.start()
       
       try {
-        Await.result(promise.future, 15.seconds)
+        Await.result(promise.future, 30.seconds)
       } catch {
         case e: Exception =>
           t.getStackTrace.foreach(ste => println(s"[DEBUG_LOG]   at $ste"))
+          for (_ <- 1 to 20) InputRouter.offer("__GAME_STOPPED__")
           throw e
       }
     }

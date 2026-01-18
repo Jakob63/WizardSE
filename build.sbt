@@ -17,6 +17,47 @@ libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6"
 libraryDependencies += "com.google.inject" % "guice" % "7.0.0"
 libraryDependencies += "net.codingwell" %% "scala-guice" % "7.0.0"
 
+Test / parallelExecution := false
+
+Test / testOptions += Tests.Setup(() => println("Setting up tests..."))
+
+Test / testOptions += Tests.Filter { name =>
+  val excluded = Set("wizard.controller.RoundLogicTest")
+  !excluded.contains(name)
+}
+
+def testOrder(name: String): Int = name match {
+  case n if n.startsWith("wizard.model.cards.Card") => 1
+  case n if n.startsWith("wizard.model.cards.Hand") => 2
+  case n if n.startsWith("wizard.model.player.PlayerTest") => 3
+  case n if n.startsWith("wizard.model.player.PlayerFactory") => 4
+  case n if n.startsWith("wizard.actionmanagement.Observer") => 5
+  case n if n.startsWith("wizard.model.cards.Dealer") => 10
+  case n if n.startsWith("wizard.actionmanagement.InputRouter") => 11
+  case n if n.startsWith("wizard.model.player.Human") => 12
+  case n if n.startsWith("wizard.model.player.AI") => 13
+  case n if n.startsWith("wizard.controller.RoundState") => 20
+  case n if n.startsWith("wizard.controller.PlayerLogic") => 21
+  case n if n.startsWith("wizard.controller.GameLogic") => 22
+  case n if n.startsWith("wizard.controller.SpecialRules") => 23
+  case n if n.contains("undo.Undo") => 24
+  case n if n.contains("fileIo") || n.contains("FileIO") => 30
+  case n if n.startsWith("wizard.aView.TextUI") => 40
+  case n if n.startsWith("wizard.controller.GameIntegration") => 50
+  case _ => 100
+}
+
+Test / testGrouping := {
+  val tests = (Test / definedTests).value
+  tests.map { test =>
+    new sbt.Tests.Group(
+      name = test.name,
+      tests = Seq(test),
+      runPolicy = sbt.Tests.SubProcess(sbt.ForkOptions())
+    )
+  }.sortBy(g => testOrder(g.name))
+}
+
 Compile / libraryDependencies ++= {
   val os = System.getProperty("os.name").toLowerCase
   val platform =

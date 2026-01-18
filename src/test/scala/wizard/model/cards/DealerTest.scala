@@ -4,10 +4,15 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.TimeLimitedTests
 import org.scalatest.time.SpanSugar.*
+import org.scalatest.BeforeAndAfterEach
 
-class DealerTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+class DealerTest extends AnyWordSpec with Matchers with TimeLimitedTests with BeforeAndAfterEach {
 
   val timeLimit = 30.seconds
+
+  override def beforeEach(): Unit = {
+    Dealer.index = 0
+  }
 
   "The Dealer" should {
     "have all 60 cards initially (15 values * 4 colors)" in {

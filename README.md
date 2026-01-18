@@ -40,7 +40,7 @@ sbt run
 ```
 
 ### Tests ausführen
-Die Badge anschauen *oder* in die Pipeline schauen *oder* per Terminal (dauert lange):
+WizardSE\src\test\wizard\*
 
 ```bash
 sbt test

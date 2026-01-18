@@ -2,8 +2,13 @@ package wizard.actionmanagement
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
+import scala.concurrent.duration.*
 
-class ObserverTest extends AnyWordSpec with Matchers {
+class ObserverTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   "An Observable" should {
     "allow adding and removing observers" in {
@@ -78,51 +83,6 @@ class ObserverTest extends AnyWordSpec with Matchers {
       observable.notifyObservers("test")
       
       nextCalled should be(true)
-    }
-  }
-
-  "Debug" should {
-    "be initialized without crashing" in {
-        Debug.initEnvironment()
-        Debug.log("Test log")
-    }
-
-    "handle various system property values for enabled" in {
-        Debug.enabled should (be(true) or be(false))
-    }
-
-    "filter JavaFX warnings from stderr" in {
-        val out = new java.io.ByteArrayOutputStream()
-        val filteringStream = new java.io.PrintStream(new java.io.OutputStream {
-            private val buffer = new StringBuilder()
-            override def write(b: Int): Unit = {
-                val c = b.toChar
-                buffer.append(c)
-                if (c == '\n') {
-                    val line = buffer.toString()
-                    if (!line.contains("Unsupported JavaFX configuration: classes were loaded from 'unnamed module")) {
-                        out.write(line.getBytes)
-                    }
-                    buffer.setLength(0)
-                }
-            }
-        })
-
-        val oldErr = System.err
-        System.setErr(filteringStream)
-        try {
-            System.err.println("Unsupported JavaFX configuration: classes were loaded from 'unnamed module")
-            System.err.println("Important Error")
-            System.err.flush()
-            
-            Thread.sleep(50)
-            
-            val output = out.toString()
-            output should not include ("Unsupported JavaFX configuration")
-            output should include ("Important Error")
-        } finally {
-            System.setErr(oldErr)
-        }
     }
   }
 }

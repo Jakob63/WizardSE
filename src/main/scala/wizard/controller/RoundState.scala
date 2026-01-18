@@ -44,7 +44,6 @@ class WizardCardState extends RoundState {
         val inputStr = wizard.actionmanagement.InputRouter.readLine().trim
         if (inputStr == "__GAME_STOPPED__") throw new wizard.actionmanagement.GameStoppedException("Game stopped during trump selection")
         
-        wizard.actionmanagement.Debug.log(s"WizardCardState.determineTrump -> inputStr: '$inputStr'")
         val chosenIdx = scala.util.Try(inputStr.toInt).toOption.getOrElse(1) - 1
         val chosenColor = colorOptions.lift(chosenIdx).getOrElse(Color.Red)
 

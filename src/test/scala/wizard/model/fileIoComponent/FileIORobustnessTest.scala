@@ -4,13 +4,24 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.TimeLimitedTests
 import org.scalatest.time.SpanSugar.*
+import org.scalatest.BeforeAndAfterEach
 import wizard.controller.GameLogic
 import wizard.actionmanagement.Observer
+import wizard.actionmanagement.InputRouter
 import java.io.{File, PrintWriter}
 
-class FileIORobustnessTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+class FileIORobustnessTest extends AnyWordSpec with Matchers with TimeLimitedTests with BeforeAndAfterEach {
 
   val timeLimit = 30.seconds
+
+  override def beforeEach(): Unit = {
+    InputRouter.clear()
+    System.setProperty("WIZARD_INTERACTIVE", "false")
+  }
+
+  override def afterEach(): Unit = {
+    System.setProperty("WIZARD_INTERACTIVE", "true")
+  }
 
   class TestObserver extends Observer {
     var loadFailedCalled = false

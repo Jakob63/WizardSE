@@ -9,7 +9,7 @@ class StartGameCommand(gameLogic: GameLogic, players: List[Player]) extends Comm
 
   override def undoStep(): Unit = {
     gameLogic.stopGame()
-    try { wizard.actionmanagement.InputRouter.offer("__GAME_STOPPED__") } catch { case _: Throwable => () }
+    wizard.actionmanagement.InputRouter.offer("__GAME_STOPPED__")
     gameLogic.notifyObservers("AskForPlayerNames", wizard.actionmanagement.AskForPlayerNames)
   }
 

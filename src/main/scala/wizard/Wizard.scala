@@ -3,7 +3,6 @@ package wizard
 import wizard.aView.TextUI
 import wizard.controller.GameLogic
 import wizard.aView.aView_GUI.WizardGUI
-import wizard.actionmanagement.Debug
 
 object Wizard {
     val eol: String = sys.props("line.separator")
@@ -38,15 +37,10 @@ object Wizard {
         bar2() + cells5() + cells4() + cells5() + bar2()
 
     def main(args: Array[String]): Unit = {
-      Debug.enabled = false // hier für Debug Logs auf true setzen
-      Debug.initEnvironment()
         try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
-        Debug.log("Wizard.main -> created GameLogic controller")
         val tui = new TextUI(controlG)
-        Debug.log("Wizard.main -> created TextUI and registered as observer")
         val gui = new WizardGUI(controlG)
-        Debug.log("Wizard.main -> created WizardGUI")
 
         gui.main(args)
     }

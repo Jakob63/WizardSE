@@ -2,12 +2,17 @@ package wizard.undo
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
 import wizard.model.player.Player
 import wizard.model.cards.{Card, Color, Value, Hand}
 import wizard.controller.GameLogic
 import wizard.actionmanagement.Observer
+import scala.concurrent.duration.*
 
-class UndoTest extends AnyWordSpec with Matchers {
+class UndoTest extends AnyWordSpec with Matchers with TimeLimitedTests {
+
+  val timeLimit = 30.seconds
 
   class TestPlayer(name: String) extends Player(name) {
     override def bid(): Int = 0
@@ -130,8 +135,12 @@ class UndoTest extends AnyWordSpec with Matchers {
       command.doStep()
       
       // undoStep should stop game and notify
+      wizard.actionmanagement.InputRouter.clear()
       command.undoStep()
       notified should be(true)
+      
+      // Verify InputRouter received the stop signal
+      wizard.actionmanagement.InputRouter.readLine() should be("__GAME_STOPPED__")
       
       // redoStep should call setPlayersFromRedo
       // We stop the game immediately to prevent the thread from hanging

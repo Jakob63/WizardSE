@@ -1,6 +1,6 @@
 package wizard.aView
 
-import wizard.actionmanagement.{CardsDealt, Observer, Debug, InputRouter}
+import wizard.actionmanagement.{CardsDealt, Observer, InputRouter}
 import wizard.model.cards.*
 import wizard.model.player.PlayerType.Human
 import wizard.model.player.{Player, PlayerFactory}
@@ -10,11 +10,9 @@ import wizard.controller.{GameLogic, PlayerSnapshot}
 import scala.util.{Success, Try}
 
 object TextUI {
-  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
     val eol: String = sys.props.getOrElse("line.separator", "\n")
 
     def update(updateMSG: String, obj: Any*): Any = {
-        Debug.log(s"TextUI.update('$updateMSG') called")
         updateMSG match {
             case "which card" => println(s"${obj.head.asInstanceOf[Player].name}, which card do you want to play?")
             case "invalid card" => println("Invalid card. Please enter a valid index.")
@@ -181,7 +179,6 @@ class TextUI(GameController: GameLogic) extends Observer {
     }
 
     override def update(updateMSG: String, obj: Any*): Any = this.synchronized {
-        Debug.log(s"TextUI(class).update('$updateMSG') in phase=$phase")
         updateMSG match {
             case "StartGame" | "AskForPlayerCount" =>
                 if (nameReaderStarted) {
