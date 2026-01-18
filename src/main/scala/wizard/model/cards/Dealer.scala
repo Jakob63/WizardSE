@@ -34,12 +34,11 @@ object Dealer extends Observable {
             }
             var card = allCards(index)
             while (excludeCard.contains(card)) {
-                index += 1
-                if (index >= allCards.length) index = 0
+                index = (index + 1) % allCards.length
                 card = allCards(index)
             }
             listbuffer.addOne(card)
-            index += 1
+            index = (index + 1) % allCards.length
         }
         Hand(listbuffer.toList)
     }
