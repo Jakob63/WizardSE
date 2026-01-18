@@ -14,6 +14,7 @@ import scala.util.{Try, Success, Failure}
 
 
 class GameLogic extends Observable {
+  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
 
     val injector: Injector = Guice.createInjector(new WizardModule)
     val fileIo: FileIOInterface = injector.getInstance(classOf[FileIOInterface])

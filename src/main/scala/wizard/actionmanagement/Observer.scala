@@ -5,7 +5,14 @@ trait Observer {
 }
 
 object Debug {
-    val enabled: Boolean = sys.props.get("WIZARD_DEBUG").forall(v => v != "0" && v.toLowerCase != "false")
+  /*
+  Debug-Logs mit Debug.enabled = false deaktivieren
+  Deaktivierungsorte:
+  - wizard.Wizard.main
+  - wizard.controller.GameLogic
+  - wizard.aView.TextUI & WizardGUI
+  */
+    var enabled: Boolean = sys.props.get("WIZARD_DEBUG").forall(v => v != "0" && v.toLowerCase != "false")
     @inline def log(msg: => String): Unit = if (enabled) Console.err.println(s"${Console.BLUE}[DEBUG_LOG] $msg${Console.RESET}")
 
     def initEnvironment(): Unit = {

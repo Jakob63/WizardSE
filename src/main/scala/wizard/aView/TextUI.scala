@@ -10,6 +10,7 @@ import wizard.controller.{GameLogic, PlayerSnapshot}
 import scala.util.{Success, Try}
 
 object TextUI {
+  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
     val eol: String = sys.props.getOrElse("line.separator", "\n")
 
     def update(updateMSG: String, obj: Any*): Any = {

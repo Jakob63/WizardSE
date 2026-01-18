@@ -21,6 +21,8 @@ import scalafx.scene.Node
 import java.util.NoSuchElementException
 
 class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
+  wizard.actionmanagement.Debug.enabled = false // hier für Debug Logs auf true setzen
+  
   private var rootPane: Option[StackPane] = None
   private var undoRedoBar: Option[HBox] = None
   private var pendingPlayerCount: Option[Int] = None

@@ -88,7 +88,7 @@ class RoundLogic extends Observable {
                     pIdx += 1
                 } else {
                     try {
-                        playerLogic.bid(player)
+                        playerLogic.bid(player, currentround)
                         gameLogic.foreach(_.setCanSave(false))
                         pIdx += 1
                     } catch {

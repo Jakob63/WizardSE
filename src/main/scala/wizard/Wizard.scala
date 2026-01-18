@@ -38,7 +38,8 @@ object Wizard {
         bar2() + cells5() + cells4() + cells5() + bar2()
 
     def main(args: Array[String]): Unit = {
-        Debug.initEnvironment()
+      Debug.enabled = false // hier für Debug Logs auf true setzen
+      Debug.initEnvironment()
         try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
         Debug.log("Wizard.main -> created GameLogic controller")
