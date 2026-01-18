@@ -38,16 +38,18 @@ class RoundStateTest extends AnyWordSpec with Matchers {
       val state = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
+      InputRouter.clear()
       InputRouter.offer("3")
       state.handleTrump(round, trumpCard, players)
       
-      round.trump should be(Some(Color.Green))
+      round.trump should be(Some(Color.Blue))
     }
 
     "WizardCardState should default to Red on invalid input" in {
       val state = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
+      InputRouter.clear()
       InputRouter.offer("abc")
       state.handleTrump(round, trumpCard, players)
       round.trump should be(Some(Color.Red))

@@ -37,7 +37,7 @@ class WizardCardState extends RoundState {
 
     private def determineTrump(round: Round, players: List[Player]): Unit = {
         val nextPlayer = players(round.currentPlayerIndex)
-        val colorOptions = List(Color.Red, Color.Yellow, Color.Green, Color.Blue)
+        val colorOptions = List(Color.Red, Color.Green, Color.Blue, Color.Yellow)
         val colorCards = colorOptions.map(color => Card(Value.One, color))
 
         round.notifyObservers("which trump", nextPlayer)

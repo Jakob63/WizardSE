@@ -36,16 +36,18 @@ class SpecialRulesTest extends AnyWordSpec with Matchers {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
+      InputRouter.clear()
       InputRouter.offer("4")
       wizardState.handleTrump(round, trumpCard, players)
       
-      round.trump should be(Some(Color.Blue))
+      round.trump should be(Some(Color.Yellow))
     }
     
     "handle Wizard as trump card with invalid input by defaulting to Red" in {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
+      InputRouter.clear()
       InputRouter.offer("invalid")
       wizardState.handleTrump(round, trumpCard, players)
       
@@ -66,6 +68,7 @@ class SpecialRulesTest extends AnyWordSpec with Matchers {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
+      InputRouter.clear()
       InputRouter.offer("10")
       wizardState.handleTrump(round, trumpCard, players)
       

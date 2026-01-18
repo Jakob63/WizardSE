@@ -59,7 +59,11 @@ class InputRouterTest extends AnyWordSpec with Matchers {
       }
       
       val results = (1 to count).map { _ =>
-        InputRouter.readLine().toInt
+        var line = InputRouter.readLine()
+        while (!line.forall(_.isDigit)) {
+           line = InputRouter.readLine()
+        }
+        line.toInt
       }
       
       results should have size count

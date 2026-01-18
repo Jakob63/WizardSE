@@ -36,8 +36,8 @@ object InputRouter {
   def readLine(): String = {
     ensureFeeder()
     val res = queue.take()
-    if (res == "__UNDO__") throw new UndoException("undo")
-    if (res == "__REDO__") throw new RedoException("redo")
+    if (res.trim.toUpperCase == "__UNDO__") throw new UndoException("undo")
+    if (res.trim.toUpperCase == "__REDO__") throw new RedoException("redo")
     res
   }
 
