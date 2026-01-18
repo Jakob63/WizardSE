@@ -80,6 +80,9 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       InputRouter.offer("1")
       InputRouter.offer("1")
 
+      // Ensure we have enough inputs just in case
+      for (_ <- 1 to 20) InputRouter.offer("1")
+
       gameLogic.playGame(players, maxRounds, 0)
       
       roundsFinished should be(maxRounds)
