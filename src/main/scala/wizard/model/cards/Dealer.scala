@@ -29,9 +29,7 @@ object Dealer extends Observable {
     def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {
         val listbuffer = ListBuffer[Card]()
         for (i <- 1 to cards_amount) {
-            if (index >= allCards.length) {
-                index = 0
-            }
+            index = index % allCards.length
             var card = allCards(index)
             while (excludeCard.contains(card)) {
                 index = (index + 1) % allCards.length
