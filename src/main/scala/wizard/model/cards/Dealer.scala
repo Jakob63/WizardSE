@@ -19,8 +19,14 @@ object Dealer extends Observable {
 
     def shuffleCards(): Boolean = {
         index = 0
-        allCards = scala.util.Random().shuffle(allCards)
-        wizard.actionmanagement.Debug.log(s"Dealer.shuffleCards -> first card: ${allCards.headOption}")
+        val isInteractive = {
+            val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
+            prop || (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
+        }
+        if (isInteractive) {
+            allCards = scala.util.Random().shuffle(allCards)
+        }
+        wizard.actionmanagement.Debug.log(s"Dealer.shuffleCards (interactive=$isInteractive) -> first card: ${allCards.headOption}")
         true
     }
     def dealCards(cards_amount: Int, excludeCard: Option[Card] = None): Hand = {

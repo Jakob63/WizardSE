@@ -8,7 +8,12 @@ object InputRouter {
   @volatile private var feederStarted = false
 
   private def ensureFeeder(): Unit = this.synchronized {
-    if (!feederStarted) {
+    val isInteractive = {
+      val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
+      prop || (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
+    }
+    
+    if (!feederStarted && isInteractive) {
       feederStarted = true
       val t = new Thread(new Runnable {
         override def run(): Unit = {

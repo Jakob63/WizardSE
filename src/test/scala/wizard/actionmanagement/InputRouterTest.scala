@@ -2,33 +2,38 @@ package wizard.actionmanagement
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
+import org.scalatest.BeforeAndAfterEach
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class InputRouterTest extends AnyWordSpec with Matchers {
+class InputRouterTest extends AnyWordSpec with Matchers with TimeLimitedTests with BeforeAndAfterEach {
+
+  val timeLimit = 30.seconds
+
+  override def beforeEach(): Unit = {
+    InputRouter.clear()
+  }
 
   "InputRouter" should {
     "store and retrieve lines" in {
-      InputRouter.clear()
       InputRouter.offer("test input")
       InputRouter.readLine() should be("test input")
     }
 
     "handle integer inputs" in {
-      InputRouter.clear()
       InputRouter.offer("42")
       InputRouter.readInt() should be(42)
     }
 
     "ignore non-integer inputs when reading an int" in {
-      InputRouter.clear()
       InputRouter.offer("abc")
       InputRouter.offer("123")
       InputRouter.readInt() should be(123)
     }
 
     "throw UndoException when __UNDO__ is received" in {
-      InputRouter.clear()
       InputRouter.offer("__UNDO__")
       intercept[InputRouter.UndoException] {
         InputRouter.readLine()
@@ -36,7 +41,6 @@ class InputRouterTest extends AnyWordSpec with Matchers {
     }
 
     "throw RedoException when __REDO__ is received" in {
-      InputRouter.clear()
       InputRouter.offer("__REDO__")
       intercept[InputRouter.RedoException] {
         InputRouter.readLine()
@@ -44,13 +48,11 @@ class InputRouterTest extends AnyWordSpec with Matchers {
     }
 
     "return __GAME_STOPPED__ when offered" in {
-      InputRouter.clear()
       InputRouter.offer("__GAME_STOPPED__")
       InputRouter.readLine() should be("__GAME_STOPPED__")
     }
 
     "be thread-safe for concurrent offers and reads" in {
-      InputRouter.clear()
       val count = 100
       val futures = (1 to count).map { i =>
         Future {
@@ -71,7 +73,6 @@ class InputRouterTest extends AnyWordSpec with Matchers {
     }
     
     "handle null inputs gracefully in offer" in {
-        InputRouter.clear()
         InputRouter.offer(null)
         InputRouter.offer("valid")
         InputRouter.readLine() should be("valid")

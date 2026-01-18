@@ -2,12 +2,21 @@ package wizard.controller
 
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.concurrent.TimeLimitedTests
+import org.scalatest.time.SpanSugar.*
+import org.scalatest.BeforeAndAfterEach
 import wizard.model.player.Player
 import wizard.model.cards.{Card, Color, Value}
 import wizard.model.rounds.Round
 import wizard.actionmanagement.InputRouter
 
-class SpecialRulesTest extends AnyWordSpec with Matchers {
+class SpecialRulesTest extends AnyWordSpec with Matchers with TimeLimitedTests with BeforeAndAfterEach {
+
+  val timeLimit = 30.seconds
+
+  override def beforeEach(): Unit = {
+    InputRouter.clear()
+  }
 
   class TestPlayer(name: String) extends Player(name) {
     override def bid(): Int = 0
@@ -36,7 +45,6 @@ class SpecialRulesTest extends AnyWordSpec with Matchers {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
-      InputRouter.clear()
       InputRouter.offer("4")
       wizardState.handleTrump(round, trumpCard, players)
       
@@ -47,7 +55,6 @@ class SpecialRulesTest extends AnyWordSpec with Matchers {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
-      InputRouter.clear()
       InputRouter.offer("invalid")
       wizardState.handleTrump(round, trumpCard, players)
       
@@ -68,7 +75,6 @@ class SpecialRulesTest extends AnyWordSpec with Matchers {
       val wizardState = new WizardCardState
       val trumpCard = Card(Value.WizardKarte, Color.Yellow)
       
-      InputRouter.clear()
       InputRouter.offer("10")
       wizardState.handleTrump(round, trumpCard, players)
       
