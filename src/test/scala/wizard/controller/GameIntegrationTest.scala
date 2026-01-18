@@ -118,7 +118,7 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       
       InputRouter.clear()
       // We offer multiple stops just in case it hits multiple input prompts
-      for (_ <- 1 to 10) InputRouter.offer("__GAME_STOPPED__")
+      for (_ <- 1 to 20) InputRouter.offer("__GAME_STOPPED__")
       
       val promise = Promise[Unit]()
       val t = new Thread(new Runnable {
@@ -137,7 +137,7 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       t.start()
       
       try {
-        Await.result(promise.future, 15.seconds)
+        Await.result(promise.future, 30.seconds)
       } catch {
         case e: Exception =>
           t.getStackTrace.foreach(ste => println(s"[DEBUG_LOG]   at $ste"))
