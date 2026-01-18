@@ -32,12 +32,12 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
   }
 
   "RoundLogic" should {
-    val roundLogic = new RoundLogic
     val players = List(new TestPlayer("P1"), new TestPlayer("P2"), new TestPlayer("P3"))
 
     "notifyObservers for playerLogic as well" in {
+      val roundLogicLocal = new RoundLogic
       var notified = false
-      roundLogic.add(new Observer {
+      roundLogicLocal.add(new Observer {
         override def update(msg: String, obj: Any*): Any = {
           if (msg == "test_bid") notified = true
         }
@@ -45,6 +45,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
     }
 
     "correctly determine the winner of a trick" in {
+      val roundLogicLocal = new RoundLogic
       val round = new Round(players)
       round.setTrump(Some(Color.Red))
       
@@ -53,14 +54,14 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         (players(1), Card(Value.WizardKarte, Color.Blue)),
         (players(2), Card(Value.Thirteen, Color.Red))
       )
-      roundLogic.trickwinner(trick1, round) should be(players(1))
+      roundLogicLocal.trickwinner(trick1, round) should be(players(1))
 
       val trick2 = List(
         (players(0), Card(Value.Seven, Color.Red)),
         (players(1), Card(Value.Thirteen, Color.Blue)),
         (players(2), Card(Value.Two, Color.Red))
       )
-      roundLogic.trickwinner(trick2, round) should be(players(0))
+      roundLogicLocal.trickwinner(trick2, round) should be(players(0))
 
       round.setTrump(None)
       val trick3 = List(
@@ -68,21 +69,21 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         (players(1), Card(Value.Twelve, Color.Blue)),
         (players(2), Card(Value.Three, Color.Red))
       )
-      roundLogic.trickwinner(trick3, round) should be(players(1))
+      roundLogicLocal.trickwinner(trick3, round) should be(players(1))
 
       val trick4 = List(
         (players(0), Card(Value.Chester, Color.Red)),
         (players(1), Card(Value.Chester, Color.Blue)),
         (players(2), Card(Value.Chester, Color.Green))
       )
-      roundLogic.trickwinner(trick4, round) should be(players(0))
+      roundLogicLocal.trickwinner(trick4, round) should be(players(0))
 
       val trick5 = List(
         (players(0), Card(Value.Chester, Color.Red)),
         (players(1), Card(Value.WizardKarte, Color.Blue)),
         (players(2), Card(Value.WizardKarte, Color.Green))
       )
-      roundLogic.trickwinner(trick5, round) should be(players(1))
+      roundLogicLocal.trickwinner(trick5, round) should be(players(1))
 
       round.setTrump(None)
       round.leadColor = Some(Color.Red)
@@ -91,10 +92,11 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         (players(1), Card(Value.Five, Color.Green)),
         (players(2), Card(Value.Ten, Color.Yellow))
       )
-      roundLogic.trickwinner(trick6, round) should be(players(0))
+      roundLogicLocal.trickwinner(trick6, round) should be(players(0))
     }
 
     "play a round correctly (simplified)" in {
+      val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
       val p2 = new TestPlayer("P2")
       val p3 = new TestPlayer("P3")
@@ -122,7 +124,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       Dealer.allCards = List(c1, c2, c3, Card(Value.Seven, Color.Red)) ++ Dealer.allCards.drop(4)
       Dealer.index = 0
       
-      roundLogic.playRound(1, testPlayers, isResumed = true)
+      roundLogicLocal.playRound(1, testPlayers, isResumed = true)
       
       p2.roundTricks should be(1)
       p1.roundTricks should be(0)
@@ -134,6 +136,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
     }
 
     "handle various resumed scenarios and edge cases" in {
+      val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
       val p2 = new TestPlayer("P2")
       val p3 = new TestPlayer("P3")
@@ -143,7 +146,7 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       Dealer.allCards = cards
       Dealer.index = 0
 
-      roundLogic.lastTrumpCard = Some(Card(Value.Seven, Color.Green))
+      roundLogicLocal.lastTrumpCard = Some(Card(Value.Seven, Color.Green))
       
       p1.nextBid = 1; p2.nextBid = 1; p3.nextBid = 1
       p1.nextCard = Card(Value.One, Color.Red)
@@ -153,23 +156,24 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p2.hand = Hand(List(p2.nextCard))
       p3.hand = Hand(List(p3.nextCard))
 
-      roundLogic.playRound(1, testPlayers, isResumed = true)
-      roundLogic.lastTrumpCard should be(Some(Card(Value.Seven, Color.Green)))
+      roundLogicLocal.playRound(1, testPlayers, isResumed = true)
+      roundLogicLocal.lastTrumpCard should be(Some(Card(Value.Seven, Color.Green)))
 
       Dealer.index = 58
-      roundLogic.lastTrumpCard = None
-      roundLogic.playRound(30, testPlayers, isResumed = false)
+      roundLogicLocal.lastTrumpCard = None
+      roundLogicLocal.playRound(30, testPlayers, isResumed = false)
 
       Dealer.allCards = List.fill(60)(Card(Value.WizardKarte, Color.Red))
       Dealer.index = 0
       wizard.actionmanagement.InputRouter.clear()
       wizard.actionmanagement.InputRouter.offer("1")
-      roundLogic.playRound(1, testPlayers, isResumed = false)
+      roundLogicLocal.playRound(1, testPlayers, isResumed = false)
 
       Dealer.allCards = Nil
     }
 
     "handle bidding undo/redo and skips" in {
+      val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
       val p2 = new TestPlayer("P2")
       val testPlayers = List(p1, p2)
@@ -184,14 +188,14 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p1.hand = Hand(List(p1.nextCard)); p2.hand = Hand(List(p2.nextCard))
       
       p2.nextBid = 2
-      roundLogic.playRound(1, testPlayers, isResumed = true)
+      roundLogicLocal.playRound(1, testPlayers, isResumed = true)
       p2.roundBids should be(2)
 
       val p1Mock = new TestPlayer("P1") {
         override def bid(): Int = throw new wizard.actionmanagement.InputRouter.UndoException("undo")
       }
       intercept[wizard.actionmanagement.GameStoppedException] {
-         roundLogic.playRound(1, List(p1Mock), isResumed = false)
+         roundLogicLocal.playRound(1, List(p1Mock), isResumed = false)
       }
 
       val p1Redo = new TestPlayer("P1") {
@@ -208,10 +212,11 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p1Normal.nextCard = p1Normal.hand.getCard(0)
       p1Redo.nextCard = p1Redo.hand.getCard(0)
       
-      roundLogic.playRound(1, List(p1Redo, p1Normal), isResumed = false)
+      roundLogicLocal.playRound(1, List(p1Redo, p1Normal), isResumed = false)
     }
 
     "handle trick undo/redo and resumed trick state" in {
+      val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
       val p2 = new TestPlayer("P2")
       val testPlayers = List(p1, p2)
@@ -219,14 +224,14 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       Dealer.allCards = List.fill(60)(Card(Value.Eight, Color.Blue))
       Dealer.index = 0
 
-      roundLogic.currentTrickCards = List(Card(Value.Five, Color.Red), Card(Value.Six, Color.Red))
+      roundLogicLocal.currentTrickCards = List(Card(Value.Five, Color.Red), Card(Value.Six, Color.Red))
       p1.roundBids = 1; p2.roundBids = 1
       p1.hand = Hand(Nil)
       p2.hand = Hand(Nil)
 
       p1.roundTricks = 0; p2.roundTricks = 1
-      roundLogic.playRound(2, testPlayers, isResumed = true)
-      roundLogic.currentTrickCards should be(Nil)
+      roundLogicLocal.playRound(2, testPlayers, isResumed = true)
+      roundLogicLocal.currentTrickCards should be(Nil)
 
       val p1Undo = new TestPlayer("P1") {
         var callCount = 0
@@ -243,11 +248,16 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       p2Normal.nextCard = Card(Value.Two, Color.Red)
 
       val t = new Thread(() => {
-        try { roundLogic.playRound(1, List(p1Undo, p2Normal), isResumed = false) } catch { case _: Throwable => () }
+        try { 
+          roundLogicLocal.stopGame = false
+          roundLogicLocal.playRound(1, List(p1Undo, p2Normal), isResumed = false) 
+        } catch { case _: Throwable => () }
       })
+      t.setDaemon(true)
       t.start()
       Thread.sleep(500)
-      t.stop()
+      roundLogicLocal.stopGame = true
+      t.join(2000)
     }
     
     "static methods should work" in {
