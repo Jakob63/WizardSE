@@ -6,6 +6,8 @@ import wizard.model.rounds.Round
 import wizard.actionmanagement.{CardsDealt, Observable, Observer, ShowHand, Debug}
 
 
+case class PlayerSnapshot(name: String, roundBids: Int, points: Int)
+
 class RoundLogic extends Observable {
     
     private val playerLogic = new PlayerLogic
@@ -13,6 +15,7 @@ class RoundLogic extends Observable {
     var lastTrumpCard: Option[Card] = None
     var currentTrickCards: List[Card] = Nil
     var currentFirstPlayerIdx: Int = 0
+    var gameLogic: Option[GameLogic] = None
 
     override def add(s: Observer): Unit = {
         super.add(s)
@@ -20,8 +23,15 @@ class RoundLogic extends Observable {
     }
     
     def playRound(currentround: Int, players: List[Player], isResumed: Boolean = false, initialFirstPlayerIdx: Int = 0): Unit = {
+        if (!isResumed) {
+            players.foreach { player =>
+                player.roundBids = 0
+                player.roundTricks = 0
+            }
+        }
+        gameLogic.foreach(_.setCanSave(true))
         val round = new Round(players)
-        
+
         val trumpCardOpt: Option[Card] = if (isResumed && lastTrumpCard.isDefined) {
             lastTrumpCard
         } else {
@@ -36,6 +46,7 @@ class RoundLogic extends Observable {
             }
         }
         lastTrumpCard = trumpCardOpt
+        gameLogic.foreach(_.currentTrumpCard = trumpCardOpt)
 
         trumpCardOpt match {
             case Some(trumpCard) =>
@@ -64,21 +75,21 @@ class RoundLogic extends Observable {
             round.handleTrump(trumpCard, players)
             notifyObservers("print trump card", trumpCard)
         }
-val totalTricksPossible = currentround
-        val currentTotalTricks = players.map(_.roundTricks).sum
-        val cardsInHands = players.map(_.hand.cards.size).sum
-        
-        val biddingDone = isResumed && (currentTotalTricks + (cardsInHands / (if(players.isEmpty) 1 else players.length)) <= totalTricksPossible) && players.exists(_.roundBids != 0)
+
+        val biddingDone = isResumed && players.forall(_.roundBids >= 0)
         
         if (!biddingDone) {
+            Debug.log(s"Starting bidding phase. isResumed=$isResumed, bids=${players.map(_.roundBids).mkString(",")}")
             var pIdx = 0
             while (pIdx < players.length && !stopGame) {
                 val player = players(pIdx)
-                if (isResumed && player.roundBids != 0) {
+                if (isResumed && player.roundBids >= 0) {
+                    Debug.log(s"Skipping bid for ${player.name} as it's already ${player.roundBids}")
                     pIdx += 1
                 } else {
                     try {
-                        playerLogic.bid(player, currentround)
+                        playerLogic.bid(player)
+                        gameLogic.foreach(_.setCanSave(false))
                         pIdx += 1
                     } catch {
                         case _: wizard.actionmanagement.InputRouter.UndoException =>
@@ -98,17 +109,17 @@ val totalTricksPossible = currentround
             players.foreach(p => notifyObservers("ShowHand", ShowHand(p)))
         }
 
-        val tricksPlayed = currentTotalTricks
+        val tricksPlayed = players.map(_.roundTricks).sum
         var resumedTrickInProgress = isResumed && currentTrickCards.nonEmpty
-        
+
         var firstPlayerIdx = initialFirstPlayerIdx
 
         for (i <- tricksPlayed + 1 to currentround if !stopGame) {
             if (!resumedTrickInProgress) {
                 round.leadColor = None
-                currentFirstPlayerIdx = firstPlayerIdx 
+                currentFirstPlayerIdx = firstPlayerIdx
             }
-            
+
             if (resumedTrickInProgress) {
                 currentTrickCards.find(c => c.value != Value.WizardKarte && c.value != Value.Chester).foreach { firstNormalCard =>
                     round.leadColor = Some(firstNormalCard.color)
@@ -122,7 +133,7 @@ val totalTricksPossible = currentround
 
             var trick = List[(Player, Card)]()
             var trickIdx = 0
-            
+
             Debug.log(s"RoundLogic -> Starting trick $i. currentTrickCards was: ${currentTrickCards.size} cards. First player: ${trickPlayers.head.name}. resumedTrickInProgress: $resumedTrickInProgress")
 
             while (trickIdx < trickPlayers.length && !stopGame) {
@@ -137,6 +148,7 @@ val totalTricksPossible = currentround
                     Debug.log(s"RoundLogic -> Waiting for card from ${player.name} at trickIdx $trickIdx")
                     try {
                         val card = playerLogic.playCard(round.leadColor, round.trump, trickIdx, player)
+                        gameLogic.foreach(_.setCanSave(false))
                         if (round.leadColor.isEmpty && card.value != Value.WizardKarte && card.value != Value.Chester) {
                             round.leadColor = Some(card.color)
                             Debug.log(s"RoundLogic -> leadColor set to ${card.color}")
@@ -177,13 +189,17 @@ val totalTricksPossible = currentround
                 notifyObservers("trick winner", winner)
                 Thread.sleep(800)
                 winner.roundTricks += 1
-                currentTrickCards = Nil 
+                currentTrickCards = Nil
                 notifyObservers("TrickUpdated", Nil)
                 Thread.sleep(300)
                 resumedTrickInProgress = false 
-                
+
                 firstPlayerIdx = players.indexOf(winner)
                 currentFirstPlayerIdx = firstPlayerIdx
+                gameLogic.foreach(_.currentFirstPlayerIdx = firstPlayerIdx)
+                if (i == currentround) {
+                    gameLogic.foreach(_.setCanSave(true))
+                }
             }
         }
 
@@ -193,8 +209,10 @@ val totalTricksPossible = currentround
         players.foreach(player => {
             playerLogic.addPoints(player)
         })
+        val snapshots = players.map(p => PlayerSnapshot(p.name, p.roundBids, p.points))
+
         notifyObservers("points after round")
-        notifyObservers("print points all players", players)
+        notifyObservers("print points all players", snapshots)
     }
 
     def trickwinner(trick: List[(Player, Card)], round: Round): Player = {

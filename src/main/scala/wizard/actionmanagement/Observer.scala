@@ -13,7 +13,7 @@ object Debug {
             System.setProperty("javafx.logging.level", "OFF")
             System.setProperty("glass.accessible.force", "false")
             System.setProperty("jdk.module.illegalAccess", "deny")
-            
+
             val originalErr = System.err
             val filteringErr = new java.io.PrintStream(new java.io.OutputStream {
                 private val buffer = new StringBuilder()
@@ -67,7 +67,7 @@ class Observable {
         Debug.log(s"Observable.notifyObservers('$updateMSG') -> notifying ${subscribers.size} observers")
         subscribers.foreach { o =>
             try {
-                o.update(updateMSG, obj: _*)
+                o.update(updateMSG, obj*)
             } catch {
                 case e: Throwable => Debug.log(s"Observer ${o.getClass.getName} threw: ${e.getMessage}")
             }

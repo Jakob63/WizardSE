@@ -12,7 +12,8 @@ class Round(players: List[Player]) extends Observable {
     var trump: Option[Color] = None
     var leadColor: Option[Color] = None
     var currentPlayerIndex = 0
-    private var state: RoundState = _
+    private var state: RoundState = uninitialized
+
 
     def setTrump(trump: Option[Color]): Unit = {
         this.trump = trump

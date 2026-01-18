@@ -19,20 +19,26 @@ class GameLogic extends Observable {
     val fileIo: FileIOInterface = injector.getInstance(classOf[FileIOInterface])
 
     private val roundLogic = new RoundLogic
+    roundLogic.gameLogic = Some(this)
     @volatile private var started: Boolean = false
     @volatile private var selectedPlayerCount: Option[Int] = None
     @volatile private var stopCurrentGame: Boolean = false
-    
+    @volatile var canSave: Boolean = false
+
     private var currentPlayers: List[Player] = Nil
     private var currentRoundNum: Int = 0
-    private var currentTrumpCard: Option[Card] = None
-    private var currentFirstPlayerIdx: Int = 0
+    var currentTrumpCard: Option[Card] = None
+    var currentFirstPlayerIdx: Int = 0
 
     override def add(s: Observer): Unit = {
         super.add(s)
         roundLogic.add(s)
     }
-    
+
+    def setCanSave(value: Boolean): Unit = {
+        canSave = value
+    }
+
     def validGame(number: Int): Boolean = {
         number >= 3 && number <= 6
     }
@@ -40,7 +46,7 @@ class GameLogic extends Observable {
     def start(): Unit = {
         if (started) { Debug.log("GameLogic.start called but already started; returning"); return }
         started = true
-        selectedPlayerCount = None 
+        selectedPlayerCount = None
         wizard.model.cards.Dealer.shuffleCards()
         Debug.log("GameLogic.start -> notifying StartGame and AskForPlayerCount")
         notifyObservers("StartGame", StartGame)
@@ -77,7 +83,7 @@ class GameLogic extends Observable {
 
     def setPlayers(players: List[Player]): Unit = {
         Debug.log(s"GameLogic.setPlayers(${players.map(_.name).mkString(",")}); computing rounds and starting game thread")
-        
+
         import wizard.undo.{StartGameCommand, UndoService}
         UndoService.manager.doStep(new StartGameCommand(this, players))
 
@@ -106,7 +112,7 @@ class GameLogic extends Observable {
         import wizard.undo.UndoService
         Debug.log("GameLogic.undo called")
         try { 
-            wizard.actionmanagement.InputRouter.offer("__UNDO__") 
+            wizard.actionmanagement.InputRouter.offer("__UNDO__")
             UndoService.manager.undoStep()
         } catch { case _: Throwable => () }
         notifyObservers("UndoPerformed")
@@ -139,7 +145,7 @@ class GameLogic extends Observable {
                 currentRoundNum = i
                 val round = new Round(players)
                 Debug.log(s"GameLogic.playGame -> Round $currentround starting")
-                
+
                 val isResumed = (i == initialRound && initialRound != 0)
                 roundLogic.playRound(currentround, players, isResumed, currentFirstPlayerIdx)
                 currentTrumpCard = roundLogic.lastTrumpCard
@@ -153,6 +159,11 @@ class GameLogic extends Observable {
     }
 
     def save(title: String): Unit = {
+        if (!canSave) {
+            Debug.log("Save not allowed at this moment")
+            notifyObservers("SaveNotAllowed", wizard.actionmanagement.SaveNotAllowed)
+            return
+        }
         val extension = if (fileIo.isInstanceOf[wizard.model.fileIoComponent.fileIoXmlImpl.FileIO]) ".xml" else ".json"
         val filename = title + extension
         val game = Game(currentPlayers)
@@ -177,10 +188,19 @@ class GameLogic extends Observable {
                 roundLogic.currentFirstPlayerIdx = firstPlayerIdx
                 wizard.model.cards.Dealer.index = dealerIndex
                 
-                stopGame()
                 Thread.sleep(100)
                 
                 started = true
+                canSave = (roundNum != 0 && game.currentTrick.isEmpty)
+
+                if (game.currentTrick.isEmpty && game.players.forall(_.roundTricks == 0)) {
+                    val allHaveBids = game.players.forall(_.roundBids >= 0)
+                    if (allHaveBids) {
+                        Debug.log("Resume at round start detected; resetting bids to trigger new bidding phase")
+                        game.players.foreach(_.roundBids = -1)
+                    }
+                }
+
                 startGameThread(game.players, game.rounds, roundNum)
                 notifyObservers("GameLoaded", game)
             case Failure(e) =>

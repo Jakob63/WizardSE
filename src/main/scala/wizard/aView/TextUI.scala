@@ -5,7 +5,7 @@ import wizard.model.cards.*
 import wizard.model.player.PlayerType.Human
 import wizard.model.player.{Player, PlayerFactory}
 import wizard.undo.{SetPlayerNameCommand, UndoManager}
-import wizard.controller.GameLogic
+import wizard.controller.{GameLogic, PlayerSnapshot}
 
 import scala.util.{Success, Try}
 
@@ -20,7 +20,7 @@ object TextUI {
             case "follow lead" => println(s"You must follow the lead suit ${obj.head.asInstanceOf[Color].toString}.")
             case "which bid" => println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
-            case "invalid bid" => 
+            case "invalid bid" =>
                 val max = obj.head.asInstanceOf[Int]
                 val playerMsg = if (obj.length > 1) s" for player ${obj(1).asInstanceOf[Player].name}" else ""
                 println(s"Invalid bid$playerMsg. You can only bid between 0 and $max.")
@@ -28,6 +28,7 @@ object TextUI {
             case "cards dealt" => println("Cards have been dealt to all players.")
             case "trick winner" => println(s"${obj.head.asInstanceOf[Player].name} won the trick.")
             case "points after round" => println("Points after this round:")
+            case "SaveNotAllowed" => println("Bitte spiele diese Runde erst zuende.")
             case _ => ()
         }
     }
@@ -165,7 +166,7 @@ class TextUI(GameController: GameLogic) extends Observer {
     @volatile private var skipNextAskForPlayerCountReader: Boolean = false
     @volatile private var nameReaderStarted: Boolean = false
     @volatile private var cancelNameReader: Boolean = false
-    
+
     private[aView] def testPhase: String = phase
     private[aView] def testSetPhase(p: String): Unit = { phase = p }
     private[aView] def testSetNameReaderStarted(v: Boolean): Unit = { nameReaderStarted = v }
@@ -322,7 +323,7 @@ class TextUI(GameController: GameLogic) extends Observer {
                 println(s"${obj.head.asInstanceOf[Player].name}, how many tricks do you bid?")
             }
             case "invalid input, bid again" => println("Invalid input. Please enter a valid number.")
-            case "invalid bid" => 
+            case "invalid bid" =>
                 val max = obj.head.asInstanceOf[Int]
                 val playerMsg = if (obj.length > 1) s" for player ${obj(1).asInstanceOf[Player].name}" else ""
                 println(s"Invalid bid$playerMsg. You can only bid between 0 and $max.")
@@ -342,20 +343,32 @@ class TextUI(GameController: GameLogic) extends Observer {
             case "card played" => println(s"Played card: \n${TextUI.showcard(obj.head.asInstanceOf[Card])}")
             case "points after round" => println("Points after this round:")
             case "print points all players" => 
-                val players = obj.head.asInstanceOf[List[Player]]
-                val nameWidth = (players.map(_.name.length).maxOption.getOrElse(0) max "Name".length)
-                val bidWidth = 5
-                val pointWidth = 6
-                
-                val totalWidth = nameWidth + bidWidth + pointWidth + 10
+                val rawList = obj.head.asInstanceOf[List[Any]]
+                val (nameWidth, bidWidth, pointWidth) = if (rawList.isEmpty) {
+                    (4, 5, 6)
+                } else {
+                    val names = rawList.map {
+                        case p: Player => p.name
+                        case s: PlayerSnapshot => s.name
+                        case _ => ""
+                    }
+                    (names.map(_.length).max max "Name".length, 5, 6)
+                }
+
                 val separator = "+" + "-" * (nameWidth + 2) + "+" + "-" * (bidWidth + 2) + "+" + "-" * (pointWidth + 2) + "+"
                 
                 println(separator)
                 val headerFormat = "| %-" + nameWidth + "s | %-" + bidWidth + "s | %-" + pointWidth + "s |"
                 println(headerFormat.format("Name", "Bids", "Points"))
                 println(separator)
-                players.foreach { player =>
-                    println(headerFormat.format(player.name, player.roundBids.toString, player.points.toString))
+                rawList.foreach {
+                    case player: Player =>
+                        val displayBid = if (player.roundBids == -1) "0" else player.roundBids.toString
+                        println(headerFormat.format(player.name, displayBid, player.points.toString))
+                    case snapshot: PlayerSnapshot =>
+                        val displayBid = if (snapshot.roundBids == -1) "0" else snapshot.roundBids.toString
+                        println(headerFormat.format(snapshot.name, displayBid, snapshot.points.toString))
+                    case _ => ()
                 }
                 println(separator)
             case "bid einlesen" => scala.io.StdIn.readLine()
@@ -375,6 +388,7 @@ class TextUI(GameController: GameLogic) extends Observer {
                     InputRouter.offer("__BACK_TO_COUNT__")
                 } catch { case _: Throwable => () }
             }
+            case "SaveNotAllowed" => println("Bitte spiele diese Runde erst zuende.")
             case _ => ()
         }
     }
