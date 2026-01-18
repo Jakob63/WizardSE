@@ -50,35 +50,32 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
         v <- Value.values.toList
         c <- Color.values.toList
       } yield Card(v, c))
+      
+      // Round 1
+      // Trump card at index 3: Seven of Red (Regular card)
+      // Bids
       InputRouter.offer("0")
       InputRouter.offer("1")
       InputRouter.offer("0")
       
-      // Falls Wizard als Trumpf (4 Farben zur Wahl)
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-
+      // Trick 1
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
       
-      // Runde 2
+      // Round 2
+      // Trump card at index 6: Chester of Blue (Chester)
+      // Bids
       InputRouter.offer("1")
       InputRouter.offer("0")
       InputRouter.offer("1")
 
-      // Falls Wizard als Trumpf
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-      InputRouter.offer("1")
-
+      // Trick 1
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
 
+      // Trick 2
       InputRouter.offer("1")
       InputRouter.offer("1")
       InputRouter.offer("1")
