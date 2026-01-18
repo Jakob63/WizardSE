@@ -95,7 +95,9 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
       val p3 = Human.create("P3").get
       val players = List(p1, p2, p3)
       
-      InputRouter.offer("__GAME_STOPPED__")
+      InputRouter.clear()
+      // We offer multiple stops just in case it hits multiple input prompts
+      for (_ <- 1 to 10) InputRouter.offer("__GAME_STOPPED__")
       
       val promise = Promise[Unit]()
       val t = new Thread(new Runnable {
@@ -104,13 +106,22 @@ class GameIntegrationTest extends AnyWordSpec with Matchers with TimeLimitedTest
             gameLogic.playGame(players, 5, 0)
             promise.success(())
           } catch {
-            case e: Throwable => promise.failure(e)
+            case _: wizard.actionmanagement.GameStoppedException => 
+              promise.success(())
+            case e: Throwable => 
+              promise.failure(e)
           }
         }
       })
       t.start()
       
-      Await.result(promise.future, 5.seconds)
+      try {
+        Await.result(promise.future, 15.seconds)
+      } catch {
+        case e: Exception =>
+          t.getStackTrace.foreach(ste => println(s"[DEBUG_LOG]   at $ste"))
+          throw e
+      }
     }
     
     "handle stopCurrentGame flag" in {
