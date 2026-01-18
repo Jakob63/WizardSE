@@ -126,7 +126,7 @@ class RoundLogic extends Observable {
                 }
                 Debug.log(s"RoundLogic -> Emitting initial resumed trick state: ${currentTrickCards.size} cards")
                 notifyObservers("TrickUpdated", currentTrickCards)
-                Thread.sleep(500)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
             }
 
             val trickPlayers = players.drop(firstPlayerIdx) ++ players.take(firstPlayerIdx)
@@ -157,7 +157,7 @@ class RoundLogic extends Observable {
                         currentTrickCards = trick.map(_._2)
                         Debug.log(s"RoundLogic -> card played by ${player.name}: $card. Trick now has ${currentTrickCards.size} cards")
                         notifyObservers("TrickUpdated", currentTrickCards)
-                        Thread.sleep(500)
+                        if (gameLogic.exists(_.isInteractive)) Thread.sleep(500)
                         trickIdx += 1
                     } catch {
                         case _: wizard.actionmanagement.InputRouter.UndoException =>
@@ -187,11 +187,11 @@ class RoundLogic extends Observable {
                 val winner = trickwinner(trick, round)
                 Debug.log(s"RoundLogic -> trick winner: ${winner.name}")
                 notifyObservers("trick winner", winner)
-                Thread.sleep(800)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(800)
                 winner.roundTricks += 1
                 currentTrickCards = Nil
                 notifyObservers("TrickUpdated", Nil)
-                Thread.sleep(300)
+                if (gameLogic.exists(_.isInteractive)) Thread.sleep(300)
                 resumedTrickInProgress = false 
 
                 firstPlayerIdx = players.indexOf(winner)

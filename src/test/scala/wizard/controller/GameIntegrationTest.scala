@@ -13,10 +13,6 @@ class GameIntegrationTest extends AnyWordSpec with Matchers {
   "GameLogic Integration" should {
 
     "simulate a full game cycle with multiple rounds" in {
-      // WIZARD_INTERACTIVE = false für testing 
-      // damit TextUI keine eigenen Threads startet
-      System.setProperty("WIZARD_INTERACTIVE", "false")
-      
       val gameLogic = new GameLogic
       val p1 = Human.create("P1").get
       val p2 = Human.create("P2").get
@@ -24,6 +20,10 @@ class GameIntegrationTest extends AnyWordSpec with Matchers {
       val players = List(p1, p2, p3)
       
       val maxRounds = 2
+      
+      // WIZARD_INTERACTIVE = false für testing 
+      // damit TextUI keine eigenen Threads startet und RoundLogic keine sleeps macht
+      System.setProperty("WIZARD_INTERACTIVE", "false")
       
       var roundsFinished = 0
       val observer = new Observer {

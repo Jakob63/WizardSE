@@ -73,8 +73,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
       onAction = _ => showSaveDialog()
     }
     undoBtn.onAction = _ => {
-      val t = new Thread(new Runnable {
-        override def run(): Unit = {
+      val t = new Thread(() => {
           try {
             if (currentScreen == "PlayerNames") {
               try { gameController.resetPlayerCountSelection() } catch { case _: Throwable => () }
@@ -84,12 +83,11 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
           } catch {
             case _: Throwable => ()
           }
-        }
       })
       t.setDaemon(true); t.start()
     }
     redoBtn.onAction = _ => {
-      val t = new Thread(new Runnable { override def run(): Unit = try { gameController.redo() } catch { case _: Throwable => () } })
+      val t = new Thread(() => try { gameController.redo() } catch { case _: Throwable => () })
       t.setDaemon(true); t.start()
     }
     new HBox(6) { alignment = Pos.TopLeft; padding = Insets(8); children = Seq(undoBtn, redoBtn, saveBtn) }
@@ -205,7 +203,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     }
     gameController.add(this)
     Debug.log("WizardGUI.start -> ensured observer registration and starting controller")
-    val controllerThread = new Thread(new Runnable { override def run(): Unit = gameController.start() })
+    val controllerThread = new Thread(() => gameController.start())
     controllerThread.setDaemon(true)
     controllerThread.start()
     pendingPlayerCount.foreach { cnt =>
@@ -271,7 +269,7 @@ class WizardGUI(val gameController: GameLogic) extends JFXApp3 with Observer {
     nextButton.onAction = _ => {
       val playerCount = playerCountField.text.value
       if (playerCount.matches("[3-6]")) {
-        val t = new Thread(new Runnable { override def run(): Unit = gameController.playerCountSelected(playerCount.toInt) })
+        val t = new Thread(() => gameController.playerCountSelected(playerCount.toInt))
         t.setDaemon(true)
         t.start()
         ui.children = createPlayerNameScreen(playerCount.toInt)
