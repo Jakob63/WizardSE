@@ -64,6 +64,50 @@ class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       
       gameLogic.start()
       lastMsg should be("AskForPlayerCount")
+      
+      lastMsg = ""
+      gameLogic.start()
+      lastMsg should be("")
+    }
+
+    "handle setPlayer" in {
+      var lastMsg = ""
+      gameLogic.add(new wizard.actionmanagement.Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          lastMsg = msg
+          ()
+        }
+      })
+      gameLogic.setPlayer(3)
+      lastMsg should be("AskForPlayerNames")
+    }
+
+    "handle CardAuswahl" in {
+      var lastMsg = ""
+      gameLogic.add(new wizard.actionmanagement.Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          lastMsg = msg
+          ()
+        }
+      })
+      gameLogic.CardAuswahl()
+      lastMsg should be("CardAuswahl")
+    }
+
+    "handle undo/redo with notifications" in {
+      var lastMsg = ""
+      gameLogic.add(new wizard.actionmanagement.Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          lastMsg = msg
+          ()
+        }
+      })
+      
+      gameLogic.undo()
+      lastMsg should be("UndoPerformed")
+      
+      gameLogic.redo()
+      lastMsg should be("RedoPerformed")
     }
     
     "handle setPlayers (briefly)" in {
