@@ -204,7 +204,7 @@ class GameLogic extends Observable {
             }
         }
         val t = new Thread(() => playGame(players, rounds, startFromRound))
-        t.setDaemon(true)
+        t.setDaemon(false)
         t.start()
     }
 }

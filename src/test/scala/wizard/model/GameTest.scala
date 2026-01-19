@@ -49,9 +49,32 @@ class GameTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       val game2 = Game(List(p1))
       
       game1 should be(game2)
+      game1.hashCode() should be(game2.hashCode())
+      game1.toString should include("Game")
       
       val game3 = game1.copy(players = Nil)
       game3.players should be(Nil)
+      
+      // Test all var fields in copy if they were part of constructor, 
+      // but they are not. They are body variables.
+      // Let's ensure they are preserved or can be set.
+      game1.currentround = 10
+      game1.currentTrick = List(Card(Value.Seven, Color.Blue))
+      game1.firstPlayerIdx = 1
+      
+      val game4 = game1.copy()
+      // Note: In Scala, vars in the body are NOT copied by the default copy method 
+      // unless they are constructor parameters.
+      // Game(players: List[Player]) only has players in constructor.
+      game4.players should be(game1.players)
+      game4.currentround should be(0) // Default value, not copied
+    }
+
+    "calculate rounds for different player counts" in {
+      Game(List.fill(3)(Human.create("P").get)).rounds should be(20)
+      Game(List.fill(4)(Human.create("P").get)).rounds should be(15)
+      Game(List.fill(5)(Human.create("P").get)).rounds should be(12)
+      Game(List.fill(6)(Human.create("P").get)).rounds should be(10)
     }
   }
 }

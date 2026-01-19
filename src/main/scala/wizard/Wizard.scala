@@ -40,8 +40,13 @@ object Wizard {
         try { System.setProperty("WIZARD_INTERACTIVE", "1") } catch { case _: Throwable => () }
         val controlG = new GameLogic
         val tui = new TextUI(controlG)
-        val gui = new WizardGUI(controlG)
 
-        gui.main(args)
+        if (sys.props.getOrElse("java.awt.headless", "false") != "true") {
+            val gui = new WizardGUI(controlG)
+            gui.main(args)
+        } else {
+            controlG.start()
+            Thread.currentThread().join()
+        }
     }
 }
