@@ -20,5 +20,5 @@ x11vnc -display :99 -forever -shared -nopw -quiet &
 # Port 6080 = Standard für noVNC
 /usr/share/novnc/utils/launch.sh --vnc localhost:5900 --listen 6080 &
 
-# Start von Wizard)
+# Start von Wizard
 java -Djava.awt.headless=false -jar app.jar
