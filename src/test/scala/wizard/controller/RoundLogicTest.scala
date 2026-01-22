@@ -25,9 +25,9 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
   }
 
   class TestObserver extends Observer {
-    var lastMessage: String = ""
+    var messages: List[String] = Nil
     override def update(updateMSG: String, obj: Any*): Any = {
-      lastMessage = updateMSG
+      messages = messages :+ updateMSG
     }
   }
 
@@ -216,7 +216,249 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       roundLogicLocal.playRound(1, List(p1Redo, p1Normal), isResumed = false)
     }
 
-    "handle case with no trump card (e.g. last round)" in {
+    "handle bidding undo/redo exceptions and notify RedoPerformed" in {
+      val roundLogic = new RoundLogic
+      val observer = new TestObserver
+      roundLogic.add(observer)
+
+      val p1 = new TestPlayer("P1") {
+        var callCount = 0
+        override def bid(): Int = {
+          callCount += 1
+          if (callCount == 1) throw new wizard.actionmanagement.InputRouter.UndoException("undo")
+          1
+        }
+      }
+      p1.hand = Hand(List(Card(Value.One, Color.Red)))
+      p1.nextCard = p1.hand.getCard(0)
+
+      intercept[wizard.actionmanagement.GameStoppedException] {
+        roundLogic.playRound(1, List(p1), isResumed = false)
+      }
+
+      val p2 = new TestPlayer("P2") {
+        var callCount = 0
+        override def bid(): Int = {
+          callCount += 1
+          if (callCount == 1) throw new wizard.actionmanagement.InputRouter.RedoException("redo")
+          1
+        }
+      }
+      p2.hand = Hand(List(Card(Value.One, Color.Blue)))
+      p2.nextCard = p2.hand.getCard(0)
+      
+      roundLogic.playRound(1, List(p2), isResumed = false)
+      observer.messages should contain ("RedoPerformed")
+    }
+
+    "handle trick undo/redo and lead color reset" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val p2 = new TestPlayer("P2")
+      val testPlayers = List(p1, p2)
+      
+      Dealer.allCards = List(Card(Value.Eight, Color.Blue)) ++ List.fill(59)(Card(Value.Eight, Color.Red))
+      Dealer.index = 0
+
+      val p1Logic = new TestPlayer("P1") {
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int) = Card(Value.Five, Color.Red)
+      }
+      val p2Undo = new TestPlayer("P2") {
+        var callCount = 0
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int) = {
+          callCount += 1
+          if (callCount == 1) throw new wizard.actionmanagement.InputRouter.UndoException("undo")
+          Card(Value.Six, Color.Red)
+        }
+      }
+      p1Logic.hand = Hand(List(Card(Value.Five, Color.Red)))
+      p2Undo.hand = Hand(List(Card(Value.Six, Color.Red)))
+      p1Logic.nextCard = p1Logic.hand.getCard(0)
+      p2Undo.nextCard = p2Undo.hand.getCard(0)
+
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "points after round") roundLogic.stopGame = true
+        }
+      })
+
+      roundLogic.playRound(1, List(p1Logic, p2Undo), isResumed = false)
+    }
+
+    "handle trick redo exception and notify RedoPerformed" in {
+      val roundLogic = new RoundLogic
+      val observer = new TestObserver
+      roundLogic.add(observer)
+      
+      val p1 = new TestPlayer("P1") {
+        var callCount = 0
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int) = {
+          callCount += 1
+          if (callCount == 1) throw new wizard.actionmanagement.InputRouter.RedoException("redo")
+          Card(Value.One, Color.Red)
+        }
+      }
+      p1.hand = Hand(List(Card(Value.One, Color.Red)))
+      p1.nextCard = p1.hand.getCard(0)
+      p1.roundBids = 0
+
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "trick winner") roundLogic.stopGame = true
+        }
+      })
+
+      roundLogic.playRound(1, List(p1), isResumed = false)
+      observer.messages should contain ("RedoPerformed")
+    }
+
+    "handle trick winner when lead color card is not found" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val round = new Round(List(p1))
+      round.leadColor = Some(Color.Blue)
+      val trick = List((p1, Card(Value.Chester, Color.Red)))
+      roundLogic.trickwinner(trick, round) should be (p1)
+    }
+
+    "handle trick winner when nothing matches" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val p2 = new TestPlayer("P2")
+      val round = new Round(List(p1, p2))
+      val trick = List((p1, Card(Value.One, Color.Red)), (p2, Card(Value.Two, Color.Blue)))
+      roundLogic.trickwinner(trick, round) should be (p1)
+    }
+
+    "handle playRound when bidding is already done" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      p1.roundBids = 1
+      p1.hand = Hand(List(Card(Value.One, Color.Red)))
+      p1.nextCard = Card(Value.One, Color.Red)
+      
+      val observer = new TestObserver
+      roundLogic.add(observer)
+      
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "trick winner") roundLogic.stopGame = true
+        }
+      })
+      
+      roundLogic.playRound(1, List(p1), isResumed = true)
+      observer.messages should contain ("ShowHand")
+    }
+
+    "handle case where lastTrumpCard is used in resumed round" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val trumpCard = Card(Value.Seven, Color.Green)
+      roundLogic.lastTrumpCard = Some(trumpCard)
+      p1.roundBids = 0
+      p1.hand = Hand(List(Card(Value.One, Color.Red)))
+      p1.nextCard = Card(Value.One, Color.Red)
+
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "trick winner") roundLogic.stopGame = true
+        }
+      })
+
+      roundLogic.playRound(1, List(p1), isResumed = true)
+      roundLogic.lastTrumpCard should be (Some(trumpCard))
+    }
+
+    "handle case where round.leadColor is not set but first normal card exists in trickwinner" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val round = new Round(List(p1))
+      round.leadColor = None
+      val trick = List((p1, Card(Value.Eight, Color.Red)))
+      roundLogic.trickwinner(trick, round) should be (p1)
+    }
+
+    "handle case where round.leadColor is set but no matching cards exist in trick" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val round = new Round(List(p1))
+      round.leadColor = Some(Color.Blue)
+      val trick = List((p1, Card(Value.Eight, Color.Red)))
+      roundLogic.trickwinner(trick, round) should be (p1)
+    }
+
+    "handle resumed trick with first normal card determining lead color" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val testPlayers = List(p1)
+      
+      roundLogic.currentTrickCards = List(Card(Value.WizardKarte, Color.Blue), Card(Value.Eight, Color.Red))
+      p1.roundBids = 0
+      p1.hand = Hand(Nil)
+      p1.roundTricks = 0
+
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "points after round") roundLogic.stopGame = true
+        }
+      })
+      
+      roundLogic.playRound(1, testPlayers, isResumed = true)
+    }
+
+    "handle case where leadColor is reset when all normal cards are removed via undo" in {
+      val roundLogic = new RoundLogic
+      val p1 = new TestPlayer("P1") {
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int) = Card(Value.Eight, Color.Red)
+      }
+      val p2 = new TestPlayer("P2") {
+        var callCount = 0
+        override def playCard(lc: Option[Color], t: Option[Color], idx: Int) = {
+          callCount += 1
+          if (callCount == 1) throw new wizard.actionmanagement.InputRouter.UndoException("undo")
+          Card(Value.WizardKarte, Color.Blue)
+        }
+      }
+      p1.hand = Hand(List(Card(Value.Eight, Color.Red)))
+      p2.hand = Hand(List(Card(Value.WizardKarte, Color.Blue)))
+      p1.nextCard = p1.hand.getCard(0)
+      p2.nextCard = p2.hand.getCard(0)
+      p1.roundBids = 0; p2.roundBids = 0
+
+      roundLogic.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "points after round") roundLogic.stopGame = true
+        }
+      })
+
+      roundLogic.playRound(1, List(p1, p2), isResumed = false)
+    }
+
+    "handle trick play when isInteractive is true" in {
+      val roundLogic = new RoundLogic
+      sys.props("WIZARD_INTERACTIVE") = "true"
+      try {
+        val gl = new GameLogic
+        roundLogic.gameLogic = Some(gl)
+
+        val p1 = new TestPlayer("P1")
+        p1.hand = Hand(List(Card(Value.One, Color.Red)))
+        p1.nextCard = Card(Value.One, Color.Red)
+        p1.roundBids = 0
+
+        roundLogic.add(new Observer {
+          override def update(msg: String, obj: Any*): Any = {
+            if (msg == "trick winner") roundLogic.stopGame = true
+          }
+        })
+
+        roundLogic.playRound(1, List(p1), isResumed = false)
+      } finally {
+        sys.props.remove("WIZARD_INTERACTIVE")
+      }
+    }
+
+    "handle case where no trump card is set and lead color calculation" in {
       val roundLogicLocal = new RoundLogic
 
       roundLogicLocal.add(new Observer {
