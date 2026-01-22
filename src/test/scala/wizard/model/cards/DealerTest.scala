@@ -19,10 +19,38 @@ class DealerTest extends AnyWordSpec with Matchers with TimeLimitedTests with Be
       Dealer.allCards.size should be (60)
     }
 
-    "allow shuffling cards" in {
+    "allow shuffling cards when WIZARD_INTERACTIVE is set" in {
       val beforeShuffle = Dealer.allCards
-      Dealer.shuffleCards() should be (true)
-      Dealer.index should be (0)
+      sys.props("WIZARD_INTERACTIVE") = "true"
+      try {
+        Dealer.shuffleCards() should be (true)
+        Dealer.allCards should not be (beforeShuffle)
+        Dealer.index should be (0)
+      } finally {
+        sys.props.remove("WIZARD_INTERACTIVE")
+      }
+    }
+
+    "not shuffle cards when WIZARD_INTERACTIVE is false" in {
+      sys.props("WIZARD_INTERACTIVE") = "false"
+      
+      val originalAllCards = Dealer.allCards
+      Dealer.allCards = (for {
+            color <- Color.values.toList
+            value <- Value.values.toList
+        } yield Card(value, color))
+
+      val beforeShuffle = Dealer.allCards
+      
+      try {
+        Dealer.shuffleCards() should be (true)
+        if (System.console() == null) {
+          Dealer.allCards should be (beforeShuffle)
+        }
+      } finally {
+        sys.props.remove("WIZARD_INTERACTIVE")
+        Dealer.allCards = originalAllCards
+      }
     }
 
     "deal correct amount of cards" in {
