@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.2](https://github.com/Jakob63/WizardSE/compare/wizard-v1.2.1...wizard-v1.2.2) (2026-01-22)
+
+
+### Bug Fixes
+
+* add game logic instance test to remain coverage ([7510108](https://github.com/Jakob63/WizardSE/commit/7510108fd4ecd247f60d47df933e2f2c75ce7776))
+* fix crashing GUI & fix TUI output (no output without GUI) ([0934e1e](https://github.com/Jakob63/WizardSE/commit/0934e1e522fb9a65304fd18b5ca6c280d4b319b8))
+* fix failing scala build (tests) ([a798a21](https://github.com/Jakob63/WizardSE/commit/a798a211bf31fb436a929b5225115dd4d8fcd967))
+
 ## [1.2.1](https://github.com/Jakob63/WizardSE/compare/wizard-v1.2.0...wizard-v1.2.1) (2026-01-16)
 
 
