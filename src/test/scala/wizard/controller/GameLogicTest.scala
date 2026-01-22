@@ -114,5 +114,56 @@ class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         val players = List(Human.create("P1").get, Human.create("P2").get, Human.create("P3").get)
         noException should be thrownBy gameLogic.setPlayers(players)
     }
+
+    "handle save and load" in {
+      val gl = new GameLogic
+      var lastMsg = ""
+      var lastObj: Any = null
+      gl.add(new wizard.actionmanagement.Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          lastMsg = msg
+          if (obj.nonEmpty) lastObj = obj.head
+          ()
+        }
+      })
+
+      gl.setCanSave(false)
+      gl.save("test_game")
+      lastMsg should be("SaveNotAllowed")
+
+      val p1 = Human.create("Alice").get
+      val p2 = Human.create("Bob").get
+      val p3 = Human.create("Charlie").get
+      val players = List(p1, p2, p3)
+
+      gl.setPlayers(players)
+      gl.setCanSave(true)
+      
+      val title = "test_save_logic"
+      gl.save(title)
+      val extension = ".xml"
+      val file = new java.io.File(title + extension)
+      file.exists() should be(true)
+
+      gl.load(title)
+      lastMsg should be("GameLoaded")
+      lastObj shouldBe a [wizard.model.Game]
+      
+      file.delete()
+    }
+
+    "handle load failure" in {
+      val gl = new GameLogic
+      var lastMsg = ""
+      gl.add(new wizard.actionmanagement.Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          lastMsg = msg
+          ()
+        }
+      })
+
+      gl.load("non_existent_file_12345")
+      lastMsg should be("LoadFailed")
+    }
   }
 }

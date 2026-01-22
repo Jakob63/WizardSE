@@ -28,7 +28,7 @@ object InputRouter {
           }
         }
       })
-      t.setDaemon(true)
+      t.setDaemon(false)
       t.setName("InputRouter-StdIn-Feeder")
       t.start()
     }

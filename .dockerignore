@@ -1,0 +1,12 @@
+target/
+project/target/
+project/project/target/
+.idea/
+.vscode/
+.bsp/
+.metals/
+.sbt/
+bin/
+*.class
+*.log
+*.jar
