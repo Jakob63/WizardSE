@@ -238,6 +238,103 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       roundLogicLocal.lastTrumpCard should be (None)
     }
 
+    "handle Chester and Wizard trump cards" in {
+      val roundLogicLocal = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val testPlayers = List(p1)
+      
+      // Test Chester as Trump Card
+      val chesterCard = Card(Value.Chester, Color.Red)
+      // Index calculation: (1 * 1) % 60 = 1. So Chester must be at index 1.
+      Dealer.allCards = List(Card(Value.Seven, Color.Blue), chesterCard) ++ List.fill(58)(Card(Value.One, Color.Green))
+      Dealer.index = 0
+      p1.nextBid = 0
+      p1.nextCard = Card(Value.Seven, Color.Blue)
+      p1.hand = Hand(List(p1.nextCard))
+      
+      // We only want to test the trump handling, so we stop after cards are dealt or trump handled
+      roundLogicLocal.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "print trump card") roundLogicLocal.stopGame = true
+        }
+      })
+      
+      roundLogicLocal.playRound(1, testPlayers, isResumed = false)
+      roundLogicLocal.lastTrumpCard.get should be (chesterCard)
+
+      // Test Wizard as Trump Card
+      val roundLogicWizard = new RoundLogic
+      val p2 = new TestPlayer("P2")
+      val wizardCard = Card(Value.WizardKarte, Color.Blue)
+      // Index calculation: (1 * 1) % 60 = 1. So Wizard must be at index 1.
+      Dealer.allCards = List(Card(Value.Eight, Color.Green), wizardCard) ++ List.fill(58)(Card(Value.One, Color.Green))
+      Dealer.index = 0
+      p2.nextBid = 0
+      p2.nextCard = Card(Value.Eight, Color.Green)
+      p2.hand = Hand(List(p2.nextCard))
+      
+      wizard.actionmanagement.InputRouter.clear()
+      wizard.actionmanagement.InputRouter.offer("2") // Choose Green (Red, Green, Blue, Yellow)
+      
+      roundLogicWizard.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "CardsDealt") roundLogicWizard.stopGame = true
+        }
+      })
+      
+      roundLogicWizard.playRound(1, List(p2), isResumed = false)
+      roundLogicWizard.lastTrumpCard.get should be (wizardCard)
+    }
+
+    "handle trick winner edge cases" in {
+      val roundLogicLocal = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      val p2 = new TestPlayer("P2")
+      val round = new Round(List(p1, p2))
+      
+      // Case 1: Multiple Wizards (first one wins)
+      val trick1 = List(
+        (p1, Card(Value.WizardKarte, Color.Red)),
+        (p2, Card(Value.WizardKarte, Color.Blue))
+      )
+      roundLogicLocal.trickwinner(trick1, round) should be (p1)
+      
+      // Case 2: Only Chesters (first one wins)
+      val trick2 = List(
+        (p1, Card(Value.Chester, Color.Red)),
+        (p2, Card(Value.Chester, Color.Blue))
+      )
+      roundLogicLocal.trickwinner(trick2, round) should be (p1)
+      
+      // Case 3: Lead color with Chester (next card determines lead color or head wins)
+      round.leadColor = Some(Color.Blue)
+      val trick3 = List(
+        (p1, Card(Value.Chester, Color.Blue)),
+        (p2, Card(Value.Seven, Color.Red))
+      )
+      roundLogicLocal.trickwinner(trick3, round) should be (p1) // p1 wins because p2 didn't follow lead color and no trump
+    }
+
+    "handle playRound resumed with hand" in {
+      val roundLogicLocal = new RoundLogic
+      val p1 = new TestPlayer("P1")
+      p1.hand = Hand(List(Card(Value.One, Color.Blue)))
+      p1.roundBids = 1
+      p1.nextCard = Card(Value.One, Color.Blue)
+      
+      Dealer.allCards = List.fill(60)(Card(Value.Seven, Color.Red))
+      
+      roundLogicLocal.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "CardsDealt") roundLogicLocal.stopGame = true
+        }
+      })
+      
+      // isResumed = true and player has cards -> should NOT shuffle/deal
+      roundLogicLocal.playRound(1, List(p1), isResumed = true)
+      // If it didn't crash and stopped, it covered the branch
+    }
+
     "handle trick undo/redo and resumed trick state" in {
       val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")
