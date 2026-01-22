@@ -216,6 +216,28 @@ class RoundLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
       roundLogicLocal.playRound(1, List(p1Redo, p1Normal), isResumed = false)
     }
 
+    "handle case with no trump card (e.g. last round)" in {
+      val roundLogicLocal = new RoundLogic
+
+      roundLogicLocal.add(new Observer {
+        override def update(msg: String, obj: Any*): Any = {
+          if (msg == "CardsDealt") roundLogicLocal.stopGame = true
+        }
+      })
+
+      val singlePlayer = List(new TestPlayer("P1"))
+      singlePlayer(0).nextBid = 0
+      singlePlayer(0).hand = Hand(List(Card(Value.One, Color.Red)))
+      singlePlayer(0).nextCard = Card(Value.One, Color.Red)
+      
+      Dealer.allCards = List.fill(60)(Card(Value.Seven, Color.Red))
+      Dealer.index = 0
+
+      roundLogicLocal.playRound(60, singlePlayer, isResumed = false)
+      
+      roundLogicLocal.lastTrumpCard should be (None)
+    }
+
     "handle trick undo/redo and resumed trick state" in {
       val roundLogicLocal = new RoundLogic
       val p1 = new TestPlayer("P1")

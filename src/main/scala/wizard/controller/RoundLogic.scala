@@ -36,8 +36,12 @@ class RoundLogic extends Observable {
             lastTrumpCard
         } else {
             val trumpCardIndex = (currentround * players.length) % Dealer.allCards.length
-            val card = Dealer.allCards(trumpCardIndex)
-            Some(card)
+            if (currentround * players.length < Dealer.allCards.length) {
+                val card = Dealer.allCards(trumpCardIndex)
+                Some(card)
+            } else {
+                None
+            }
         }
         lastTrumpCard = trumpCardOpt
         gameLogic.foreach(_.currentTrumpCard = trumpCardOpt)
