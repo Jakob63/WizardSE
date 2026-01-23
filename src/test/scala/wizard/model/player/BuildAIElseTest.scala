@@ -7,7 +7,6 @@ class BuildAIElseTest extends AnyFunSuite with Matchers {
   test("BuildAI.setName else branch updates existing unfinished AI's name") {
     val builder = new BuildAI()
     builder.setName("AI_Alice")
-    // second setName should update the name of the unfinished AI
     builder.setName("AI_Bob")
     val player = builder.build()
     player.name should be ("AI_Bob")
