@@ -115,6 +115,12 @@ class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
         noException should be thrownBy gameLogic.setPlayers(players)
     }
 
+    "handle setPlayers with empty list for coverage" in {
+        val gl = new GameLogic
+        noException should be thrownBy gl.setPlayers(Nil)
+        noException should be thrownBy gl.setPlayersFromRedo(Nil)
+    }
+
     "handle save and load" in {
       val gl = new GameLogic
       var lastMsg = ""
@@ -164,6 +170,89 @@ class GameLogicTest extends AnyWordSpec with Matchers with TimeLimitedTests {
 
       gl.load("non_existent_file_12345")
       lastMsg should be("LoadFailed")
+    }
+
+    "check interactive status correctly" in {
+      val gl = new GameLogic
+      val oldProp = sys.props.get("WIZARD_INTERACTIVE")
+      
+      try {
+        sys.props("WIZARD_INTERACTIVE") = "true"
+        gl.isInteractive should be(true)
+        
+        sys.props("WIZARD_INTERACTIVE") = "0"
+        val expected = (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
+        gl.isInteractive should be(expected)
+
+        sys.props("WIZARD_INTERACTIVE") = "false"
+        gl.isInteractive should be(expected)
+      } finally {
+        oldProp match {
+          case Some(v) => sys.props("WIZARD_INTERACTIVE") = v
+          case None => sys.props.remove("WIZARD_INTERACTIVE")
+        }
+      }
+    }
+
+    "cover additional lines in playGame and save" in {
+      val gl = new GameLogic
+
+      val jsonGl = new GameLogic {
+        override val fileIo: wizard.model.fileIoComponent.FileIOInterface = new wizard.model.fileIoComponent.fileIoJsonImpl.FileIO
+      }
+      jsonGl.setCanSave(true)
+      jsonGl.save("test_json_branch")
+      new java.io.File("test_json_branch.json").exists() should be (true)
+      new java.io.File("test_json_branch.json").delete()
+
+      val emptyGl = new GameLogic
+      emptyGl.setCanSave(true)
+      noException should be thrownBy emptyGl.save("test_empty_players")
+      new java.io.File("test_empty_players.xml").delete()
+
+      val players = List(Human.create("P1").get, Human.create("P2").get, Human.create("P3").get)
+      gl.stopGame()
+      noException should be thrownBy gl.playGame(players, 1, 1)
+    }
+
+    "cover methods in GameLogic companion object" in {
+      GameLogic.validGame(4) should be(true)
+      GameLogic.validGame(2) should be(false)
+
+      val mockGame = wizard.model.Game(Nil)
+      mockGame.rounds = 0
+      GameLogic.isOver(mockGame) should be(true)
+      mockGame.rounds = 5
+      GameLogic.isOver(mockGame) should be(false)
+
+      val players = List(wizard.model.player.Human.create("Test").get)
+      noException should be thrownBy GameLogic.playGame(mockGame, players)
+    }
+
+    "cover undo/redo catch blocks with failing commands" in {
+        import wizard.undo.{Command, UndoService}
+        val gl = new GameLogic
+        
+        val failingUndoCommand = new Command {
+            override def doStep(): Unit = ()
+            override def undoStep(): Unit = throw new RuntimeException("Fail in undoStep")
+            override def redoStep(): Unit = ()
+        }
+        
+        UndoService.manager.doStep(failingUndoCommand)
+        noException should be thrownBy gl.undo()
+        
+        var failDoStep = false
+        val customCommand = new Command {
+            override def doStep(): Unit = if (failDoStep) throw new RuntimeException("Fail in doStep")
+            override def undoStep(): Unit = ()
+            override def redoStep(): Unit = ()
+        }
+        
+        UndoService.manager.doStep(customCommand)
+        gl.undo()
+        failDoStep = true
+        noException should be thrownBy gl.redo()
     }
   }
 }
