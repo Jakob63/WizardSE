@@ -14,7 +14,6 @@ class GameLogicStartAndPlayerCountTest extends AnyFunSuite with Matchers {
     }
     gl.add(obs)
     gl.start()
-    // Some notifications may be asynchronous but start() calls notifyObservers synchronously
     received should contain ("StartGame")
     received should contain ("AskForPlayerCount")
   }
