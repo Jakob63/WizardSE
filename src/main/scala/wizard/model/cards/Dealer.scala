@@ -19,7 +19,7 @@ object Dealer extends Observable {
         index = 0
         val isInteractive = {
             val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
-            prop || (System.console() != null && sys.env.get("GITHUB_ACTIONS").isEmpty)
+            prop || (System.console() != null)
         }
         if (isInteractive) {
             allCards = scala.util.Random().shuffle(allCards)
