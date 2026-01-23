@@ -77,5 +77,20 @@ class InputRouterTest extends AnyWordSpec with Matchers with TimeLimitedTests wi
         InputRouter.offer("valid")
         InputRouter.readLine() should be("valid")
     }
+
+    "trigger feeder thread when WIZARD_INTERACTIVE is set" in {
+      val oldProp = sys.props.get("WIZARD_INTERACTIVE")
+      sys.props("WIZARD_INTERACTIVE") = "true"
+      
+      try {
+        InputRouter.offer("manual")
+        InputRouter.readLine() should be("manual")
+      } finally {
+        oldProp match {
+          case Some(v) => sys.props("WIZARD_INTERACTIVE") = v
+          case None => sys.props.remove("WIZARD_INTERACTIVE")
+        }
+      }
+    }
   }
 }
