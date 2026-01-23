@@ -288,7 +288,6 @@ class TextUIUnitTest extends AnyFunSuite with Matchers{
   }
   test("TextUI.update which trump prompts and reads a line") {
     val player = Human.create("P").get
-    // Offer input to InputRouter to satisfy readLine used in which trump
     wizard.actionmanagement.InputRouter.clear()
     wizard.actionmanagement.InputRouter.offer("Red")
     val out = new java.io.ByteArrayOutputStream()

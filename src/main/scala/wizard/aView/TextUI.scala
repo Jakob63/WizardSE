@@ -211,10 +211,6 @@ class TextUI(GameController: GameLogic) extends Observer {
     private[aView] def testSetLastSelectedCount(c: Int): Unit = { lastSelectedCount = c }
 
     private def isInteractive: Boolean = {
-        // In test environments System.console() is often null; treat as interactive so reader threads run during tests.
-        // Previous logic preserved for reference:
-        // val prop = sys.props.get("WIZARD_INTERACTIVE").exists(v => v != "0" && v.toLowerCase != "false")
-        // prop || System.console() != null
         true
     }
 
